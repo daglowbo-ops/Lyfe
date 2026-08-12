@@ -17,6 +17,7 @@ import { rolloverData } from './model.js';
 import { clearDeviceLock, hasDeviceCredential } from '../lib/deviceLock.js';
 import { supabaseConfigured } from '../lib/supabase.js';
 import {
+  changeCloudPassword,
   createCloudAccount,
   getCloudSession,
   onCloudAuthChange,
@@ -29,6 +30,17 @@ import {
 } from './cloud.js';
 
 const AppContext = createContext(null);
+
+function hasPasswordRecoveryIntent() {
+  if (typeof window === 'undefined') return false;
+  const query = new URLSearchParams(window.location.search);
+  return query.get('recovery') === '1' || window.location.hash.includes('type=recovery');
+}
+
+function clearPasswordRecoveryIntent() {
+  if (typeof window === 'undefined' || !hasPasswordRecoveryIntent()) return;
+  window.history.replaceState({}, '', `${window.location.pathname}${window.location.hash && !window.location.hash.includes('type=recovery') ? window.location.hash : ''}`);
+}
 
 function prepareData(saved) {
   const today = startOfToday();
@@ -80,7 +92,7 @@ export function AppProvider({ children }) {
   const cloudReadyRef = useRef(false);
   const cloudVersionRef = useRef(0);
   const loadingUserRef = useRef(null);
-  const passwordRecoveryRef = useRef(false);
+  const passwordRecoveryRef = useRef(hasPasswordRecoveryIntent());
   const loadAttemptRef = useRef(0);
   const syncTimerRef = useRef(null);
   const lastSavedFingerprintRef = useRef(fingerprint(state));
@@ -297,7 +309,7 @@ export function AppProvider({ children }) {
 
     const receiveSession = (event, session) => {
       if (!active) return;
-      if (event === 'PASSWORD_RECOVERY' && session?.user) {
+      if ((event === 'PASSWORD_RECOVERY' || passwordRecoveryRef.current) && session?.user) {
         passwordRecoveryRef.current = true;
         sessionRef.current = session;
         cloudReadyRef.current = false;
@@ -316,6 +328,10 @@ export function AppProvider({ children }) {
           });
         }
         return;
+      }
+      if (!session && event === 'SIGNED_OUT') {
+        passwordRecoveryRef.current = false;
+        clearPasswordRecoveryIntent();
       }
       if (passwordRecoveryRef.current && session?.user) {
         sessionRef.current = session;
@@ -345,7 +361,15 @@ export function AppProvider({ children }) {
         }
         stopAuthListener = stop;
         const session = await getCloudSession();
-        if (active && !passwordRecoveryRef.current) await loadSession(session);
+        if (!active) return;
+        if (passwordRecoveryRef.current && session?.user) receiveSession('PASSWORD_RECOVERY', session);
+        else {
+          if (passwordRecoveryRef.current) {
+            passwordRecoveryRef.current = false;
+            clearPasswordRecoveryIntent();
+          }
+          await loadSession(session);
+        }
       } catch (error) {
         if (!active || !mountedRef.current) return;
         setSync((value) => ({
@@ -412,13 +436,24 @@ export function AppProvider({ children }) {
   const finishPasswordRecovery = useCallback(async (password) => {
     await updateCloudPassword(password);
     passwordRecoveryRef.current = false;
+    clearPasswordRecoveryIntent();
     const session = sessionRef.current || await getCloudSession();
     if (!session?.user) throw new Error('Your recovery session expired. Request a new password link.');
     await loadSession(session, { force: true });
     return session.user.email || '';
   }, [loadSession]);
 
+  const changeAccountPassword = useCallback(async (currentPassword, password) => {
+    const user = await changeCloudPassword(currentPassword, password);
+    if (mountedRef.current) {
+      setSync((value) => ({ ...value, email: user?.email || value.email }));
+    }
+    return user;
+  }, []);
+
   const disconnectCloud = useCallback(async () => {
+    passwordRecoveryRef.current = false;
+    clearPasswordRecoveryIntent();
     clearTimeout(syncTimerRef.current);
     if (cloudReadyRef.current && fingerprint(stateRef.current) !== lastSavedFingerprintRef.current) {
       const saved = await persistLatest();
@@ -485,6 +520,7 @@ export function AppProvider({ children }) {
       authenticateWithPassword,
       sendPasswordReset,
       finishPasswordRecovery,
+      changeAccountPassword,
       retrySync,
       disconnectCloud,
       signOut: disconnectCloud,
@@ -493,7 +529,7 @@ export function AppProvider({ children }) {
         dispatch({ type: 'hydrate', data: prepareNewAccount() });
       },
     }),
-    [authenticateWithPassword, disconnectCloud, finishPasswordRecovery, retrySync, sendPasswordReset, state, sync],
+    [authenticateWithPassword, changeAccountPassword, disconnectCloud, finishPasswordRecovery, retrySync, sendPasswordReset, state, sync],
   );
 
   const appReady = sync.signedIn && sync.dataReady;

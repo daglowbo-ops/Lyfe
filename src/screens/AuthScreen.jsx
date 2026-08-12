@@ -259,12 +259,19 @@ function AccountView({ sync, onAuthenticate, onRequestPasswordReset }) {
               onClick={() => void requestPasswordReset()}
               style={{ width: '100%', minHeight: 44, marginTop: 8, textAlign: 'center', color: dim(0.64), fontSize: 14 }}
             >
-              {resetting ? 'Sending password link…' : 'Set or reset password'}
+              {resetting ? 'Sending recovery link…' : 'Forgot password?'}
             </button>
             {resetSent && (
-              <p role="status" aria-live="polite" style={{ margin: '6px 0 0', color: dim(0.68), fontSize: 13, lineHeight: 1.45 }}>
-                Check your inbox for a one-time password setup link.
-              </p>
+              <div
+                role="status"
+                aria-live="polite"
+                style={{ marginTop: 8, padding: '13px 14px', borderRadius: 14, border: `1px solid ${dim(0.12)}`, background: dim(0.04) }}
+              >
+                <div style={{ fontSize: 14, fontWeight: 600 }}>Check your inbox</div>
+                <p style={{ margin: '4px 0 0', color: dim(0.62), fontSize: 12.5, lineHeight: 1.45 }}>
+                  If an account exists for {email.trim()}, the link will bring you back here to choose a new password.
+                </p>
+              </div>
             )}
           </>
         )}
@@ -275,6 +282,7 @@ function AccountView({ sync, onAuthenticate, onRequestPasswordReset }) {
 
 function PasswordRecoveryView({ email, onFinish, onSignOut }) {
   const [password, setPassword] = useState('');
+  const [confirmation, setConfirmation] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
@@ -283,6 +291,10 @@ function PasswordRecoveryView({ email, onFinish, onSignOut }) {
     event.preventDefault();
     if (password.length < 6 || submitting) {
       setFormError('Use a password with at least 6 characters.');
+      return;
+    }
+    if (password !== confirmation) {
+      setFormError('The passwords do not match.');
       return;
     }
     setSubmitting(true);
@@ -299,10 +311,10 @@ function PasswordRecoveryView({ email, onFinish, onSignOut }) {
   return (
     <div className="screen-in" style={{ marginTop: 'clamp(52px, 12vh, 94px)', marginBottom: 32 }}>
       <h1 style={{ margin: 0, maxWidth: 330, fontSize: 38, lineHeight: 1, letterSpacing: -1.5 }}>
-        Choose your password.
+        Create a new password.
       </h1>
       <p style={{ margin: '14px 0 0', color: dim(0.64), fontSize: 15, lineHeight: 1.5 }}>
-        This one-time step updates <span style={{ color: INK }}>{email}</span>. You will enter Fieldnote immediately afterward.
+        Your recovery link securely identified <span style={{ color: INK }}>{email}</span>. Choose a new password before continuing.
       </p>
       <form onSubmit={submit} noValidate style={{ marginTop: 28 }}>
         <label htmlFor="fieldnote-new-password" style={{ display: 'block', fontFamily: MONO, fontSize: 12, letterSpacing: 1.35, color: dim(0.62) }}>
@@ -336,13 +348,31 @@ function PasswordRecoveryView({ email, onFinish, onSignOut }) {
         <div id="fieldnote-recovery-help" style={{ marginTop: 9, color: dim(0.56), fontSize: 12.5, lineHeight: 1.4 }}>
           At least 6 characters.
         </div>
+        <label htmlFor="fieldnote-confirm-password" style={{ display: 'block', marginTop: 18, fontFamily: MONO, fontSize: 12, letterSpacing: 1.35, color: dim(0.62) }}>
+          CONFIRM NEW PASSWORD
+        </label>
+        <input
+          id="fieldnote-confirm-password"
+          type={showPassword ? 'text' : 'password'}
+          autoComplete="new-password"
+          minLength={6}
+          required
+          value={confirmation}
+          onChange={(event) => {
+            setConfirmation(event.target.value);
+            setFormError('');
+          }}
+          aria-describedby={formError ? 'fieldnote-recovery-error' : undefined}
+          aria-invalid={Boolean(formError)}
+          style={{ ...input, boxSizing: 'border-box', width: '100%', height: 52, marginTop: 9 }}
+        />
         {formError && (
           <div id="fieldnote-recovery-error" role="alert" style={{ marginTop: 12, color: 'var(--warn)', fontSize: 13.5, lineHeight: 1.4 }}>
             {formError}
           </div>
         )}
-        <PrimaryButton type="submit" background={INK} color="#0D0D0C" disabled={submitting || password.length < 6} style={{ marginTop: 20 }}>
-          {submitting ? 'Saving password…' : 'Save password and continue'}
+        <PrimaryButton type="submit" background={INK} color="#0D0D0C" disabled={submitting || password.length < 6 || confirmation.length < 6} style={{ marginTop: 20 }}>
+          {submitting ? 'Updating password…' : 'Update password and continue'}
         </PrimaryButton>
         <button
           type="button"

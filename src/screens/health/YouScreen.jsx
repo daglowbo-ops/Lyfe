@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import Screen from '../../components/Screen.jsx';
-import { Avatar, GhostButton, Label, Mono, PrimaryButton } from '../../components/Primitives.jsx';
+import { Avatar, GhostButton, Label, Mono, Panel, PrimaryButton } from '../../components/Primitives.jsx';
+import PasswordSheet from '../../sheets/PasswordSheet.jsx';
 import { useApp } from '../../store/AppProvider.jsx';
 import { goalOn } from '../../store/selectors.js';
 import { key, shortLabel, parseKey, startOfToday } from '../../lib/date.js';
@@ -14,11 +15,12 @@ const SETTINGS = [
 ];
 
 export default function YouScreen() {
-  const { state, sync, dispatch, resetAll, retrySync, disconnectCloud } = useApp();
+  const { state, sync, dispatch, resetAll, retrySync, disconnectCloud, changeAccountPassword } = useApp();
   const useKg = state.toggles.kg;
   const unit = weightUnit(useKg);
   const latest = state.weights.at(-1)?.value || 0;
   const [weightDraft, setWeightDraft] = useState('');
+  const [passwordOpen, setPasswordOpen] = useState(false);
   const initials = state.profileName.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join('').toUpperCase() || 'ME';
   const backLabel = state.module === 'money' ? 'Spending' : 'Today';
 
@@ -48,7 +50,8 @@ export default function YouScreen() {
   };
 
   return (
-    <Screen>
+    <>
+      <Screen>
       <button
         className="muted-link"
         onClick={() => dispatch({ type: 'closeProfile' })}
@@ -119,11 +122,28 @@ export default function YouScreen() {
         ))}
       </div>
 
-      <Label style={{ marginTop: 26 }}>ACCOUNT & DATA</Label>
+      <Label style={{ marginTop: 26 }}>ACCOUNT</Label>
+      <Panel style={{ marginTop: 10, padding: '0 16px', overflow: 'hidden' }}>
+        <AccountRow
+          title="Email"
+          sub="Used to sign in and recover your account"
+          value={sync.email}
+        />
+        <AccountRow
+          title="Password"
+          sub="Hidden and securely managed by Supabase"
+          value="••••••••"
+          action="Change"
+          onClick={() => setPasswordOpen(true)}
+          last
+        />
+      </Panel>
+
+      <Label style={{ marginTop: 26 }}>DATA & SYNC</Label>
       <div style={{ marginTop: 10 }}>
         <StatusRow
-          title="Supabase account"
-          sub={`Signed in as ${sync.email}`}
+          title="Cloud record"
+          sub="Your health and money data is private to this account"
           value={syncLabel(sync)}
         />
         {sync.error && (
@@ -185,8 +205,52 @@ export default function YouScreen() {
       >
         Reset account data
       </GhostButton>
-    </Screen>
+      </Screen>
+      {passwordOpen && (
+        <PasswordSheet
+          email={sync.email}
+          onChange={changeAccountPassword}
+          onClose={() => setPasswordOpen(false)}
+        />
+      )}
+    </>
   );
+}
+
+function AccountRow({ title, sub, value, action, onClick, last }) {
+  const content = (
+    <>
+      <div style={{ minWidth: 0, textAlign: 'left' }}>
+        <div style={{ fontSize: 15, fontWeight: 600 }}>{title}</div>
+        <div style={{ marginTop: 3, color: dim(0.58), fontSize: 12, lineHeight: 1.4 }}>{sub}</div>
+        <div style={{ marginTop: 7, color: dim(0.78), fontFamily: title === 'Password' ? MONO : undefined, fontSize: 13.5, lineHeight: 1.35, overflowWrap: 'anywhere' }}>
+          {value}
+        </div>
+      </div>
+      {action && (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, flexShrink: 0, color: NUT, fontSize: 13.5, fontWeight: 600 }}>
+          {action}<span aria-hidden="true" style={{ fontSize: 18, lineHeight: 1 }}>›</span>
+        </span>
+      )}
+    </>
+  );
+
+  const style = {
+    width: '100%',
+    minHeight: 82,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 16,
+    padding: '14px 0',
+    borderBottom: last ? 'none' : `1px solid ${dim(0.08)}`,
+  };
+
+  return onClick ? (
+    <button type="button" onClick={onClick} aria-label={`${action} ${title.toLowerCase()}`} style={style}>
+      {content}
+    </button>
+  ) : <div style={style}>{content}</div>;
 }
 
 function GoalRow({ field, label, sub, unit }) {
