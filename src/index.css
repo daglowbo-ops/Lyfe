@@ -229,7 +229,7 @@ input::placeholder {
   .shell-caption {
     display: block;
     font-family: 'JetBrains Mono', ui-monospace, monospace;
-    font-size: 10px;
+    font-size: 12px;
     letter-spacing: 1.6px;
     color: rgba(233, 229, 220, 0.3);
     text-align: center;

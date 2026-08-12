@@ -86,6 +86,7 @@ export default function SwipeRow({ id, onDelete, children, deleteLabel = 'Delete
       <button
         id={actionId}
         type="button"
+        aria-label={deleteLabel}
         tabIndex={open ? 0 : -1}
         aria-hidden={open ? undefined : 'true'}
         onClick={() => {
@@ -111,7 +112,6 @@ export default function SwipeRow({ id, onDelete, children, deleteLabel = 'Delete
         }}
       >
         <span aria-hidden="true">Delete</span>
-        <span className="sr-only">{deleteLabel}</span>
       </button>
     </div>
   );

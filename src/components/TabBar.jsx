@@ -101,7 +101,6 @@ export default function TabBar({ tabs, active, onSelect }) {
                 top: -11,
                 width: 18,
                 height: 2,
-                borderRadius: '0 0 2px 2px',
                 background: t.accent,
                 opacity: on ? 1 : 0,
                 transform: `scaleX(${on ? 1 : 0.35})`,
