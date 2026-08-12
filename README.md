@@ -52,6 +52,8 @@ snapshot, and no service-role key is shipped to the browser.
 Accounts use an email address and password managed by Supabase Auth. Passwords
 are never stored in the application snapshot or handled as readable account
 data. Email confirmation is disabled for the current small private user group.
+An existing email-link account can use the one-time password setup action on
+the sign-in screen; recovery email is sent only when that user requests it.
 
 The optional Device lock uses WebAuthn with the browser's platform
 authenticator. Depending on the device, that can be a fingerprint, face scan,

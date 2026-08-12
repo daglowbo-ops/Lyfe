@@ -21,8 +21,10 @@ import {
   getCloudSession,
   onCloudAuthChange,
   readCloudSnapshot,
+  requestCloudPasswordReset,
   signInCloudAccount,
   signOutCloud,
+  updateCloudPassword,
   writeCloudSnapshot,
 } from './cloud.js';
 
@@ -78,6 +80,7 @@ export function AppProvider({ children }) {
   const cloudReadyRef = useRef(false);
   const cloudVersionRef = useRef(0);
   const loadingUserRef = useRef(null);
+  const passwordRecoveryRef = useRef(false);
   const loadAttemptRef = useRef(0);
   const syncTimerRef = useRef(null);
   const lastSavedFingerprintRef = useRef(fingerprint(state));
@@ -294,6 +297,30 @@ export function AppProvider({ children }) {
 
     const receiveSession = (event, session) => {
       if (!active) return;
+      if (event === 'PASSWORD_RECOVERY' && session?.user) {
+        passwordRecoveryRef.current = true;
+        sessionRef.current = session;
+        cloudReadyRef.current = false;
+        cloudUserRef.current = null;
+        if (mountedRef.current) {
+          setSync({
+            configured: true,
+            signedIn: true,
+            dataReady: false,
+            authStatus: 'password-recovery',
+            status: 'saved',
+            email: session.user.email || '',
+            lastSyncedAt: null,
+            error: '',
+            errorSource: '',
+          });
+        }
+        return;
+      }
+      if (passwordRecoveryRef.current && session?.user) {
+        sessionRef.current = session;
+        return;
+      }
       if (
         (event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED')
         && session?.user?.id === cloudUserRef.current
@@ -318,7 +345,7 @@ export function AppProvider({ children }) {
         }
         stopAuthListener = stop;
         const session = await getCloudSession();
-        if (active) await loadSession(session);
+        if (active && !passwordRecoveryRef.current) await loadSession(session);
       } catch (error) {
         if (!active || !mountedRef.current) return;
         setSync((value) => ({
@@ -378,6 +405,17 @@ export function AppProvider({ children }) {
       }
       throw error;
     }
+  }, [loadSession]);
+
+  const sendPasswordReset = useCallback(async (email) => requestCloudPasswordReset(email), []);
+
+  const finishPasswordRecovery = useCallback(async (password) => {
+    await updateCloudPassword(password);
+    passwordRecoveryRef.current = false;
+    const session = sessionRef.current || await getCloudSession();
+    if (!session?.user) throw new Error('Your recovery session expired. Request a new password link.');
+    await loadSession(session, { force: true });
+    return session.user.email || '';
   }, [loadSession]);
 
   const disconnectCloud = useCallback(async () => {
@@ -445,6 +483,8 @@ export function AppProvider({ children }) {
       dispatch,
       patch: (patch) => dispatch({ type: 'patch', patch }),
       authenticateWithPassword,
+      sendPasswordReset,
+      finishPasswordRecovery,
       retrySync,
       disconnectCloud,
       signOut: disconnectCloud,
@@ -453,7 +493,7 @@ export function AppProvider({ children }) {
         dispatch({ type: 'hydrate', data: prepareNewAccount() });
       },
     }),
-    [authenticateWithPassword, disconnectCloud, retrySync, state, sync],
+    [authenticateWithPassword, disconnectCloud, finishPasswordRecovery, retrySync, sendPasswordReset, state, sync],
   );
 
   const appReady = sync.signedIn && sync.dataReady;
@@ -463,6 +503,8 @@ export function AppProvider({ children }) {
         <AuthScreen
           sync={sync}
           onAuthenticate={authenticateWithPassword}
+          onRequestPasswordReset={sendPasswordReset}
+          onFinishPasswordRecovery={finishPasswordRecovery}
           onRetry={retrySync}
           onSignOut={disconnectCloud}
         />

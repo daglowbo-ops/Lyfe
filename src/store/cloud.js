@@ -45,6 +45,25 @@ export async function signInCloudAccount(email, password) {
   return { email: values.email, session: data.session };
 }
 
+export async function requestCloudPasswordReset(email) {
+  const normalized = String(email || '').trim().toLowerCase();
+  if (!/^\S+@\S+\.\S+$/.test(normalized)) throw new Error('Enter a valid email address.');
+  const client = await requireClient();
+  const { error } = await client.auth.resetPasswordForEmail(normalized, {
+    redirectTo: window.location.origin,
+  });
+  if (error) throw error;
+  return normalized;
+}
+
+export async function updateCloudPassword(password) {
+  if (String(password || '').length < 6) throw new Error('Use at least 6 characters for your password.');
+  const client = await requireClient();
+  const { data, error } = await client.auth.updateUser({ password: String(password) });
+  if (error) throw error;
+  return data.user;
+}
+
 export async function signOutCloud() {
   const client = await requireClient();
   const { error } = await client.auth.signOut();

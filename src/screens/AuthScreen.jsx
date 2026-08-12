@@ -95,12 +95,14 @@ function friendlyAuthError(error, mode) {
     : 'We could not sign you in. Check your details and try again.';
 }
 
-function AccountView({ sync, onAuthenticate }) {
+function AccountView({ sync, onAuthenticate, onRequestPasswordReset }) {
   const [mode, setMode] = useState('create');
   const [email, setEmail] = useState(sync.email || '');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [resetting, setResetting] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
   const [formError, setFormError] = useState('');
 
   const creating = mode === 'create';
@@ -110,6 +112,26 @@ function AccountView({ sync, onAuthenticate }) {
   const changeMode = (nextMode) => {
     setMode(nextMode);
     setFormError('');
+    setResetSent(false);
+  };
+
+  const requestPasswordReset = async () => {
+    if (resetting) return;
+    if (!emailValid) {
+      setFormError('Enter your email address first.');
+      return;
+    }
+    setResetting(true);
+    setResetSent(false);
+    setFormError('');
+    try {
+      await onRequestPasswordReset(email);
+      setResetSent(true);
+    } catch (error) {
+      setFormError(friendlyAuthError(error, 'sign-in'));
+    } finally {
+      setResetting(false);
+    }
   };
 
   const submit = async (event) => {
@@ -227,12 +249,115 @@ function AccountView({ sync, onAuthenticate }) {
             ? (creating ? 'Creating account…' : 'Signing in…')
             : (creating ? 'Create account' : 'Sign in')}
         </PrimaryButton>
+
+        {!creating && (
+          <>
+            <button
+              type="button"
+              className="muted-link"
+              disabled={resetting}
+              onClick={() => void requestPasswordReset()}
+              style={{ width: '100%', minHeight: 44, marginTop: 8, textAlign: 'center', color: dim(0.64), fontSize: 14 }}
+            >
+              {resetting ? 'Sending password link…' : 'Set or reset password'}
+            </button>
+            {resetSent && (
+              <p role="status" aria-live="polite" style={{ margin: '6px 0 0', color: dim(0.68), fontSize: 13, lineHeight: 1.45 }}>
+                Check your inbox for a one-time password setup link.
+              </p>
+            )}
+          </>
+        )}
       </form>
     </div>
   );
 }
 
-export default function AuthScreen({ sync, onAuthenticate, onRetry, onSignOut }) {
+function PasswordRecoveryView({ email, onFinish, onSignOut }) {
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [formError, setFormError] = useState('');
+
+  const submit = async (event) => {
+    event.preventDefault();
+    if (password.length < 6 || submitting) {
+      setFormError('Use a password with at least 6 characters.');
+      return;
+    }
+    setSubmitting(true);
+    setFormError('');
+    try {
+      await onFinish(password);
+    } catch (error) {
+      setFormError(error?.message || 'Your password could not be updated. Request a new link and try again.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="screen-in" style={{ marginTop: 'clamp(52px, 12vh, 94px)', marginBottom: 32 }}>
+      <h1 style={{ margin: 0, maxWidth: 330, fontSize: 38, lineHeight: 1, letterSpacing: -1.5 }}>
+        Choose your password.
+      </h1>
+      <p style={{ margin: '14px 0 0', color: dim(0.64), fontSize: 15, lineHeight: 1.5 }}>
+        This one-time step updates <span style={{ color: INK }}>{email}</span>. You will enter Fieldnote immediately afterward.
+      </p>
+      <form onSubmit={submit} noValidate style={{ marginTop: 28 }}>
+        <label htmlFor="fieldnote-new-password" style={{ display: 'block', fontFamily: MONO, fontSize: 12, letterSpacing: 1.35, color: dim(0.62) }}>
+          NEW PASSWORD
+        </label>
+        <div style={{ position: 'relative', marginTop: 9 }}>
+          <input
+            id="fieldnote-new-password"
+            type={showPassword ? 'text' : 'password'}
+            autoComplete="new-password"
+            minLength={6}
+            required
+            value={password}
+            onChange={(event) => {
+              setPassword(event.target.value);
+              setFormError('');
+            }}
+            aria-describedby={formError ? 'fieldnote-recovery-error' : 'fieldnote-recovery-help'}
+            aria-invalid={Boolean(formError)}
+            style={{ ...input, boxSizing: 'border-box', width: '100%', height: 52, paddingRight: 78 }}
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword((value) => !value)}
+            aria-label={showPassword ? 'Hide password' : 'Show password'}
+            style={{ position: 'absolute', top: 4, right: 5, minWidth: 66, height: 44, textAlign: 'center', color: dim(0.68), fontSize: 13, fontWeight: 600 }}
+          >
+            {showPassword ? 'Hide' : 'Show'}
+          </button>
+        </div>
+        <div id="fieldnote-recovery-help" style={{ marginTop: 9, color: dim(0.56), fontSize: 12.5, lineHeight: 1.4 }}>
+          At least 6 characters.
+        </div>
+        {formError && (
+          <div id="fieldnote-recovery-error" role="alert" style={{ marginTop: 12, color: 'var(--warn)', fontSize: 13.5, lineHeight: 1.4 }}>
+            {formError}
+          </div>
+        )}
+        <PrimaryButton type="submit" background={INK} color="#0D0D0C" disabled={submitting || password.length < 6} style={{ marginTop: 20 }}>
+          {submitting ? 'Saving password…' : 'Save password and continue'}
+        </PrimaryButton>
+        <button
+          type="button"
+          className="muted-link"
+          onClick={() => void onSignOut().catch(() => undefined)}
+          style={{ width: '100%', minHeight: 44, marginTop: 8, textAlign: 'center', color: dim(0.62), fontSize: 14 }}
+        >
+          Cancel
+        </button>
+      </form>
+    </div>
+  );
+}
+
+export default function AuthScreen({ sync, onAuthenticate, onRequestPasswordReset, onFinishPasswordRecovery, onRetry, onSignOut }) {
   const waiting = sync.status === 'checking' || sync.status === 'loading';
   const loadError = sync.status === 'error'
     && (sync.signedIn || !sync.configured || sync.authStatus === 'checking');
@@ -259,8 +384,14 @@ export default function AuthScreen({ sync, onAuthenticate, onRetry, onSignOut })
             onRetry={onRetry}
             onSignOut={sync.signedIn ? onSignOut : undefined}
           />
+        ) : sync.authStatus === 'password-recovery' ? (
+          <PasswordRecoveryView email={sync.email} onFinish={onFinishPasswordRecovery} onSignOut={onSignOut} />
         ) : (
-          <AccountView sync={sync} onAuthenticate={onAuthenticate} />
+          <AccountView
+            sync={sync}
+            onAuthenticate={onAuthenticate}
+            onRequestPasswordReset={onRequestPasswordReset}
+          />
         )}
         <p style={{ margin: 'auto 0 0', fontFamily: MONO, fontSize: 12, letterSpacing: 0.8, lineHeight: 1.5, color: dim(0.52) }}>
           PRIVATE BY ACCOUNT · HEALTH + MONEY
