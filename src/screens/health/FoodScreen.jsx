@@ -1,6 +1,6 @@
 import Screen from '../../components/Screen.jsx';
 import SwipeRow from '../../components/SwipeRow.jsx';
-import { AddButton, Label, Mono } from '../../components/Primitives.jsx';
+import { AddButton, EmptyNote, Label, Mono } from '../../components/Primitives.jsx';
 import { useApp } from '../../store/AppProvider.jsx';
 import { dayTotals } from '../../store/selectors.js';
 import { SLOTS, slotLabel } from '../../data/foods.js';
@@ -66,6 +66,11 @@ export default function FoodScreen() {
                   </div>
                 </SwipeRow>
               ))}
+              {items.length === 0 && (
+                <EmptyNote style={{ marginTop: 8, padding: '18px 16px', textAlign: 'left' }}>
+                  No {slotLabel(slot).toLowerCase()} logged yet.
+                </EmptyNote>
+              )}
             </div>
 
             <AddButton

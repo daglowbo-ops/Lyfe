@@ -61,7 +61,7 @@ export default function TrainScreen() {
             <button
               key={i}
               onClick={() => patch({ exIdx: i })}
-              aria-label={`Ir a ${e.name}`}
+              aria-label={`Go to ${e.name}`}
               style={{ flex: 1, padding: '14px 0' }}
             >
               <div
@@ -116,6 +116,7 @@ export default function TrainScreen() {
             <span style={{ fontFamily: MONO, fontSize: 13, color: dim(0.62) }}>{j + 1}</span>
             <Stepper
               value={displayWeight(s.w, useKg, useKg ? 1 : 0)}
+              disabled={state.sessionFinished}
               downLabel="Less weight"
               upLabel="More weight"
               onDown={() => !state.sessionFinished && dispatch({ type: 'bumpSet', ei: exIdx, si: j, field: 'w', delta: -bumpWeight })}
@@ -123,12 +124,14 @@ export default function TrainScreen() {
             />
             <Stepper
               value={s.r}
+              disabled={state.sessionFinished}
               downLabel="Fewer reps"
               upLabel="More reps"
               onDown={() => !state.sessionFinished && dispatch({ type: 'bumpSet', ei: exIdx, si: j, field: 'r', delta: -1 })}
               onUp={() => !state.sessionFinished && dispatch({ type: 'bumpSet', ei: exIdx, si: j, field: 'r', delta: 1 })}
             />
             <button
+              disabled={state.sessionFinished}
               onClick={() => {
                 if (!s.d && state.toggles.haptics && navigator.vibrate) navigator.vibrate(28);
                 dispatch({ type: 'toggleSet', ei: exIdx, si: j });
@@ -157,6 +160,7 @@ export default function TrainScreen() {
         <div style={{ display: 'flex', gap: 10, marginTop: 22 }}>
           <GhostButton
             height={52}
+            disabled={exIdx === 0}
             style={{ width: 56, fontSize: 17 }}
             onClick={() => patch({ exIdx: Math.max(0, exIdx - 1) })}
           >
@@ -164,6 +168,7 @@ export default function TrainScreen() {
           </GhostButton>
           <button
             className="rowlink"
+            disabled={isLast && !complete && !state.sessionFinished}
             onClick={() =>
               isLast
                 ? state.sessionFinished
@@ -183,6 +188,7 @@ export default function TrainScreen() {
               justifyContent: 'center',
               fontSize: 16,
               fontWeight: 500,
+              opacity: isLast && !complete && !state.sessionFinished ? 0.5 : 1,
             }}
           >
             {isLast

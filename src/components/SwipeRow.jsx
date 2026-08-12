@@ -44,6 +44,7 @@ export default function SwipeRow({ id, onDelete, children, deleteLabel = 'Delete
         onPointerMove={(e) => dispatch({ type: 'swipeMove', x: e.clientX })}
         onPointerUp={() => dispatch({ type: 'swipeEnd' })}
         onPointerLeave={() => dispatch({ type: 'swipeEnd' })}
+        onPointerCancel={() => dispatch({ type: 'swipeEnd' })}
         style={{
           position: 'relative',
           zIndex: 1,
@@ -109,7 +110,8 @@ export default function SwipeRow({ id, onDelete, children, deleteLabel = 'Delete
           fontWeight: 600,
         }}
       >
-        {deleteLabel}
+        <span aria-hidden="true">Delete</span>
+        <span className="sr-only">{deleteLabel}</span>
       </button>
     </div>
   );

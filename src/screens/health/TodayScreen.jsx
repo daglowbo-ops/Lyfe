@@ -1,5 +1,5 @@
 import Screen from '../../components/Screen.jsx';
-import { Avatar, Card, Label, Meter, Mono, PrimaryButton, ScreenTitle } from '../../components/Primitives.jsx';
+import { Avatar, Card, EmptyNote, Label, Meter, Mono, PrimaryButton, ScreenTitle } from '../../components/Primitives.jsx';
 import { useApp } from '../../store/AppProvider.jsx';
 import { dayTotals, goalOn, onTarget, streak, workoutTotals } from '../../store/selectors.js';
 import { DOWS, addDays, dowIndex, fullLabel, key, startOfToday } from '../../lib/date.js';
@@ -69,8 +69,8 @@ export default function TodayScreen() {
         <Meter value={pct(totals.kcal, goal.kcal)} color={NUT} />
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14, marginTop: 18 }}>
           <MacroCell label="PROTEIN" text={`${totals.p}/${goal.p}`} bar={pct(totals.p, goal.p)} />
-          <MacroCell label="CARBS" text={`${totals.c} g`} />
-          <MacroCell label="FAT" text={`${totals.f} g`} />
+          <MacroCell label="CARBS" text={`${totals.c} g`} note="Carbohydrates" />
+          <MacroCell label="FAT" text={`${totals.f} g`} note="Dietary fat" />
         </div>
       </Card>
 
@@ -150,16 +150,30 @@ export default function TodayScreen() {
           </div>
         ))}
         {recent.length === 0 && (
-          <div style={{ fontSize: 14, color: dim(0.6), paddingTop: 6 }}>Nothing logged yet.</div>
+          <EmptyNote
+            title="Your fieldbook is ready"
+            style={{ marginTop: 2, padding: '22px 18px' }}
+            action={(
+              <button
+                className="outline-nut"
+                onClick={() => dispatch({ type: 'screen', screen: 'food' })}
+                style={{ width: '100%', minHeight: 46, border: `1px solid ${NUT}`, borderRadius: 13, color: NUT, textAlign: 'center' }}
+              >
+                Log your first meal
+              </button>
+            )}
+          >
+            Meals and completed workouts will collect here as you use the day.
+          </EmptyNote>
         )}
       </div>
     </Screen>
   );
 }
 
-function MacroCell({ label, text, bar }) {
+function MacroCell({ label, text, bar, note }) {
   return (
-    <div>
+    <div title={note} aria-label={note ? `${note}: ${text}` : `${label.toLowerCase()}: ${text}`}>
       <div style={{ marginBottom: 7, minWidth: 0 }}>
         <div style={{ fontFamily: MONO, fontSize: 12, letterSpacing: 1.1, color: dim(0.6), whiteSpace: 'nowrap' }}>
           {label}

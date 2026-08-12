@@ -18,7 +18,7 @@ function focusableElements(dialog) {
 }
 
 /**
- * Bottom sheet. Scrim closes it, as does Escape — the "Listo" button is the
+ * Bottom sheet. Scrim closes it, as does Escape — the "Done" button is the
  * visible affordance but neither should be the only way out.
  */
 export default function Sheet({ title, onClose, children, height, maxHeight = '76%' }) {

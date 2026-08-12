@@ -104,6 +104,25 @@ test('deleting an expense is reversible and restores the exact transaction', () 
   assert.equal(restored.undo, null);
 });
 
+test('food, workout, and bill deletions are reversible in their original position', () => {
+  const state = initialState(seedState(new Date()));
+
+  const meal = state.meals[1];
+  const withoutMeal = reducer(state, { type: 'removeFood', id: meal.id });
+  const mealRestored = reducer(withoutMeal, { type: 'undoLast' });
+  assert.equal(mealRestored.meals[1], meal);
+
+  const template = state.templates[0];
+  const withoutTemplate = reducer(state, { type: 'removeTemplate', i: 0 });
+  const templateRestored = reducer(withoutTemplate, { type: 'undoLast' });
+  assert.equal(templateRestored.templates[0], template);
+
+  const bill = state.bills[0];
+  const withoutBill = reducer(state, { type: 'removeBill', id: bill.id });
+  const billRestored = reducer(withoutBill, { type: 'undoLast' });
+  assert.equal(billRestored.bills[0], bill);
+});
+
 test('the shared profile preserves its originating module and screen', () => {
   let state = initialState(seedState(new Date()));
   state = reducer(state, { type: 'module', module: 'money' });

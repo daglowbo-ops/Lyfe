@@ -1,4 +1,4 @@
-import { dim, INK } from '../lib/theme.js';
+import { dim, INK, MNY, NUT, TRN } from '../lib/theme.js';
 
 /**
  * Floats above every screen. Salud and Dinero are two separate apps sharing a
@@ -24,8 +24,19 @@ export default function ModuleSwitch({ module, onChange }) {
           transition: 'background .25s, color .25s',
           background: on ? INK : 'transparent',
           color: on ? '#0D0D0C' : dim(0.62),
+          gap: 8,
         }}
       >
+        <span aria-hidden="true" style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          {id === 'health' ? (
+            <>
+              <span style={{ width: 4, height: 4, borderRadius: 2, background: NUT, opacity: on ? 1 : 0.5 }} />
+              <span style={{ width: 4, height: 4, borderRadius: 2, background: TRN, opacity: on ? 1 : 0.5 }} />
+            </>
+          ) : (
+            <span style={{ width: 10, height: 4, borderRadius: 2, background: MNY, opacity: on ? 1 : 0.5 }} />
+          )}
+        </span>
         {label}
       </button>
     );

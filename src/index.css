@@ -12,6 +12,11 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+::selection {
+  background: rgba(233, 229, 220, 0.22);
+  color: var(--ink);
+}
+
 html,
 body {
   margin: 0;
@@ -38,6 +43,10 @@ button {
   text-align: inherit;
 }
 
+button:disabled {
+  cursor: default;
+}
+
 button:focus-visible,
 input:focus-visible,
 select:focus-visible,
@@ -49,6 +58,19 @@ textarea:focus-visible {
 input {
   font: inherit;
   font-size: max(16px, 1em);
+  caret-color: var(--ink);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 button,
@@ -163,7 +185,7 @@ input::placeholder {
 
 .action-toast {
   position: absolute;
-  z-index: 54;
+  z-index: 70;
   inset-inline: 20px;
   inset-block-end: calc(env(safe-area-inset-bottom, 0px) + 88px);
   min-height: 54px;
@@ -222,50 +244,52 @@ input::placeholder {
 .press:active {
   transform: scale(0.975);
 }
-.press:hover {
-  filter: brightness(1.08);
-}
 
 .outline {
   transition: border-color 0.2s, color 0.2s;
-}
-.outline:hover {
-  border-color: rgba(233, 229, 220, 0.4);
-  color: var(--ink);
-}
-
-.outline-nut:hover {
-  border-color: var(--nut);
-  color: var(--nut);
-}
-.outline-trn:hover {
-  border-color: var(--trn);
-  color: var(--trn);
-}
-.outline-mny:hover {
-  border-color: var(--mny);
 }
 
 .stepper {
   transition: background 0.15s, color 0.15s;
 }
-.stepper:hover {
-  background: rgba(233, 229, 220, 0.07);
-  color: var(--ink);
-}
 
 .rowlink {
   transition: background 0.18s;
-}
-.rowlink:hover {
-  background: rgba(233, 229, 220, 0.08);
 }
 
 .muted-link {
   transition: color 0.2s;
 }
-.muted-link:hover {
-  color: var(--ink);
+
+@media (hover: hover) {
+  .press:hover {
+    filter: brightness(1.08);
+  }
+  .outline:hover {
+    border-color: rgba(233, 229, 220, 0.4);
+    color: var(--ink);
+  }
+  .outline-nut:hover {
+    border-color: var(--nut);
+    color: var(--nut);
+  }
+  .outline-trn:hover {
+    border-color: var(--trn);
+    color: var(--trn);
+  }
+  .outline-mny:hover {
+    border-color: var(--mny);
+  }
+  .stepper:not(:disabled):hover {
+    background: rgba(233, 229, 220, 0.07);
+    color: var(--ink);
+  }
+  .rowlink:hover {
+    background: rgba(233, 229, 220, 0.08);
+  }
+  .muted-link:hover {
+    color: var(--ink);
+  }
 }
 
 /* ── Motion ─────────────────────────────────────────────────────── */

@@ -1,4 +1,4 @@
-import { MONO, dim, INK } from '../lib/theme.js';
+import { MONO, dim, INK, MNY, NUT, TRN } from '../lib/theme.js';
 
 // Icons are drawn from bare elements so they inherit `currentColor` and stay
 // crisp at 15px without shipping an icon font.
@@ -38,18 +38,18 @@ const ICONS = {
 };
 
 export const HEALTH_TABS = [
-  { id: 'today', label: 'TODAY', icon: 'circle' },
-  { id: 'food', label: 'FOOD', icon: 'square' },
-  { id: 'train', label: 'TRAIN', icon: 'bars' },
-  { id: 'plan', label: 'PLAN', icon: 'calendar' },
-  { id: 'stats', label: 'STATS', icon: 'chart' },
+  { id: 'today', label: 'TODAY', icon: 'circle', accent: NUT },
+  { id: 'food', label: 'FOOD', icon: 'square', accent: NUT },
+  { id: 'train', label: 'TRAIN', icon: 'bars', accent: TRN },
+  { id: 'plan', label: 'PLAN', icon: 'calendar', accent: TRN },
+  { id: 'stats', label: 'STATS', icon: 'chart', accent: NUT },
 ];
 
 export const MONEY_TABS = [
-  { id: 'today', label: 'SPEND', icon: 'circle' },
-  { id: 'budget', label: 'BUDGET', icon: 'bars' },
-  { id: 'plan', label: 'PLAN', icon: 'calendar' },
-  { id: 'stats', label: 'STATS', icon: 'chart' },
+  { id: 'today', label: 'SPEND', icon: 'circle', accent: MNY },
+  { id: 'budget', label: 'BUDGET', icon: 'bars', accent: MNY },
+  { id: 'plan', label: 'PLAN', icon: 'calendar', accent: MNY },
+  { id: 'stats', label: 'STATS', icon: 'chart', accent: MNY },
 ];
 
 export default function TabBar({ tabs, active, onSelect }) {
@@ -91,8 +91,23 @@ export default function TabBar({ tabs, active, onSelect }) {
               gap: 7,
               transition: 'color .25s',
               color: on ? INK : dim(0.58),
+              position: 'relative',
             }}
           >
+            <span
+              aria-hidden="true"
+              style={{
+                position: 'absolute',
+                top: -11,
+                width: 18,
+                height: 2,
+                borderRadius: '0 0 2px 2px',
+                background: t.accent,
+                opacity: on ? 1 : 0,
+                transform: `scaleX(${on ? 1 : 0.35})`,
+                transition: 'opacity .2s, transform .25s cubic-bezier(.2,.8,.2,1)',
+              }}
+            />
             <span aria-hidden="true" style={{ display: 'contents' }}>{ICONS[t.icon]}</span>
             <span style={{ fontFamily: MONO, fontSize: 12, letterSpacing: 0.6 }}>{t.label}</span>
           </button>

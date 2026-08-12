@@ -1,5 +1,5 @@
 import Screen from '../../components/Screen.jsx';
-import { Card, Label, Mono, Panel, SegmentedControl } from '../../components/Primitives.jsx';
+import { Card, EmptyNote, GhostButton, Label, Mono, Panel, SegmentedControl } from '../../components/Primitives.jsx';
 import { useApp } from '../../store/AppProvider.jsx';
 import { spentByCategory, totalSpent } from '../../store/selectors.js';
 import { MON_SHORT, startOfToday } from '../../lib/date.js';
@@ -40,6 +40,7 @@ export default function MoneyStatsScreen() {
   const deltaColor = prev === null ? dim(0.6) : good ? MNY : WARN;
 
   const spent = totalSpent(state.txns);
+  const hasFinancialData = spent > 0 || Object.values(state.monthHist).some((value) => Number(value) > 0);
   const byCat = spentByCategory(state).sort((a, b) => b.spent - a.spent);
   const maxCat = byCat[0]?.spent || 1;
 
@@ -58,7 +59,19 @@ export default function MoneyStatsScreen() {
         ]}
       />
 
-      <Card style={{ marginTop: 16, padding: 20 }}>
+      {!hasFinancialData ? (
+        <EmptyNote
+          title="No spending history yet"
+          style={{ marginTop: 18 }}
+          action={(
+            <GhostButton className="outline-mny" style={{ width: '100%', color: MNY, borderColor: MNY }} onClick={() => dispatch({ type: 'openAddTxn' })}>
+              Add your first expense
+            </GhostButton>
+          )}
+        >
+          Your six-month view and category breakdown will appear as you add expenses.
+        </EmptyNote>
+      ) : <Card style={{ marginTop: 16, padding: 20 }}>
         <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
           <div>
             <Label color={MNY}>
@@ -133,9 +146,9 @@ export default function MoneyStatsScreen() {
           <Foot label="HIGHEST" value={money0(maxSer)} />
           <Foot label="VS AVERAGE" value={`${vsAvg >= 0 ? '+' : ''}${vsAvg}%`} color={deltaColor} />
         </div>
-      </Card>
+      </Card>}
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 14 }}>
+      {hasFinancialData && <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 14 }}>
         <Panel>
           <div style={{ fontSize: 26, fontWeight: 600, letterSpacing: -1.2 }}>
             {money0(Math.max(0, state.income - spent))}
@@ -152,14 +165,14 @@ export default function MoneyStatsScreen() {
             OF INCOME
           </Label>
         </Panel>
-      </div>
+      </div>}
 
-      <div style={{ marginTop: 26, display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
+      {hasFinancialData && <><div style={{ marginTop: 26, display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
         <Label>WHERE IT WENT</Label>
         <Label color={dim(0.6)}>TAP TO FILTER</Label>
       </div>
       <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 14 }}>
-        {byCat.map((c) => (
+        {byCat.filter((c) => c.spent > 0).map((c) => (
           <button
             key={c.cat}
             onClick={() => dispatch({ type: 'drillCategory', cat: c.cat })}
@@ -201,6 +214,7 @@ export default function MoneyStatsScreen() {
           </button>
         ))}
       </div>
+      </>}
     </Screen>
   );
 }

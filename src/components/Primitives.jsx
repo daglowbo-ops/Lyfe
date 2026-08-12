@@ -99,7 +99,7 @@ export function Meter({ value, color, height = 5, track = dim(0.1), label = 'Pro
   );
 }
 
-/** Two-state pill group — Mes/Semana, Buscar/Rápido, Gasto/Ahorro. */
+/** Two-state pill group — Month/Week, Search/Quick, Spending/Saved. */
 export function SegmentedControl({ options, value, onChange, style, ariaLabel = 'View options' }) {
   return (
     <div
@@ -199,12 +199,14 @@ export function PrimaryButton({ children, onClick, background, color, disabled, 
 }
 
 /** Outlined secondary action. */
-export function GhostButton({ children, onClick, height = 50, style, className = 'outline', type = 'button' }) {
+export function GhostButton({ children, onClick, height = 50, style, className = 'outline', type = 'button', disabled = false }) {
   return (
     <button
       type={type}
       className={className}
-      onClick={onClick}
+      onClick={disabled ? undefined : onClick}
+      disabled={disabled}
+      aria-disabled={disabled || undefined}
       style={{
         height,
         minHeight: 44,
@@ -215,6 +217,7 @@ export function GhostButton({ children, onClick, height = 50, style, className =
         justifyContent: 'center',
         fontSize: 15,
         color: dim(0.65),
+        opacity: disabled ? 0.35 : 1,
         ...style,
       }}
     >
@@ -253,7 +256,7 @@ export function AddButton({ children, onClick, accent = 'nut', height = 48, styl
 }
 
 /** −/+ pair around a value. Used for weights, reps, amounts and set counts. */
-export function Stepper({ value, onDown, onUp, height = 46, labelPrefix, downLabel, upLabel }) {
+export function Stepper({ value, onDown, onUp, height = 46, labelPrefix, downLabel, upLabel, disabled = false }) {
   const btn = {
     width: 44,
     height: 44,
@@ -277,14 +280,14 @@ export function Stepper({ value, onDown, onUp, height = 46, labelPrefix, downLab
         padding: '0 4px',
       }}
     >
-      <button type="button" className="stepper" style={btn} onClick={onDown} aria-label={downLabel || 'Decrease value'}>
+      <button type="button" className="stepper" style={btn} onClick={onDown} disabled={disabled} aria-label={downLabel || 'Decrease value'}>
         −
       </button>
-      <span style={{ fontFamily: MONO, fontSize: 15, fontWeight: 500 }}>
+      <span style={{ fontFamily: MONO, fontSize: 15, fontWeight: 500, opacity: disabled ? 0.58 : 1 }}>
         {labelPrefix && <span style={{ color: dim(0.58) }}>{labelPrefix} </span>}
         {value}
       </span>
-      <button type="button" className="stepper" style={btn} onClick={onUp} aria-label={upLabel || 'Increase value'}>
+      <button type="button" className="stepper" style={btn} onClick={onUp} disabled={disabled} aria-label={upLabel || 'Increase value'}>
         +
       </button>
     </div>
@@ -324,7 +327,7 @@ export function CheckRow({ checked, onClick, accent, children }) {
 }
 
 /** Empty state inside a dashed frame. */
-export function EmptyNote({ children }) {
+export function EmptyNote({ children, title, action, style }) {
   return (
     <div
       role="status"
@@ -336,9 +339,13 @@ export function EmptyNote({ children }) {
         textAlign: 'center',
         fontSize: 15,
         color: dim(0.62),
+        lineHeight: 1.5,
+        ...style,
       }}
     >
-      {children}
+      {title && <div style={{ color: INK, fontSize: 16, fontWeight: 600, letterSpacing: -0.25 }}>{title}</div>}
+      <div style={{ marginTop: title ? 6 : 0 }}>{children}</div>
+      {action && <div style={{ marginTop: 16 }}>{action}</div>}
     </div>
   );
 }

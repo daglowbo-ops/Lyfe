@@ -21,6 +21,7 @@ export default function MoneyTodayScreen() {
   const spentToday = monthTxns.filter((t) => t.date === key(today)).reduce((a, t) => a + t.amt, 0);
   const daysLeft = daysLeftInMonth(today);
   const over = spent > budget;
+  const hasBudget = budget > 0;
 
   const shown = state.txnFilter === ALL ? monthTxns : monthTxns.filter((t) => t.cat === state.txnFilter);
 
@@ -60,7 +61,7 @@ export default function MoneyTodayScreen() {
           </Mono>
         </div>
         <div style={{ fontSize: 56, fontWeight: 600, letterSpacing: -3, lineHeight: 1, margin: '8px 0 16px' }}>
-          {money0(Math.max(0, budget - spent))}
+          {hasBudget ? money0(Math.max(0, budget - spent)) : '—'}
         </div>
         <Meter
           value={`${Math.min(100, Math.round((spent / (budget || 1)) * 100))}%`}
@@ -68,9 +69,18 @@ export default function MoneyTodayScreen() {
         />
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14, marginTop: 18 }}>
           <Cell label="TODAY" value={money0(spentToday)} />
-          <Cell label="PER DAY" value={money0(Math.max(0, (budget - spent) / daysLeft))} />
+          <Cell label="PER DAY" value={hasBudget ? money0(Math.max(0, (budget - spent) / daysLeft)) : 'Set budget'} />
           <Cell label="LEFT" value={`${daysLeft} days`} />
         </div>
+        {!hasBudget && (
+          <button
+            className="muted-link"
+            onClick={() => dispatch({ type: 'moneyScreen', screen: 'budget' })}
+            style={{ minHeight: 44, marginTop: 8, color: MNY, fontSize: 14, fontWeight: 600 }}
+          >
+            Set monthly budgets to calculate what is available →
+          </button>
+        )}
       </Card>
 
       <PrimaryButton
@@ -183,7 +193,11 @@ export default function MoneyTodayScreen() {
 
       {days.length === 0 && (
         <div style={{ marginTop: 18 }}>
-          <EmptyNote>No transactions match this filter.</EmptyNote>
+          <EmptyNote title={monthTxns.length ? 'No matches' : 'No expenses this month'}>
+            {monthTxns.length
+              ? 'Choose another category or clear this filter.'
+              : 'Add your first expense to start this month’s ledger.'}
+          </EmptyNote>
           <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
             {state.txnFilter !== ALL && (
               <button

@@ -23,7 +23,7 @@ import SessionEditSheet from './sheets/SessionEditSheet.jsx';
 import AddExpenseSheet from './sheets/AddExpenseSheet.jsx';
 import DayMenuSheet from './sheets/DayMenuSheet.jsx';
 import TransactionFilterSheet from './sheets/TransactionFilterSheet.jsx';
-import { MNY, WARN, dim } from './lib/theme.js';
+import { MNY, NUT, TRN, WARN, dim } from './lib/theme.js';
 
 const HEALTH_SCREENS = {
   today: TodayScreen,
@@ -130,6 +130,11 @@ function SaveStatus({ sync, retry }) {
 
 function ActionToast({ state, dispatch }) {
   const current = state.undo || state.notice;
+  const undoColor = state.undo?.kind === 'food'
+    ? NUT
+    : state.undo?.kind === 'template'
+      ? TRN
+      : MNY;
 
   useEffect(() => {
     if (!current) return undefined;
@@ -145,7 +150,7 @@ function ActionToast({ state, dispatch }) {
     <div className="action-toast" role="status" aria-live="polite">
       <span>{current.message}</span>
       {state.undo && (
-        <button onClick={() => dispatch({ type: 'undoLast' })} style={{ color: MNY }}>
+        <button onClick={() => dispatch({ type: 'undoLast' })} style={{ color: undoColor }}>
           Undo
         </button>
       )}

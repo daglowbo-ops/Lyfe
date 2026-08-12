@@ -10,6 +10,7 @@ export default function BudgetScreen() {
   const { state, dispatch } = useApp();
   const budget = totalBudget(state.budgets);
   const rows = spentByCategory(state);
+  const unassigned = state.income - budget;
 
   return (
     <Screen>
@@ -36,8 +37,8 @@ export default function BudgetScreen() {
         </Panel>
       </div>
 
-      <Label style={{ margin: '24px 0 4px' }}>
-        {money0(Math.max(0, state.income - budget))} UNASSIGNED
+      <Label color={unassigned < 0 ? WARN : undefined} style={{ margin: '24px 0 4px' }}>
+        {unassigned < 0 ? `${money0(Math.abs(unassigned))} OVER-ASSIGNED` : `${money0(unassigned)} UNASSIGNED`}
       </Label>
 
       {rows.map((r) => (

@@ -13,7 +13,7 @@ export default function PhoneShell({ children }) {
       <p
         className="shell-caption"
         aria-hidden="true"
-        style={{ margin: 0, fontSize: 12, color: 'rgba(233,229,220,.58)' }}
+        style={{ margin: 0 }}
       >
         FIELDNOTE · PRIVATE HEALTH & MONEY LOG
       </p>

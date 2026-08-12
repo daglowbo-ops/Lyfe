@@ -292,9 +292,9 @@ function ArrowButton({ children, onClick, disabled, label }) {
   return (
     <button
       className="outline"
-      onClick={disabled ? undefined : onClick}
+      onClick={onClick}
+      disabled={disabled}
       aria-label={label}
-      aria-disabled={disabled || undefined}
       style={{
         width: 46,
         height: 46,

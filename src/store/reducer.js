@@ -65,6 +65,13 @@ const mapEx = (state, i, fn) => ({
   workout: state.workout.map((e, j) => (j === i ? fn(e) : e)),
 });
 
+function restoreAt(list, item, index, exists) {
+  if (list.some(exists)) return list;
+  const next = list.slice();
+  next.splice(Math.max(0, Math.min(index, next.length)), 0, item);
+  return next;
+}
+
 export function reducer(state, action) {
   const a = action;
   switch (a.type) {
@@ -132,14 +139,29 @@ export function reducer(state, action) {
     case 'closeFoodSheet':
       return { ...state, sheet: false, foodMode: 'search' };
 
-    case 'addFood':
+    case 'addFood': {
+      const meal = { ...a.item, slot: state.slot, id: uid('meal') };
       return {
         ...state,
-        meals: state.meals.concat({ ...a.item, slot: state.slot, id: uid('meal') }),
+        meals: state.meals.concat(meal),
+        sheet: false,
+        notice: { id: uid('notice'), message: `${meal.name} added` },
+        undo: null,
       };
+    }
 
-    case 'removeFood':
-      return { ...state, meals: state.meals.filter((m) => m.id !== a.id) };
+    case 'removeFood': {
+      const index = state.meals.findIndex((meal) => meal.id === a.id);
+      const item = state.meals[index];
+      if (!item) return state;
+      return {
+        ...state,
+        meals: state.meals.filter((meal) => meal.id !== a.id),
+        swipe: freshUi().swipe,
+        notice: null,
+        undo: { id: uid('undo'), kind: 'food', item, index, message: `${item.name} deleted` },
+      };
+    }
 
     case 'draftFood':
       return { ...state, draftFood: { ...state.draftFood, ...a.patch } };
@@ -164,6 +186,9 @@ export function reducer(state, action) {
           ? [item].concat(state.customFoods.filter((f) => f.name !== item.name))
           : state.customFoods,
         draftFood: { ...freshUi().draftFood, save: d.save },
+        sheet: false,
+        notice: { id: uid('notice'), message: `${item.name} added` },
+        undo: null,
       };
     }
 
@@ -252,11 +277,25 @@ export function reducer(state, action) {
       const templates = state.templates.slice();
       if (i >= 0) templates[i] = entry;
       else templates.push(entry);
-      return { ...state, templates, editSheet: false };
+      return {
+        ...state,
+        templates,
+        editSheet: false,
+        notice: { id: uid('notice'), message: `${entry.name} saved` },
+        undo: null,
+      };
     }
 
-    case 'removeTemplate':
-      return { ...state, templates: state.templates.filter((_, j) => j !== a.i) };
+    case 'removeTemplate': {
+      const item = state.templates[a.i];
+      if (!item) return state;
+      return {
+        ...state,
+        templates: state.templates.filter((_, j) => j !== a.i),
+        notice: null,
+        undo: { id: uid('undo'), kind: 'template', item, index: a.i, message: `${item.name} deleted` },
+      };
+    }
 
     case 'newTemplate':
       return {
@@ -369,6 +408,8 @@ export function reducer(state, action) {
       return {
         ...state,
         weights: state.weights.filter((item) => item.date !== date).concat(entry).sort((x, y) => x.date.localeCompare(y.date)),
+        notice: { id: uid('notice'), message: `Weight logged for today` },
+        undo: null,
       };
     }
 
@@ -415,27 +456,55 @@ export function reducer(state, action) {
     }
 
     case 'removeTxn': {
-      const item = state.txns.find((txn) => txn.id === a.id);
+      const index = state.txns.findIndex((txn) => txn.id === a.id);
+      const item = state.txns[index];
       if (!item) return state;
       return {
         ...state,
         txns: state.txns.filter((txn) => txn.id !== a.id),
         swipe: freshUi().swipe,
         notice: null,
-        undo: { id: uid('undo'), kind: 'txn', item, message: `${item.label} deleted` },
+        undo: { id: uid('undo'), kind: 'txn', item, index, message: `${item.label} deleted` },
       };
     }
 
-    case 'undoLast':
-      if (state.undo?.kind !== 'txn') return { ...state, undo: null };
-      return {
-        ...state,
-        txns: state.txns.some((txn) => txn.id === state.undo.item.id)
-          ? state.txns
-          : state.txns.concat(state.undo.item),
-        notice: { id: uid('notice'), message: `${state.undo.item.label} restored` },
-        undo: null,
-      };
+    case 'undoLast': {
+      const undo = state.undo;
+      if (!undo) return state;
+      if (undo.kind === 'txn') {
+        return {
+          ...state,
+          txns: restoreAt(state.txns, undo.item, undo.index ?? state.txns.length, (item) => item.id === undo.item.id),
+          notice: { id: uid('notice'), message: `${undo.item.label} restored` },
+          undo: null,
+        };
+      }
+      if (undo.kind === 'food') {
+        return {
+          ...state,
+          meals: restoreAt(state.meals, undo.item, undo.index, (item) => item.id === undo.item.id),
+          notice: { id: uid('notice'), message: `${undo.item.name} restored` },
+          undo: null,
+        };
+      }
+      if (undo.kind === 'template') {
+        return {
+          ...state,
+          templates: restoreAt(state.templates, undo.item, undo.index, (item) => item === undo.item),
+          notice: { id: uid('notice'), message: `${undo.item.name} restored` },
+          undo: null,
+        };
+      }
+      if (undo.kind === 'bill') {
+        return {
+          ...state,
+          bills: restoreAt(state.bills, undo.item, undo.index, (item) => item.id === undo.item.id),
+          notice: { id: uid('notice'), message: `${undo.item.name} restored` },
+          undo: null,
+        };
+      }
+      return { ...state, undo: null };
+    }
 
     case 'dismissNotice':
       return { ...state, notice: null };
@@ -446,16 +515,18 @@ export function reducer(state, action) {
     case 'setLimit':
       return {
         ...state,
-        budgets: state.budgets.map((b, j) => (j === a.i ? { ...b, limit: toInt(a.value) } : b)),
+        budgets: state.budgets.map((b, j) => (j === a.i ? { ...b, limit: Math.max(0, toInt(a.value)) } : b)),
       };
 
     case 'setIncome':
-      return { ...state, income: toFloat(a.value) };
+      return { ...state, income: Math.max(0, toFloat(a.value)) };
 
     case 'addBill':
       return {
         ...state,
         bills: state.bills.concat({ id: uid('bill'), name: 'New bill', day: 1, amt: 0 }),
+        notice: { id: uid('notice'), message: 'Recurring bill added' },
+        undo: null,
       };
 
     case 'updateBill':
@@ -468,13 +539,22 @@ export function reducer(state, action) {
                 ? { name: String(a.value).slice(0, 80) }
                 : a.field === 'day'
                   ? { day: Math.min(31, Math.max(1, toInt(a.value))) }
-                  : { amt: toFloat(a.value) }),
+                  : { amt: Math.max(0, toFloat(a.value)) }),
             }
           : bill),
       };
 
-    case 'removeBill':
-      return { ...state, bills: state.bills.filter((bill) => bill.id !== a.id) };
+    case 'removeBill': {
+      const index = state.bills.findIndex((bill) => bill.id === a.id);
+      const item = state.bills[index];
+      if (!item) return state;
+      return {
+        ...state,
+        bills: state.bills.filter((bill) => bill.id !== a.id),
+        notice: null,
+        undo: { id: uid('undo'), kind: 'bill', item, index, message: `${item.name} deleted` },
+      };
+    }
 
     case 'drillCategory':
       return { ...state, txnFilter: a.cat, mScreen: 'today' };
