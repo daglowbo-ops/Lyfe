@@ -72,6 +72,42 @@ export function Panel({ children, style }) {
   return <div style={{ ...panelStyle, ...style }}>{children}</div>;
 }
 
+/** One continuous comparison band; related metrics share a baseline and dividers. */
+export function MetricBand({ items, style }) {
+  return (
+    <div
+      style={{
+        display: 'grid',
+        gridTemplateColumns: `repeat(${items.length}, minmax(0, 1fr))`,
+        borderTop: `1px solid ${dim(0.09)}`,
+        borderBottom: `1px solid ${dim(0.09)}`,
+        ...style,
+      }}
+    >
+      {items.map((item, index) => (
+        <div
+          key={item.label}
+          style={{
+            minWidth: 0,
+            padding: '16px 14px 15px',
+            paddingLeft: index === 0 ? 0 : 14,
+            paddingRight: index === items.length - 1 ? 0 : 14,
+            borderLeft: index === 0 ? 'none' : `1px solid ${dim(0.08)}`,
+          }}
+        >
+          <div style={{ fontSize: 27, fontWeight: 600, letterSpacing: -1.1, lineHeight: 1.05, color: item.valueColor }}>
+            {item.value}
+          </div>
+          <Label color={item.color || dim(0.62)} style={{ marginTop: 6, letterSpacing: 1.05 }}>
+            {item.label}
+          </Label>
+          {item.note && <div style={{ marginTop: 4, color: dim(0.56), fontSize: 12.5, lineHeight: 1.35 }}>{item.note}</div>}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 /** Thin progress track. `color` fills, the rest stays at 10% ink. */
 export function Meter({ value, color, height = 5, track = dim(0.1), label = 'Progress' }) {
   const scale = Math.max(0, Math.min(1, Number.parseFloat(value) / 100 || 0));

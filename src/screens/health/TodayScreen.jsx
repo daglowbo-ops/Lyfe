@@ -69,8 +69,8 @@ export default function TodayScreen() {
         <Meter value={pct(totals.kcal, goal.kcal)} color={NUT} />
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14, marginTop: 18 }}>
           <MacroCell label="PROTEIN" text={`${totals.p}/${goal.p}`} bar={pct(totals.p, goal.p)} />
-          <MacroCell label="CARBS" text={`${totals.c} g`} note="Carbohydrates" />
-          <MacroCell label="FAT" text={`${totals.f} g`} note="Dietary fat" />
+          <MacroCell label="CARBS" text={`${totals.c}/${goal.c}`} bar={pct(totals.c, goal.c)} note="Carbohydrates" />
+          <MacroCell label="FAT" text={`${totals.f}/${goal.f}`} bar={pct(totals.f, goal.f)} note="Dietary fat" />
         </div>
       </Card>
 
@@ -102,7 +102,11 @@ export default function TodayScreen() {
         <Label>LAST 7 DAYS</Label>
         <Label>{streak(state, today)} DAY STREAK</Label>
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 6, marginTop: 12 }}>
+      <div style={{ display: 'flex', gap: 14, marginTop: 10, color: dim(0.58), fontSize: 12.5 }}>
+        <LegendDot color={NUT}>nutrition</LegendDot>
+        <LegendDot color={TRN}>training</LegendDot>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 6, marginTop: 10 }}>
         {days.map((d) => (
           <div
             key={d.k}
@@ -182,7 +186,7 @@ function MacroCell({ label, text, bar, note }) {
           {text}
         </div>
       </div>
-      {bar && <Meter value={bar} color={dim(0.55)} height={3} />}
+      {bar !== undefined && <Meter value={bar} color={NUT} height={3} track={dim(0.09)} />}
     </div>
   );
 }
@@ -190,3 +194,12 @@ function MacroCell({ label, text, bar, note }) {
 const Dot = ({ color }) => (
   <span style={{ width: 6, height: 6, borderRadius: '50%', background: color }} />
 );
+
+function LegendDot({ color, children }) {
+  return (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+      <Dot color={color} />
+      {children}
+    </span>
+  );
+}

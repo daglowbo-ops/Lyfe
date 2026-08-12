@@ -1,53 +1,16 @@
 import { MONO, dim, INK, MNY, NUT, TRN } from '../lib/theme.js';
 
-// Icons are drawn from bare elements so they inherit `currentColor` and stay
-// crisp at 15px without shipping an icon font.
-const ICONS = {
-  circle: <span style={{ width: 15, height: 15, borderRadius: '50%', border: '1.6px solid currentColor' }} />,
-  square: <span style={{ width: 15, height: 15, borderRadius: 4, border: '1.6px solid currentColor' }} />,
-  bars: (
-    <span style={{ width: 17, height: 15, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-      <span style={{ height: 4, borderRadius: 2, background: 'currentColor' }} />
-      <span style={{ height: 4, borderRadius: 2, background: 'currentColor', opacity: 0.45 }} />
-    </span>
-  ),
-  calendar: (
-    <span
-      style={{
-        width: 15,
-        height: 15,
-        borderRadius: 3,
-        border: '1.6px solid currentColor',
-        display: 'flex',
-        alignItems: 'flex-end',
-        justifyContent: 'center',
-        paddingBottom: 2,
-        boxSizing: 'border-box',
-      }}
-    >
-      <span style={{ width: 7, height: 2, background: 'currentColor' }} />
-    </span>
-  ),
-  chart: (
-    <span style={{ width: 15, height: 15, display: 'flex', alignItems: 'flex-end', gap: 2.5 }}>
-      <span style={{ flex: 1, height: 6, background: 'currentColor', borderRadius: 1 }} />
-      <span style={{ flex: 1, height: 11, background: 'currentColor', borderRadius: 1 }} />
-      <span style={{ flex: 1, height: 15, background: 'currentColor', borderRadius: 1 }} />
-    </span>
-  ),
-};
-
 export const HEALTH_TABS = [
-  { id: 'today', label: 'TODAY', icon: 'circle', accent: NUT },
-  { id: 'food', label: 'FOOD', icon: 'square', accent: NUT },
-  { id: 'train', label: 'TRAIN', icon: 'bars', accent: TRN },
+  { id: 'today', label: 'TODAY', icon: 'today', accent: NUT },
+  { id: 'food', label: 'FOOD', icon: 'food', accent: NUT },
+  { id: 'train', label: 'TRAIN', icon: 'train', accent: TRN },
   { id: 'plan', label: 'PLAN', icon: 'calendar', accent: TRN },
   { id: 'stats', label: 'STATS', icon: 'chart', accent: NUT },
 ];
 
 export const MONEY_TABS = [
-  { id: 'today', label: 'SPEND', icon: 'circle', accent: MNY },
-  { id: 'budget', label: 'BUDGET', icon: 'bars', accent: MNY },
+  { id: 'today', label: 'SPEND', icon: 'spend', accent: MNY },
+  { id: 'budget', label: 'BUDGET', icon: 'budget', accent: MNY },
   { id: 'plan', label: 'PLAN', icon: 'calendar', accent: MNY },
   { id: 'stats', label: 'STATS', icon: 'chart', accent: MNY },
 ];
@@ -107,11 +70,71 @@ export default function TabBar({ tabs, active, onSelect }) {
                 transition: 'opacity .2s, transform .25s cubic-bezier(.2,.8,.2,1)',
               }}
             />
-            <span aria-hidden="true" style={{ display: 'contents' }}>{ICONS[t.icon]}</span>
+            <NavIcon name={t.icon} />
             <span style={{ fontFamily: MONO, fontSize: 12, letterSpacing: 0.6 }}>{t.label}</span>
           </button>
         );
       })}
     </nav>
+  );
+}
+
+/** Purpose-built, single-stroke fieldbook icons. */
+function NavIcon({ name }) {
+  const common = {
+    width: 19,
+    height: 19,
+    viewBox: '0 0 20 20',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 1.55,
+    strokeLinecap: 'round',
+    strokeLinejoin: 'round',
+    'aria-hidden': true,
+  };
+
+  if (name === 'today') return (
+    <svg {...common}>
+      <circle cx="10" cy="10" r="6.7" />
+      <circle cx="10" cy="10" r="1.7" fill="currentColor" stroke="none" />
+    </svg>
+  );
+  if (name === 'food') return (
+    <svg {...common}>
+      <path d="M3.3 9.2h13.4c-.4 4-2.7 6-6.7 6s-6.3-2-6.7-6Z" />
+      <path d="M6.2 6.6c.8-1.4 2-2.1 3.8-2.1 1.7 0 3 .7 3.8 2.1" />
+      <path d="M7.4 17h5.2" />
+    </svg>
+  );
+  if (name === 'train') return (
+    <svg {...common}>
+      <path d="M2.8 7.2v5.6M5.3 5.8v8.4M14.7 5.8v8.4M17.2 7.2v5.6M5.3 10h9.4" />
+    </svg>
+  );
+  if (name === 'calendar') return (
+    <svg {...common}>
+      <rect x="3.1" y="4.5" width="13.8" height="12.1" rx="2.2" />
+      <path d="M6.5 2.9v3.2M13.5 2.9v3.2M3.1 8h13.8" />
+      <path d="M6.4 11.2h1.2M9.4 11.2h1.2M12.4 11.2h1.2M6.4 14h1.2M9.4 14h1.2" />
+    </svg>
+  );
+  if (name === 'spend') return (
+    <svg {...common}>
+      <path d="M4 5.2h12v10.2H4z" />
+      <path d="M4 7.8h12M7 12h3.8M13.6 12h.1" />
+    </svg>
+  );
+  if (name === 'budget') return (
+    <svg {...common}>
+      <path d="M3.2 5.3h13.6M3.2 10h13.6M3.2 14.7h13.6" />
+      <circle cx="7" cy="5.3" r="1.8" fill="var(--bg)" />
+      <circle cx="13" cy="10" r="1.8" fill="var(--bg)" />
+      <circle cx="9" cy="14.7" r="1.8" fill="var(--bg)" />
+    </svg>
+  );
+  return (
+    <svg {...common}>
+      <path d="M3.5 16.5V11M8 16.5V7.5M12.5 16.5V4M17 16.5V9" />
+    </svg>
   );
 }

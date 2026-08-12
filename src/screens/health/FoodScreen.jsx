@@ -1,12 +1,12 @@
 import Screen from '../../components/Screen.jsx';
 import SwipeRow from '../../components/SwipeRow.jsx';
-import { AddButton, EmptyNote, Label, Mono } from '../../components/Primitives.jsx';
+import { AddButton, EmptyNote, Label, Meter, Mono } from '../../components/Primitives.jsx';
 import { useApp } from '../../store/AppProvider.jsx';
 import { dayTotals } from '../../store/selectors.js';
 import { SLOTS, slotLabel } from '../../data/foods.js';
 import { fullLabel, startOfToday } from '../../lib/date.js';
-import { macroLine } from '../../lib/format.js';
-import { MONO, dim } from '../../lib/theme.js';
+import { macroLine, pct } from '../../lib/format.js';
+import { MONO, NUT, dim } from '../../lib/theme.js';
 
 export default function FoodScreen() {
   const { state, dispatch } = useApp();
@@ -19,17 +19,22 @@ export default function FoodScreen() {
 
       <div
         style={{
-          display: 'flex',
-          alignItems: 'baseline',
-          gap: 10,
           marginTop: 18,
           paddingBottom: 18,
           borderBottom: `1px solid ${dim(0.09)}`,
         }}
       >
-        <div style={{ fontSize: 40, fontWeight: 600, letterSpacing: -2, lineHeight: 1 }}>{totals.kcal}</div>
-        <div style={{ fontSize: 13, color: dim(0.62) }}>
-          of {state.goals.kcal} kcal · {macroLine(totals)}
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
+          <div style={{ fontSize: 40, fontWeight: 600, letterSpacing: -2, lineHeight: 1 }}>{totals.kcal}</div>
+          <div style={{ fontSize: 13, color: dim(0.62) }}>
+            of {state.goals.kcal} kcal
+          </div>
+        </div>
+        <div style={{ marginTop: 8, fontFamily: MONO, fontSize: 12, color: dim(0.62), lineHeight: 1.5 }}>
+          {macroLine(totals)}
+        </div>
+        <div style={{ marginTop: 12 }}>
+          <Meter value={pct(totals.kcal, state.goals.kcal)} color={NUT} height={4} track={dim(0.09)} label="Daily calories logged" />
         </div>
       </div>
 

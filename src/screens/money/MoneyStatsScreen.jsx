@@ -1,5 +1,5 @@
 import Screen from '../../components/Screen.jsx';
-import { Card, EmptyNote, GhostButton, Label, Mono, Panel, SegmentedControl } from '../../components/Primitives.jsx';
+import { Card, EmptyNote, GhostButton, Label, MetricBand, Mono, SegmentedControl } from '../../components/Primitives.jsx';
 import { useApp } from '../../store/AppProvider.jsx';
 import { spentByCategory, totalSpent } from '../../store/selectors.js';
 import { MON_SHORT, startOfToday } from '../../lib/date.js';
@@ -88,7 +88,20 @@ export default function MoneyStatsScreen() {
           </Mono>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, height: 118, marginTop: 20 }}>
+        <div style={{ position: 'relative', display: 'flex', alignItems: 'flex-end', gap: 8, height: 118, marginTop: 20, borderBottom: `1px solid ${dim(0.12)}` }}>
+          <div
+            aria-hidden="true"
+            style={{
+              position: 'absolute',
+              left: 0,
+              right: 0,
+              bottom: `${Math.max(2, Math.min(98, (avg / maxSer) * 100))}%`,
+              borderTop: `1px dashed ${dim(0.18)}`,
+              pointerEvents: 'none',
+            }}
+          >
+            <span style={{ position: 'absolute', right: 0, top: -16, fontFamily: MONO, fontSize: 10.5, color: dim(0.5) }}>AVG</span>
+          </div>
           {series.map((v, i) => (
             <button
               key={i}
@@ -96,6 +109,8 @@ export default function MoneyStatsScreen() {
               aria-label={`${months[i].label} ${months[i].year}: ${money0(v)}`}
               style={{
                 flex: 1,
+                position: 'relative',
+                zIndex: 1,
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'flex-end',
@@ -148,24 +163,23 @@ export default function MoneyStatsScreen() {
         </div>
       </Card>}
 
-      {hasFinancialData && <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 14 }}>
-        <Panel>
-          <div style={{ fontSize: 26, fontWeight: 600, letterSpacing: -1.2 }}>
-            {money0(Math.max(0, state.income - spent))}
-          </div>
-          <Label color={MNY} style={{ letterSpacing: 1.2, marginTop: 5 }}>
-            SAVED THIS MONTH
-          </Label>
-        </Panel>
-        <Panel>
-          <div style={{ fontSize: 26, fontWeight: 600, letterSpacing: -1.2 }}>
-            {Math.round((Math.max(0, state.income - spent) / (state.income || 1)) * 100)}%
-          </div>
-          <Label color={dim(0.6)} style={{ letterSpacing: 1.2, marginTop: 5 }}>
-            OF INCOME
-          </Label>
-        </Panel>
-      </div>}
+      {hasFinancialData && (
+        <MetricBand
+          style={{ marginTop: 16 }}
+          items={[
+            {
+              label: 'SAVED THIS MONTH',
+              value: money0(Math.max(0, state.income - spent)),
+              color: MNY,
+            },
+            {
+              label: 'OF INCOME',
+              value: `${Math.round((Math.max(0, state.income - spent) / (state.income || 1)) * 100)}%`,
+              color: dim(0.62),
+            },
+          ]}
+        />
+      )}
 
       {hasFinancialData && <><div style={{ marginTop: 26, display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
         <Label>WHERE IT WENT</Label>

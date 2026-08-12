@@ -1,5 +1,5 @@
 import Screen from '../../components/Screen.jsx';
-import { EmptyNote, GhostButton, Label, Mono, Panel } from '../../components/Primitives.jsx';
+import { EmptyNote, GhostButton, Label, Meter, Mono, Panel } from '../../components/Primitives.jsx';
 import { useApp } from '../../store/AppProvider.jsx';
 import { goalOn, onTarget } from '../../store/selectors.js';
 import { addDays, key, startOfToday } from '../../lib/date.js';
@@ -7,7 +7,9 @@ import { MONO, NUT, TRN, dim } from '../../lib/theme.js';
 import { displayWeight, weightUnit } from '../../lib/format.js';
 
 const CHART_W = 300;
-const CHART_H = 84;
+const CHART_H = 108;
+const PLOT_TOP = 10;
+const PLOT_BOTTOM = 86;
 
 export default function StatsScreen() {
   const { state, dispatch } = useApp();
@@ -24,10 +26,11 @@ export default function StatsScreen() {
   const weightPoints = weights
     .map((v, i) => {
       const x = weights.length === 1 ? CHART_W / 2 : (i / (weights.length - 1)) * CHART_W;
-      const y = 76 - ((v - min) / (max - min || 1)) * 68;
+      const y = PLOT_BOTTOM - ((v - min) / (max - min || 1)) * (PLOT_BOTTOM - PLOT_TOP);
       return { x, y, value: v };
     });
   const points = weightPoints.map((point) => `${point.x.toFixed(1)},${point.y.toFixed(1)}`).join(' ');
+  const areaPoints = weights.length > 1 ? `0,${PLOT_BOTTOM} ${points} ${CHART_W},${PLOT_BOTTOM}` : '';
   const delta = weights.length > 1 ? weights.at(-1) - weights[0] : 0;
 
   // Weekly session count from detailed archives, with legacy day summaries as fallback.
@@ -42,6 +45,7 @@ export default function StatsScreen() {
   }
   const maxVol = Math.max(...volume, 1);
   const hasWorkouts = volume.some((sessions) => sessions > 0);
+  const averageVolume = volume.reduce((sum, sessions) => sum + sessions, 0) / volume.length;
 
   // Adherence over the last 30 closed days.
   const last30 = Array.from({ length: 30 }, (_, i) => key(addDays(today, -(i + 1))))
@@ -80,15 +84,34 @@ export default function StatsScreen() {
                 : `Body weight, from ${weights[0]} to ${weights.at(-1)} ${unit} over 12 weeks`}
               style={{ width: '100%', height: CHART_H, marginTop: 14, overflow: 'visible' }}
             >
-              {weights.length > 1 ? (
-                <polyline
-                  points={points}
-                  fill="none"
-                  stroke="rgba(233,229,220,0.75)"
-                  strokeWidth="1.6"
-                  strokeLinejoin="round"
-                  strokeLinecap="round"
+              {[PLOT_TOP, (PLOT_TOP + PLOT_BOTTOM) / 2, PLOT_BOTTOM].map((y) => (
+                <line
+                  key={y}
+                  x1="0"
+                  x2={CHART_W}
+                  y1={y}
+                  y2={y}
+                  stroke="rgba(233,229,220,0.09)"
+                  strokeWidth="1"
+                  strokeDasharray="3 5"
+                  vectorEffect="non-scaling-stroke"
                 />
+              ))}
+              {weights.length > 1 ? (
+                <>
+                  <polygon points={areaPoints} fill={NUT} opacity="0.06" />
+                  <polyline
+                    points={points}
+                    fill="none"
+                    stroke={NUT}
+                    strokeWidth="1.8"
+                    strokeLinejoin="round"
+                    strokeLinecap="round"
+                    vectorEffect="non-scaling-stroke"
+                  />
+                  <circle cx={weightPoints.at(-1).x} cy={weightPoints.at(-1).y} r="3.5" fill={NUT} />
+                  <circle cx={weightPoints.at(-1).x} cy={weightPoints.at(-1).y} r="7" fill="none" stroke={NUT} opacity="0.25" />
+                </>
               ) : (
                 <circle cx={weightPoints[0].x} cy={weightPoints[0].y} r="3" fill={NUT} />
               )}
@@ -114,10 +137,16 @@ export default function StatsScreen() {
       </Panel>
 
       <Panel style={{ marginTop: 14 }}>
-        <Label>WORKOUTS PER WEEK</Label>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
+          <div>
+            <Label>WORKOUTS PER WEEK</Label>
+            {hasWorkouts && <div style={{ marginTop: 7, fontSize: 23, fontWeight: 600, letterSpacing: -0.8 }}>{volume.at(-1)} this week</div>}
+          </div>
+          {hasWorkouts && <Mono color={dim(0.6)}>{averageVolume.toFixed(1)} avg</Mono>}
+        </div>
         {hasWorkouts ? (
           <>
-            <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, height: 96, marginTop: 16 }}>
+            <div style={{ position: 'relative', display: 'flex', alignItems: 'flex-end', gap: 6, height: 92, marginTop: 18, borderBottom: `1px solid ${dim(0.12)}` }}>
               {volume.map((v, i) => (
                 <div
                   key={i}
@@ -129,7 +158,7 @@ export default function StatsScreen() {
                     style={{
                       borderRadius: '4px 4px 2px 2px',
                       height: v ? `${Math.max(4, Math.round((v / maxVol) * 100))}%` : 2,
-                      background: i === volume.length - 1 ? TRN : dim(0.22),
+                      background: i === volume.length - 1 ? TRN : dim(0.2),
                     }}
                   />
                 </div>
@@ -155,20 +184,22 @@ export default function StatsScreen() {
         )}
       </Panel>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 14 }}>
-        <Panel>
-          <div style={{ fontSize: 32, fontWeight: 600, letterSpacing: -1.4 }}>{last30.length ? `${kcalHit}/${last30.length}` : '—'}</div>
-          <Label color={NUT} style={{ letterSpacing: 1.2, marginTop: 5 }}>
-            {last30.length ? 'DAYS ON TARGET' : 'NO DAYS LOGGED'}
-          </Label>
-        </Panel>
-        <Panel>
-          <div style={{ fontSize: 32, fontWeight: 600, letterSpacing: -1.4 }}>{last30.length ? `${trainHit}/${last30.length}` : '—'}</div>
-          <Label color={TRN} style={{ letterSpacing: 1.2, marginTop: 5 }}>
-            {last30.length ? 'WORKOUT DAYS' : 'NO DAYS LOGGED'}
-          </Label>
-        </Panel>
-      </div>
+      <Panel style={{ marginTop: 14 }}>
+        <Label>30 DAY CONSISTENCY</Label>
+        <ConsistencyRow
+          label="Calories on target"
+          value={last30.length ? `${kcalHit}/${last30.length}` : '—'}
+          percent={last30.length ? (kcalHit / last30.length) * 100 : 0}
+          color={NUT}
+        />
+        <ConsistencyRow
+          label="Workout days"
+          value={last30.length ? `${trainHit}/${last30.length}` : '—'}
+          percent={last30.length ? (trainHit / last30.length) * 100 : 0}
+          color={TRN}
+          last
+        />
+      </Panel>
 
       <Label style={{ marginTop: 26 }}>BEST SET BY EXERCISE</Label>
       {personalBests.map((p) => (
@@ -197,6 +228,18 @@ export default function StatsScreen() {
         </EmptyNote>
       )}
     </Screen>
+  );
+}
+
+function ConsistencyRow({ label, value, percent, color, last }) {
+  return (
+    <div style={{ padding: '15px 0', borderBottom: last ? 'none' : `1px solid ${dim(0.08)}` }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12, marginBottom: 9 }}>
+        <span style={{ fontSize: 14.5, fontWeight: 500 }}>{label}</span>
+        <Mono size={13} color={color}>{value}</Mono>
+      </div>
+      <Meter value={`${percent}%`} color={color} height={4} track={dim(0.09)} label={`${label}: ${Math.round(percent)}%`} />
+    </div>
   );
 }
 
