@@ -1,7 +1,17 @@
-import { createContext, useContext, useEffect, useMemo, useReducer, useRef, useState } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useReducer,
+  useRef,
+  useState,
+} from 'react';
+import AuthScreen from '../screens/AuthScreen.jsx';
 import { initialState, reducer } from './reducer.js';
-import { clear, fingerprint, load, reconcile, save, snapshot } from './persistence.js';
-import { seedState } from '../data/seed.js';
+import { fingerprint, reconcile, snapshot } from './persistence.js';
+import { newAccountState } from '../data/seed.js';
 import { key, startOfToday } from '../lib/date.js';
 import { rolloverData } from './model.js';
 import { clearDeviceLock, hasDeviceCredential } from '../lib/deviceLock.js';
@@ -19,120 +29,308 @@ const AppContext = createContext(null);
 
 function prepareData(saved) {
   const today = startOfToday();
-  const data = rolloverData(reconcile(saved, seedState(today), today), key(today));
+  const data = rolloverData(reconcile(saved, newAccountState(today), today), key(today));
   if (!hasDeviceCredential()) data.toggles.lock = false;
   return data;
 }
 
-const bootstrap = () => initialState(prepareData(load()));
+function prepareNewAccount(profileName = 'Your name') {
+  const today = startOfToday();
+  const data = rolloverData(newAccountState(today, profileName), key(today));
+  if (!hasDeviceCredential()) data.toggles.lock = false;
+  return data;
+}
 
-const localSync = {
-  configured: false,
-  signedIn: false,
-  status: 'local',
-  email: '',
-  lastSyncedAt: null,
-  error: '',
-};
+const bootstrap = () => initialState(prepareNewAccount());
+
+const initialSync = supabaseConfigured
+  ? {
+      configured: true,
+      signedIn: false,
+      dataReady: false,
+      authStatus: 'checking',
+      status: 'checking',
+      email: '',
+      lastSyncedAt: null,
+      error: '',
+      errorSource: '',
+    }
+  : {
+      configured: false,
+      signedIn: false,
+      dataReady: false,
+      authStatus: 'signed-out',
+      status: 'error',
+      email: '',
+      lastSyncedAt: null,
+      error: 'Supabase is not configured.',
+      errorSource: 'config',
+    };
 
 export function AppProvider({ children }) {
   const [state, dispatch] = useReducer(reducer, undefined, bootstrap);
-  const [sync, setSync] = useState(() => (
-    supabaseConfigured ? { ...localSync, configured: true, status: 'checking' } : localSync
-  ));
+  const [sync, setSync] = useState(initialSync);
   const stateRef = useRef(state);
+  const mountedRef = useRef(true);
+  const sessionRef = useRef(null);
   const cloudUserRef = useRef(null);
   const cloudReadyRef = useRef(false);
+  const loadingUserRef = useRef(null);
+  const loadAttemptRef = useRef(0);
   const syncTimerRef = useRef(null);
-  const lastFingerprintRef = useRef(fingerprint(state));
+  const lastSavedFingerprintRef = useRef(fingerprint(state));
+  const savePromiseRef = useRef(null);
+  const saveQueuedRef = useRef(false);
   stateRef.current = state;
 
-  // Only durable changes touch storage or the network. Navigation, open sheets,
-  // lock state, and half-typed drafts remain transient UI.
-  useEffect(() => {
-    const nextFingerprint = fingerprint(state);
-    if (nextFingerprint === lastFingerprintRef.current) return undefined;
-    lastFingerprintRef.current = nextFingerprint;
-    const payload = save(state);
-    if (!cloudReadyRef.current || !cloudUserRef.current) return undefined;
+  const persistLatest = useCallback(async ({ force = false } = {}) => {
+    if (!cloudReadyRef.current || !cloudUserRef.current) return false;
 
-    clearTimeout(syncTimerRef.current);
-    setSync((current) => ({ ...current, status: 'syncing', error: '' }));
-    syncTimerRef.current = setTimeout(async () => {
-      try {
-        await writeCloudSnapshot(cloudUserRef.current, payload);
-        setSync((current) => ({ ...current, status: 'synced', lastSyncedAt: payload.updatedAt, error: '' }));
-      } catch (error) {
-        setSync((current) => ({ ...current, status: 'error', error: error?.message || 'Sync failed.' }));
-      }
-    }, 800);
+    if (savePromiseRef.current) {
+      saveQueuedRef.current = true;
+      return savePromiseRef.current;
+    }
 
-    return () => clearTimeout(syncTimerRef.current);
-  }, [state]);
+    const run = async () => {
+      let mustWrite = force;
+      do {
+        saveQueuedRef.current = false;
+        const userId = cloudUserRef.current;
+        if (!cloudReadyRef.current || !userId) return false;
 
-  useEffect(() => {
-    if (!supabaseConfigured) return undefined;
-    let active = true;
+        const current = stateRef.current;
+        const nextFingerprint = fingerprint(current);
+        if (!mustWrite && nextFingerprint === lastSavedFingerprintRef.current) break;
 
-    const connect = async (session) => {
-      if (!active) return;
-      const user = session?.user;
-      cloudReadyRef.current = false;
-      cloudUserRef.current = user?.id || null;
-      if (!user) {
-        setSync({ ...localSync, configured: true, status: 'signed-out' });
-        return;
-      }
-
-      setSync((current) => ({ ...current, configured: true, signedIn: true, status: 'syncing', email: user.email || '', error: '' }));
-      try {
-        const local = load();
-        const remote = await readCloudSnapshot(user.id);
-        if (!active) return;
-        const localTime = Date.parse(local?.updatedAt || '') || 0;
-        const remoteTime = Date.parse(remote?.client_updated_at || remote?.payload?.updatedAt || '') || 0;
-
-        if (remote?.payload && remoteTime > localTime) {
-          const data = prepareData(remote.payload);
-          lastFingerprintRef.current = fingerprint(data);
-          save(data);
-          dispatch({ type: 'hydrate', data });
-        } else {
-          await writeCloudSnapshot(user.id, snapshot(stateRef.current));
+        if (mountedRef.current) {
+          setSync((value) => ({ ...value, status: 'saving', error: '', errorSource: '' }));
         }
 
-        if (!active) return;
-        cloudReadyRef.current = true;
-        setSync((current) => ({
-          ...current,
-          status: 'synced',
-          email: user.email || '',
-          lastSyncedAt: remoteTime > localTime ? remote.client_updated_at : new Date().toISOString(),
+        const payload = snapshot(current);
+        let saved;
+        try {
+          saved = await writeCloudSnapshot(userId, payload);
+        } catch (error) {
+          if (mountedRef.current && userId === cloudUserRef.current) {
+            setSync((value) => ({
+              ...value,
+              status: 'error',
+              error: error?.message || 'Your changes could not be saved. Try again.',
+              errorSource: 'save',
+            }));
+          }
+          return false;
+        }
+
+        if (userId !== cloudUserRef.current) return false;
+        lastSavedFingerprintRef.current = nextFingerprint;
+        mustWrite = false;
+
+        if (mountedRef.current) {
+          const hasNewerChanges = fingerprint(stateRef.current) !== lastSavedFingerprintRef.current;
+          setSync((value) => ({
+            ...value,
+            status: hasNewerChanges ? 'saving' : 'saved',
+            lastSyncedAt: saved?.updated_at || payload.updatedAt,
+            error: '',
+            errorSource: '',
+          }));
+        }
+      } while (
+        saveQueuedRef.current
+        || fingerprint(stateRef.current) !== lastSavedFingerprintRef.current
+      );
+      return true;
+    };
+
+    const promise = run().finally(() => {
+      if (savePromiseRef.current === promise) savePromiseRef.current = null;
+    });
+    savePromiseRef.current = promise;
+    return promise;
+  }, []);
+
+  const loadSession = useCallback(async (session, { force = false } = {}) => {
+    sessionRef.current = session || null;
+    const user = session?.user;
+
+    if (!user) {
+      loadAttemptRef.current += 1;
+      loadingUserRef.current = null;
+      cloudReadyRef.current = false;
+      cloudUserRef.current = null;
+      clearTimeout(syncTimerRef.current);
+      const empty = prepareNewAccount();
+      lastSavedFingerprintRef.current = fingerprint(empty);
+      dispatch({ type: 'hydrate', data: empty });
+      if (mountedRef.current) {
+        setSync({
+          configured: true,
+          signedIn: false,
+          dataReady: false,
+          authStatus: 'signed-out',
+          status: 'saved',
+          email: '',
+          lastSyncedAt: null,
           error: '',
+          errorSource: '',
+        });
+      }
+      return true;
+    }
+
+    if (!force && user.id === loadingUserRef.current) return false;
+    if (!force && user.id === cloudUserRef.current && cloudReadyRef.current) {
+      if (mountedRef.current) {
+        setSync((value) => ({ ...value, email: user.email || value.email }));
+      }
+      return true;
+    }
+
+    const attempt = ++loadAttemptRef.current;
+    loadingUserRef.current = user.id;
+    cloudReadyRef.current = false;
+    cloudUserRef.current = user.id;
+    clearTimeout(syncTimerRef.current);
+    if (mountedRef.current) {
+      setSync((value) => ({
+        ...value,
+        configured: true,
+        signedIn: true,
+        dataReady: false,
+        authStatus: 'signed-in',
+        status: 'loading',
+        email: user.email || '',
+        error: '',
+        errorSource: '',
+      }));
+    }
+
+    try {
+      const remote = await readCloudSnapshot(user.id);
+      if (attempt !== loadAttemptRef.current || user.id !== cloudUserRef.current) return false;
+
+      const data = remote?.payload
+        ? prepareData(remote.payload)
+        : prepareNewAccount(user.user_metadata?.full_name || 'Your name');
+      let lastSyncedAt = remote?.updated_at || remote?.client_updated_at || null;
+      if (!remote?.payload) {
+        const payload = snapshot(data);
+        const created = await writeCloudSnapshot(user.id, payload);
+        if (attempt !== loadAttemptRef.current || user.id !== cloudUserRef.current) return false;
+        lastSyncedAt = created?.updated_at || payload.updatedAt;
+      }
+
+      lastSavedFingerprintRef.current = fingerprint(data);
+      dispatch({ type: 'hydrate', data });
+      cloudReadyRef.current = true;
+      loadingUserRef.current = null;
+      if (mountedRef.current) {
+        setSync({
+          configured: true,
+          signedIn: true,
+          dataReady: true,
+          authStatus: 'signed-in',
+          status: 'saved',
+          email: user.email || '',
+          lastSyncedAt,
+          error: '',
+          errorSource: '',
+        });
+      }
+      return true;
+    } catch (error) {
+      if (attempt !== loadAttemptRef.current || user.id !== cloudUserRef.current) return false;
+      loadingUserRef.current = null;
+      cloudReadyRef.current = false;
+      if (mountedRef.current) {
+        setSync((value) => ({
+          ...value,
+          configured: true,
+          signedIn: true,
+          dataReady: false,
+          authStatus: 'signed-in',
+          status: 'error',
+          email: user.email || '',
+          error: error?.message || 'Your private record could not be loaded. Try again.',
+          errorSource: 'load',
         }));
+      }
+      return false;
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!cloudReadyRef.current || !cloudUserRef.current) return undefined;
+    const nextFingerprint = fingerprint(state);
+    if (nextFingerprint === lastSavedFingerprintRef.current) return undefined;
+
+    clearTimeout(syncTimerRef.current);
+    setSync((value) => ({ ...value, status: 'saving', error: '', errorSource: '' }));
+    syncTimerRef.current = setTimeout(() => {
+      void persistLatest();
+    }, 650);
+
+    return () => clearTimeout(syncTimerRef.current);
+  }, [persistLatest, state]);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    if (!supabaseConfigured) return () => {
+      mountedRef.current = false;
+    };
+
+    let active = true;
+    let stopAuthListener = () => undefined;
+
+    const receiveSession = (event, session) => {
+      if (!active) return;
+      if (
+        (event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED')
+        && session?.user?.id === cloudUserRef.current
+      ) {
+        sessionRef.current = session;
+        if (mountedRef.current) {
+          setSync((value) => ({ ...value, email: session.user.email || value.email }));
+        }
+        return;
+      }
+      queueMicrotask(() => {
+        if (active) void loadSession(session);
+      });
+    };
+
+    const initialize = async () => {
+      try {
+        const stop = await onCloudAuthChange(receiveSession);
+        if (!active) {
+          stop();
+          return;
+        }
+        stopAuthListener = stop;
+        const session = await getCloudSession();
+        if (active) await loadSession(session);
       } catch (error) {
-        if (!active) return;
-        setSync((current) => ({ ...current, status: 'error', error: error?.message || 'Cloud connection failed.' }));
+        if (!active || !mountedRef.current) return;
+        setSync((value) => ({
+          ...value,
+          status: 'error',
+          error: error?.message || 'Fieldnote could not check your session. Try again.',
+          errorSource: 'auth',
+        }));
       }
     };
 
-    let stopAuthListener = () => undefined;
-    onCloudAuthChange(connect).then((stop) => {
-      if (active) stopAuthListener = stop;
-      else stop();
-    }).catch((error) => {
-      if (active) setSync((current) => ({ ...current, status: 'error', error: error?.message || 'Cloud connection failed.' }));
-    });
-    getCloudSession().then(connect).catch((error) => {
-      if (active) setSync((current) => ({ ...current, status: 'error', error: error?.message || 'Cloud connection failed.' }));
-    });
-
+    void initialize();
     return () => {
       active = false;
-      stopAuthListener();
+      mountedRef.current = false;
+      loadAttemptRef.current += 1;
+      cloudReadyRef.current = false;
       clearTimeout(syncTimerRef.current);
+      stopAuthListener();
     };
-  }, []);
+  }, [loadSession]);
 
   // One rest clock for the whole app; the reducer ignores ticks when idle.
   useEffect(() => {
@@ -152,39 +350,122 @@ export function AppProvider({ children }) {
     };
   }, []);
 
+  const requestCloudLogin = useCallback(async (email) => {
+    try {
+      const normalized = await requestCloudMagicLink(email);
+      if (mountedRef.current) {
+        setSync((value) => ({
+          ...value,
+          authStatus: 'link-sent',
+          status: 'saved',
+          email: normalized,
+          error: '',
+          errorSource: '',
+        }));
+      }
+      return normalized;
+    } catch (error) {
+      if (mountedRef.current) {
+        setSync((value) => ({
+          ...value,
+          status: 'error',
+          error: error?.message || 'The sign-in link could not be sent. Try again.',
+          errorSource: 'auth',
+        }));
+      }
+      throw error;
+    }
+  }, []);
+
+  const disconnectCloud = useCallback(async () => {
+    clearTimeout(syncTimerRef.current);
+    if (cloudReadyRef.current && fingerprint(stateRef.current) !== lastSavedFingerprintRef.current) {
+      const saved = await persistLatest();
+      if (!saved) throw new Error('Your latest changes must be saved before signing out.');
+    }
+    cloudReadyRef.current = false;
+    if (mountedRef.current) {
+      setSync((value) => ({ ...value, status: 'checking', dataReady: false, error: '', errorSource: '' }));
+    }
+    try {
+      await signOutCloud();
+      await loadSession(null, { force: true });
+    } catch (error) {
+      if (mountedRef.current) {
+        setSync((value) => ({
+          ...value,
+          status: 'error',
+          error: error?.message || 'Could not sign out. Try again.',
+          errorSource: 'auth',
+        }));
+      }
+      throw error;
+    }
+  }, [loadSession, persistLatest]);
+
+  const retrySync = useCallback(async () => {
+    if (sync.errorSource === 'save' && cloudReadyRef.current) {
+      return persistLatest({ force: true });
+    }
+    if (sessionRef.current?.user) {
+      return loadSession(sessionRef.current, { force: true });
+    }
+    if (sync.errorSource === 'auth' && sync.email) {
+      return requestCloudLogin(sync.email);
+    }
+    if (sync.errorSource === 'auth') {
+      if (mountedRef.current) {
+        setSync((value) => ({ ...value, status: 'checking', error: '', errorSource: '' }));
+      }
+      try {
+        const session = await getCloudSession();
+        return loadSession(session, { force: true });
+      } catch (error) {
+        if (mountedRef.current) {
+          setSync((value) => ({
+            ...value,
+            status: 'error',
+            error: error?.message || 'Fieldnote could not check your session. Try again.',
+            errorSource: 'auth',
+          }));
+        }
+        return false;
+      }
+    }
+    return false;
+  }, [loadSession, persistLatest, requestCloudLogin, sync.email, sync.errorSource]);
+
   const value = useMemo(
     () => ({
       state,
       sync,
       dispatch,
       patch: (patch) => dispatch({ type: 'patch', patch }),
-      requestCloudLogin: async (email) => {
-        setSync((current) => ({ ...current, status: 'sending', error: '' }));
-        try {
-          await requestCloudMagicLink(email);
-          setSync((current) => ({ ...current, status: 'email-sent', email: String(email).trim(), error: '' }));
-        } catch (error) {
-          setSync((current) => ({ ...current, status: 'error', error: error?.message || 'Could not send the sign-in link.' }));
-        }
-      },
-      disconnectCloud: async () => {
-        cloudReadyRef.current = false;
-        try {
-          await signOutCloud();
-        } catch (error) {
-          setSync((current) => ({ ...current, status: 'error', error: error?.message || 'Could not sign out.' }));
-        }
-      },
+      requestCloudLogin,
+      retrySync,
+      disconnectCloud,
+      signOut: disconnectCloud,
       resetAll: () => {
-        clear();
         clearDeviceLock();
-        dispatch({ type: 'reset' });
+        dispatch({ type: 'hydrate', data: prepareNewAccount() });
       },
     }),
-    [state, sync],
+    [disconnectCloud, requestCloudLogin, retrySync, state, sync],
   );
 
-  return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
+  const appReady = sync.signedIn && sync.dataReady;
+  return (
+    <AppContext.Provider value={value}>
+      {appReady ? children : (
+        <AuthScreen
+          sync={sync}
+          onLogin={requestCloudLogin}
+          onRetry={retrySync}
+          onSignOut={disconnectCloud}
+        />
+      )}
+    </AppContext.Provider>
+  );
 }
 
 export function useApp() {

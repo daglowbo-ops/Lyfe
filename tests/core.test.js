@@ -1,11 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { seedState } from '../src/data/seed.js';
+import { newAccountState, seedState } from '../src/data/seed.js';
 import { rolloverData } from '../src/store/model.js';
 import { reconcile } from '../src/store/persistence.js';
 import { spendByDay, totalSpent, transactionsForMonth } from '../src/store/selectors.js';
 import { key } from '../src/lib/date.js';
 import { initialState, reducer } from '../src/store/reducer.js';
+import { CATALOG, foodMatchesQuery } from '../src/data/foods.js';
 
 const localDate = (year, month, day) => new Date(year, month - 1, day);
 
@@ -14,6 +15,28 @@ test('seeded transactions retain full dates across six months', () => {
   const state = seedState(today);
   assert.ok(state.txns.every((txn) => /^\d{4}-\d{2}-\d{2}$/.test(txn.date)));
   assert.equal(new Set(state.txns.map((txn) => txn.date.slice(0, 7))).size, 6);
+});
+
+test('a new web account starts without another person’s demo records', () => {
+  const state = newAccountState(localDate(2026, 8, 11), 'Ana');
+  assert.equal(state.profileName, 'Ana');
+  assert.equal(state.meals.length, 0);
+  assert.equal(state.txns.length, 0);
+  assert.equal(state.weights.length, 0);
+  assert.equal(state.income, 0);
+  assert.deepEqual(state.plan, {});
+
+  const reset = reducer(initialState(seedState(localDate(2026, 8, 11))), { type: 'reset' });
+  assert.equal(reset.meals.length, 0);
+  assert.equal(reset.txns.length, 0);
+});
+
+test('food search reads in English and accepts Spanish with or without accents', () => {
+  const oats = CATALOG.find((food) => food.name === 'Rolled oats, 60 g');
+  const banana = CATALOG.find((food) => food.name === 'Medium banana');
+  assert.equal(foodMatchesQuery(oats, 'oats'), true);
+  assert.equal(foodMatchesQuery(oats, 'avena'), true);
+  assert.equal(foodMatchesQuery(banana, 'platano'), true);
 });
 
 test('month selectors isolate spending and daily totals', () => {
@@ -67,4 +90,31 @@ test('a completed workout is archived with detailed sets exactly once per day', 
   assert.ok(finished.workoutHistory[0].exercises[0].sets[0].w > 0);
   const repeated = reducer(finished, { type: 'finishWorkout' });
   assert.equal(repeated.workoutHistory.length, 1);
+});
+
+test('deleting an expense is reversible and restores the exact transaction', () => {
+  const state = initialState(seedState(new Date()));
+  const item = state.txns[0];
+  const removed = reducer(state, { type: 'removeTxn', id: item.id });
+  assert.equal(removed.txns.some((txn) => txn.id === item.id), false);
+  assert.equal(removed.undo.item, item);
+
+  const restored = reducer(removed, { type: 'undoLast' });
+  assert.equal(restored.txns.some((txn) => txn.id === item.id), true);
+  assert.equal(restored.undo, null);
+});
+
+test('the shared profile preserves its originating module and screen', () => {
+  let state = initialState(seedState(new Date()));
+  state = reducer(state, { type: 'module', module: 'money' });
+  state = reducer(state, { type: 'moneyScreen', screen: 'stats' });
+  state = reducer(state, { type: 'openProfile' });
+  assert.equal(state.module, 'money');
+  assert.equal(state.mScreen, 'stats');
+  assert.equal(state.profileOpen, true);
+
+  state = reducer(state, { type: 'closeProfile' });
+  assert.equal(state.module, 'money');
+  assert.equal(state.mScreen, 'stats');
+  assert.equal(state.profileOpen, false);
 });

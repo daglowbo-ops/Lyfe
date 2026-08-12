@@ -16,7 +16,7 @@ export default function MoneyPlanScreen() {
   return (
     <Screen>
       <Label>{monthLabel(state.mPlanMode === 'month' ? addMonths(today, state.mCalOff) : today)}</Label>
-      <div style={{ fontSize: 30, fontWeight: 600, letterSpacing: -1, marginTop: 5 }}>Calendar</div>
+      <h1 style={{ fontSize: 30, fontWeight: 600, letterSpacing: -1, margin: '5px 0 0' }}>Calendar</h1>
       <SegmentedControl
         style={{ marginTop: 18, borderRadius: 15 }}
         value={state.mPlanMode}
@@ -75,9 +75,9 @@ function MonthView() {
             style={{
               textAlign: 'center',
               fontFamily: MONO,
-              fontSize: 10.5,
+              fontSize: 12,
               letterSpacing: 0.6,
-              color: dim(0.32),
+              color: dim(0.58),
               paddingBottom: 8,
             }}
           >
@@ -140,7 +140,7 @@ function MonthView() {
         </Label>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginTop: 12 }}>
           <div style={{ fontSize: 28, fontWeight: 600, letterSpacing: -1.2 }}>{money0(selTotal)}</div>
-          <div style={{ fontSize: 13, color: dim(0.42) }}>
+          <div style={{ fontSize: 13, color: dim(0.62) }}>
             {selected.length === 1 ? '1 transaction' : `${selected.length} transactions`}
           </div>
         </div>
@@ -193,7 +193,7 @@ function MonthView() {
                   <span style={{ width: 6, height: 6, borderRadius: 2, background: MNY, flexShrink: 0 }} />
                   <div style={{ minWidth: 0 }}>
                     <div style={{ fontSize: 14.5, fontWeight: 500, letterSpacing: -0.2 }}>{t.label}</div>
-                    <Mono size={10.5} color={dim(0.36)} style={{ marginTop: 2, display: 'block' }}>
+                    <Mono size={12} color={dim(0.58)} style={{ marginTop: 2, display: 'block' }}>
                       {categoryLabel(t.cat)}
                     </Mono>
                   </div>
@@ -205,7 +205,7 @@ function MonthView() {
             ))}
           </div>
         ) : (
-          <div style={{ marginTop: 14, fontSize: 14, color: dim(0.4) }}>
+          <div style={{ marginTop: 14, fontSize: 14, color: dim(0.6) }}>
             {state.mSel > key(today) ? 'Future day · no spending yet' : 'No spending that day'}
           </div>
         )}
@@ -244,7 +244,7 @@ function BillsView() {
               value={b.name}
               maxLength={80}
               onChange={(event) => dispatch({ type: 'updateBill', id: b.id, field: 'name', value: event.target.value })}
-              style={{ ...input, width: '100%', height: 40, boxSizing: 'border-box' }}
+              style={{ ...input, width: '100%', height: 44, boxSizing: 'border-box' }}
             />
             <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
               <label style={{ width: 82 }}>
@@ -256,7 +256,7 @@ function BillsView() {
                   max="31"
                   value={b.day}
                   onChange={(event) => dispatch({ type: 'updateBill', id: b.id, field: 'day', value: event.target.value })}
-                  style={{ ...input, width: '100%', height: 40, padding: '0 10px', fontFamily: MONO, boxSizing: 'border-box' }}
+                  style={{ ...input, width: '100%', height: 44, padding: '0 10px', fontFamily: MONO, boxSizing: 'border-box' }}
                 />
               </label>
               <label style={{ flex: 1, minWidth: 0 }}>
@@ -267,7 +267,7 @@ function BillsView() {
                   inputMode="decimal"
                   value={b.amt}
                   onChange={(event) => dispatch({ type: 'updateBill', id: b.id, field: 'amt', value: event.target.value })}
-                  style={{ ...input, width: '100%', minWidth: 0, height: 40, fontFamily: MONO, boxSizing: 'border-box' }}
+                  style={{ ...input, width: '100%', minWidth: 0, height: 44, fontFamily: MONO, boxSizing: 'border-box' }}
                 />
               </label>
             </div>

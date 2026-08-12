@@ -12,9 +12,10 @@ export function getSupabase() {
         persistSession: true,
         autoRefreshToken: true,
         detectSessionInUrl: true,
+        flowType: 'pkce',
+        storageKey: 'fieldnote.auth',
       },
     }));
   }
   return clientPromise;
 }
-

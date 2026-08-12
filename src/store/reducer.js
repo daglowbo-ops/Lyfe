@@ -1,7 +1,7 @@
 import { key, startOfToday } from '../lib/date.js';
 import { toFloat, toInt } from '../lib/format.js';
 import { blankExercise, freshCopy } from '../data/templates.js';
-import { seedState } from '../data/seed.js';
+import { newAccountState } from '../data/seed.js';
 import { rolloverData } from './model.js';
 
 export const REST_SECONDS = 90;
@@ -12,6 +12,7 @@ const freshUi = () => ({
   module: 'health',
   screen: 'today',
   mScreen: 'today',
+  profileOpen: false,
   locked: true,
 
   // Food logging
@@ -42,9 +43,14 @@ const freshUi = () => ({
   mCalOff: 0,
   mSel: key(startOfToday()),
   addSheet: false,
+  txnFiltersOpen: false,
   draftTxn: { amt: '', label: '', cat: 'Mercado', fav: false },
   lockBusy: false,
   lockError: '',
+
+  // Short-lived confirmations and reversible destructive actions.
+  notice: null,
+  undo: null,
 
   // Swipe-to-delete gesture, tracked for one row at a time.
   swipe: { id: null, x: 0, base: 0, startX: 0, dragging: false },
@@ -72,16 +78,23 @@ export function reducer(state, action) {
       return {
         ...state,
         module: a.module,
+        profileOpen: false,
         locked: a.module === 'money'
           ? (state.module === 'money' ? state.locked : state.toggles.lock)
           : state.toggles.lock,
       };
 
     case 'screen':
-      return { ...state, module: 'health', screen: a.screen };
+      return { ...state, module: 'health', screen: a.screen, profileOpen: false };
 
     case 'moneyScreen':
-      return { ...state, mScreen: a.screen };
+      return { ...state, mScreen: a.screen, profileOpen: false };
+
+    case 'openProfile':
+      return { ...state, profileOpen: true };
+
+    case 'closeProfile':
+      return { ...state, profileOpen: false };
 
     case 'rollover':
       return state.activeDate === a.date ? state : rolloverData(state, a.date);
@@ -364,13 +377,27 @@ export function reducer(state, action) {
       return { ...state, draftTxn: { ...state.draftTxn, ...a.patch } };
 
     case 'openAddTxn':
-      return { ...state, addSheet: true, draftTxn: { ...freshUi().draftTxn, cat: state.draftTxn.cat } };
+      return {
+        ...state,
+        addSheet: true,
+        notice: null,
+        draftTxn: { ...freshUi().draftTxn, cat: state.draftTxn.cat },
+      };
 
     case 'closeAddTxn':
       return { ...state, addSheet: false };
 
+    case 'openTxnFilters':
+      return { ...state, txnFiltersOpen: true };
+
+    case 'closeTxnFilters':
+      return { ...state, txnFiltersOpen: false };
+
+    case 'selectTxnFilter':
+      return { ...state, txnFilter: a.filter, txnFiltersOpen: false };
+
     case 'addTxn': {
-      const amt = toFloat(a.amt);
+      const amt = Math.min(99999999, toFloat(a.amt));
       if (!amt) return state;
       const label = ((a.label || '').trim() || a.cat).slice(0, 120);
       const txn = { id: uid('txn'), label, amt, cat: a.cat, date: key(startOfToday()) };
@@ -382,11 +409,39 @@ export function reducer(state, action) {
           : state.favs,
         addSheet: false,
         draftTxn: { ...freshUi().draftTxn, cat: a.cat },
+        notice: { id: uid('notice'), message: `${label} added` },
+        undo: null,
       };
     }
 
-    case 'removeTxn':
-      return { ...state, txns: state.txns.filter((t) => t.id !== a.id) };
+    case 'removeTxn': {
+      const item = state.txns.find((txn) => txn.id === a.id);
+      if (!item) return state;
+      return {
+        ...state,
+        txns: state.txns.filter((txn) => txn.id !== a.id),
+        swipe: freshUi().swipe,
+        notice: null,
+        undo: { id: uid('undo'), kind: 'txn', item, message: `${item.label} deleted` },
+      };
+    }
+
+    case 'undoLast':
+      if (state.undo?.kind !== 'txn') return { ...state, undo: null };
+      return {
+        ...state,
+        txns: state.txns.some((txn) => txn.id === state.undo.item.id)
+          ? state.txns
+          : state.txns.concat(state.undo.item),
+        notice: { id: uid('notice'), message: `${state.undo.item.label} restored` },
+        undo: null,
+      };
+
+    case 'dismissNotice':
+      return { ...state, notice: null };
+
+    case 'dismissUndo':
+      return { ...state, undo: null };
 
     case 'setLimit':
       return {
@@ -426,7 +481,7 @@ export function reducer(state, action) {
 
     // ── Reset ─────────────────────────────────────────────────────
     case 'reset':
-      return initialState(seedState(startOfToday()));
+      return initialState(newAccountState(startOfToday()));
 
     default:
       return state;

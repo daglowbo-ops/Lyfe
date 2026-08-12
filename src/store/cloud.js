@@ -16,7 +16,7 @@ export async function getCloudSession() {
 export async function onCloudAuthChange(callback) {
   if (!supabaseConfigured) return () => undefined;
   const client = await requireClient();
-  const { data } = client.auth.onAuthStateChange((_event, session) => callback(session));
+  const { data } = client.auth.onAuthStateChange((event, session) => callback(event, session));
   return () => data.subscription.unsubscribe();
 }
 
@@ -29,6 +29,7 @@ export async function requestCloudMagicLink(email) {
     options: { emailRedirectTo: window.location.origin },
   });
   if (error) throw error;
+  return normalized;
 }
 
 export async function signOutCloud() {
@@ -50,13 +51,16 @@ export async function readCloudSnapshot(userId) {
 
 export async function writeCloudSnapshot(userId, payload) {
   const client = await requireClient();
-  const { error } = await client
+  const { data, error } = await client
     .from('fieldnote_snapshots')
     .upsert({
       user_id: userId,
       payload,
       schema_version: payload.schemaVersion,
       client_updated_at: payload.updatedAt,
-    }, { onConflict: 'user_id' });
+    }, { onConflict: 'user_id' })
+    .select('client_updated_at, updated_at')
+    .single();
   if (error) throw error;
+  return data;
 }

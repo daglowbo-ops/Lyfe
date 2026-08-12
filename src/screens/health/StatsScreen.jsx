@@ -49,7 +49,7 @@ export default function StatsScreen() {
   return (
     <Screen>
       <Label>LAST 12 WEEKS</Label>
-      <div style={{ fontSize: 30, fontWeight: 600, letterSpacing: -1, marginTop: 5 }}>Progress</div>
+      <h1 style={{ fontSize: 30, fontWeight: 600, letterSpacing: -1, margin: '5px 0 0' }}>Progress</h1>
 
       <Panel style={{ marginTop: 22 }}>
         <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
@@ -59,7 +59,7 @@ export default function StatsScreen() {
               <span style={{ fontSize: 38, fontWeight: 600, letterSpacing: -2, lineHeight: 1 }}>
                 {weights[weights.length - 1]}
               </span>
-              <span style={{ fontSize: 13, color: dim(0.4) }}>{unit}</span>
+              <span style={{ fontSize: 13, color: dim(0.6) }}>{unit}</span>
             </div>
           </div>
           <Mono size={12} color={NUT}>
@@ -88,8 +88,8 @@ export default function StatsScreen() {
             display: 'flex',
             justifyContent: 'space-between',
             fontFamily: MONO,
-            fontSize: 10,
-            color: dim(0.32),
+            fontSize: 12,
+            color: dim(0.58),
             marginTop: 6,
           }}
         >
@@ -123,8 +123,8 @@ export default function StatsScreen() {
             display: 'flex',
             justifyContent: 'space-between',
             fontFamily: MONO,
-            fontSize: 10,
-            color: dim(0.32),
+            fontSize: 12,
+            color: dim(0.58),
             marginTop: 8,
           }}
         >
@@ -162,7 +162,7 @@ export default function StatsScreen() {
         >
           <div>
             <div style={{ fontSize: 15, fontWeight: 500, letterSpacing: -0.2 }}>{p.name}</div>
-            <div style={{ fontSize: 12, color: dim(0.4), marginTop: 2 }}>{p.note}</div>
+            <div style={{ fontSize: 12, color: dim(0.6), marginTop: 2 }}>{p.note}</div>
           </div>
           <Mono size={14} color={TRN}>
             {p.value}

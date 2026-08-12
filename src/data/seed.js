@@ -21,13 +21,13 @@ export function seedMeals() {
     return { ...item, slot, id: name + slot };
   };
   return [
-    pick('Avena, 60 g', 'Desayuno'),
-    pick('Yogur griego, 170 g', 'Desayuno'),
-    pick('Plátano mediano', 'Desayuno'),
-    pick('Pechuga de pollo, 200 g', 'Almuerzo'),
-    pick('Arroz blanco, 1 taza', 'Almuerzo'),
-    pick('Palta, media', 'Almuerzo'),
-    pick('Batido de proteína, 1 medida', 'Snacks'),
+    pick('Rolled oats, 60 g', 'Desayuno'),
+    pick('Greek yogurt, 170 g', 'Desayuno'),
+    pick('Medium banana', 'Desayuno'),
+    pick('Chicken breast, 200 g', 'Almuerzo'),
+    pick('White rice, 1 cup', 'Almuerzo'),
+    pick('Half avocado', 'Almuerzo'),
+    pick('Protein shake, 1 scoop', 'Snacks'),
   ];
 }
 
@@ -156,6 +156,35 @@ export function seedState(today = startOfToday()) {
     income: DEFAULT_INCOME,
     bills: DEFAULT_BILLS.map((b) => ({ ...b })),
     profileName: 'Robin Kade',
+    toggles: { haptics: true, kg: true, lock: false },
+  };
+}
+
+/** Clean production record for a newly authenticated account. */
+export function newAccountState(today = startOfToday(), profileName = 'Your name') {
+  const todayKey = key(today);
+  return {
+    activeDate: todayKey,
+    meals: [],
+    workout: seedWorkout(),
+    sessionFinished: false,
+    dailyLogs: {},
+    workoutHistory: [],
+    templates: seedTemplates(),
+    curName: 'Push A',
+    customFoods: [],
+    hist: {},
+    goalHist: { [todayKey]: { kcal: 2200, p: 180 } },
+    plan: {},
+    weights: [],
+    goals: { kcal: 2200, p: 180, c: 250, f: 70 },
+    txns: [],
+    monthHist: {},
+    budgets: DEFAULT_BUDGETS.map((budget) => ({ ...budget, limit: 0 })),
+    favs: [],
+    income: 0,
+    bills: [],
+    profileName,
     toggles: { haptics: true, kg: true, lock: false },
   };
 }

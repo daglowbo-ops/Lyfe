@@ -37,10 +37,10 @@ export default function TrainScreen() {
               transition: 'border-color .2s',
             }}
           >
-            <span style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: 1.4, color: TRN }}>
+            <span style={{ fontFamily: MONO, fontSize: 12, letterSpacing: 1.4, color: TRN }}>
               {state.curName.toUpperCase()}
             </span>
-            <span style={{ fontSize: 9, color: dim(0.45) }}>▾</span>
+            <span style={{ fontSize: 12, color: dim(0.62) }}>▾</span>
           </button>
           <GhostButton height={44} style={{ padding: '0 16px', fontSize: 14 }} onClick={() => patch({ editSheet: true })}>
             Edit workout
@@ -48,10 +48,10 @@ export default function TrainScreen() {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginTop: 14 }}>
-          <div style={{ fontSize: 26, fontWeight: 600, letterSpacing: -1, lineHeight: 1.15, paddingRight: 12 }}>
+          <h1 style={{ margin: 0, fontSize: 26, fontWeight: 600, letterSpacing: -1, lineHeight: 1.15, paddingRight: 12 }}>
             {ex.name}
-          </div>
-          <Mono color={dim(0.42)} style={{ whiteSpace: 'nowrap' }}>
+          </h1>
+          <Mono color={dim(0.6)} style={{ whiteSpace: 'nowrap' }}>
             {exIdx + 1} / {state.workout.length}
           </Mono>
         </div>
@@ -93,7 +93,7 @@ export default function TrainScreen() {
           }}
         >
           {['#', `WEIGHT · ${unit.toUpperCase()}`, 'REPS'].map((h) => (
-            <span key={h} style={{ fontFamily: MONO, fontSize: 10, letterSpacing: 1.1, color: dim(0.35) }}>
+            <span key={h} style={{ fontFamily: MONO, fontSize: 12, letterSpacing: 1.1, color: dim(0.6) }}>
               {h}
             </span>
           ))}
@@ -113,7 +113,7 @@ export default function TrainScreen() {
               transition: 'opacity .3s',
             }}
           >
-            <span style={{ fontFamily: MONO, fontSize: 13, color: dim(0.45) }}>{j + 1}</span>
+            <span style={{ fontFamily: MONO, fontSize: 13, color: dim(0.62) }}>{j + 1}</span>
             <Stepper
               value={displayWeight(s.w, useKg, useKg ? 1 : 0)}
               downLabel="Less weight"
@@ -201,8 +201,8 @@ export default function TrainScreen() {
             display: 'flex',
             justifyContent: 'space-between',
             fontFamily: MONO,
-            fontSize: 11,
-            color: dim(0.4),
+            fontSize: 12,
+            color: dim(0.6),
           }}
         >
           <span>VOLUME {Math.round(displayWeight(volume, useKg, 0))} {unit}</span>
@@ -236,7 +236,7 @@ function StatBox({ label, value }) {
         background: '#111110',
       }}
     >
-      <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: 1.3, color: dim(0.4) }}>{label}</div>
+      <div style={{ fontFamily: MONO, fontSize: 12, letterSpacing: 1.3, color: dim(0.6) }}>{label}</div>
       <div style={{ fontSize: 17, fontWeight: 500, marginTop: 6, letterSpacing: -0.3 }}>{value}</div>
     </div>
   );
@@ -271,7 +271,7 @@ function RestBar({ left, onSkip }) {
         <button
           className="muted-link"
           onClick={onSkip}
-          style={{ height: 38, padding: '0 6px', marginRight: -6, fontSize: 14, color: dim(0.6) }}
+          style={{ height: 44, padding: '0 6px', marginRight: -6, fontSize: 14, color: dim(0.6) }}
         >
           Skip
         </button>

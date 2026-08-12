@@ -7,8 +7,16 @@
 export default function PhoneShell({ children }) {
   return (
     <div className="shell">
-      <div className="phone">{children}</div>
-      <div className="shell-caption">FIELDNOTE · PRIVATE HEALTH & MONEY LOG</div>
+      <section className="phone" aria-label="Fieldnote">
+        {children}
+      </section>
+      <p
+        className="shell-caption"
+        aria-hidden="true"
+        style={{ margin: 0, fontSize: 12, color: 'rgba(233,229,220,.58)' }}
+      >
+        FIELDNOTE · PRIVATE HEALTH & MONEY LOG
+      </p>
     </div>
   );
 }

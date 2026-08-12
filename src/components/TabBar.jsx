@@ -55,6 +55,7 @@ export const MONEY_TABS = [
 export default function TabBar({ tabs, active, onSelect }) {
   return (
     <nav
+      aria-label="Primary navigation"
       style={{
         position: 'absolute',
         left: 0,
@@ -77,6 +78,7 @@ export default function TabBar({ tabs, active, onSelect }) {
         return (
           <button
             key={t.id}
+            type="button"
             onClick={() => onSelect(t.id)}
             aria-current={on ? 'page' : undefined}
             style={{
@@ -88,11 +90,11 @@ export default function TabBar({ tabs, active, onSelect }) {
               justifyContent: 'center',
               gap: 7,
               transition: 'color .25s',
-              color: on ? INK : dim(0.34),
+              color: on ? INK : dim(0.58),
             }}
           >
-            {ICONS[t.icon]}
-            <span style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: 0.6 }}>{t.label}</span>
+            <span aria-hidden="true" style={{ display: 'contents' }}>{ICONS[t.icon]}</span>
+            <span style={{ fontFamily: MONO, fontSize: 12, letterSpacing: 0.6 }}>{t.label}</span>
           </button>
         );
       })}

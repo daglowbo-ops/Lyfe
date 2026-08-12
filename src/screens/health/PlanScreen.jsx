@@ -14,7 +14,7 @@ export default function PlanScreen() {
   return (
     <Screen>
       <Label>{monthLabel(startOfToday())}</Label>
-      <div style={{ fontSize: 30, fontWeight: 600, letterSpacing: -1, marginTop: 5 }}>Plan</div>
+      <h1 style={{ fontSize: 30, fontWeight: 600, letterSpacing: -1, margin: '5px 0 0' }}>Plan</h1>
       <SegmentedControl
         style={{ marginTop: 18 }}
         value={state.planMode}
@@ -70,9 +70,9 @@ function MonthView() {
             style={{
               textAlign: 'center',
               fontFamily: MONO,
-              fontSize: 10.5,
+              fontSize: 12,
               letterSpacing: 0.6,
-              color: dim(0.32),
+              color: dim(0.58),
               paddingBottom: 8,
             }}
           >
@@ -155,7 +155,7 @@ function MonthView() {
             }}
           >
             <span style={{ width: 14, height: 11, borderRadius: 3, border: `1.4px solid ${dim(0.35)}` }} />
-            <span style={{ fontSize: 13.5, color: dim(0.45) }}>
+            <span style={{ fontSize: 13.5, color: dim(0.62) }}>
               {selRec.trained ? 'Workout recorded' : 'No workout recorded'} · past days are read-only
             </span>
           </div>
@@ -185,8 +185,8 @@ function MonthView() {
               </span>
               <span
                 style={{
-                  fontSize: 9,
-                  color: dim(0.45),
+                  fontSize: 12,
+                  color: dim(0.62),
                   transition: 'transform .22s',
                   transform: state.dayMenu === state.sel ? 'rotate(180deg)' : 'none',
                 }}
@@ -245,7 +245,7 @@ function WeekView() {
             }}
           >
             <div style={{ width: 38 }}>
-              <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: 1, color: dim(0.4) }}>
+              <div style={{ fontFamily: MONO, fontSize: 12, letterSpacing: 1, color: dim(0.6) }}>
                 {DOW_LONG[dowIndex(d)]}
               </div>
               <div style={{ fontFamily: MONO, fontSize: 15, marginTop: 2 }}>{d.getDate()}</div>
@@ -265,8 +265,8 @@ function WeekView() {
                 </span>
                 <span
                   style={{
-                    fontSize: 9,
-                    color: dim(0.45),
+                    fontSize: 12,
+                    color: dim(0.62),
                     transition: 'transform .22s',
                     transform: state.dayMenu === k ? 'rotate(180deg)' : 'none',
                   }}
@@ -274,11 +274,11 @@ function WeekView() {
                   ▼
                 </span>
               </div>
-              <div style={{ fontSize: 12, color: dim(0.4), marginTop: 2 }}>
+              <div style={{ fontSize: 12, color: dim(0.6), marginTop: 2 }}>
                 {rest ? 'Rest · 30 min walk' : 'Strength · 55 min'}
               </div>
             </div>
-            <Mono size={12} color={dim(0.45)}>
+            <Mono size={12} color={dim(0.6)}>
               {goalOn(state, k).kcal}
             </Mono>
           </button>
@@ -317,14 +317,14 @@ function ArrowButton({ children, onClick, disabled, label }) {
 function MiniStat({ label, value, unit, note }) {
   return (
     <div style={{ borderRadius: 14, background: dim(0.04), padding: 14 }}>
-      <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: 1.1, color: NUT }}>{label}</div>
+      <div style={{ fontFamily: MONO, fontSize: 12, letterSpacing: 1.1, color: NUT }}>{label}</div>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginTop: 7 }}>
         <span style={{ fontSize: 24, fontWeight: 600, letterSpacing: -1 }}>{value}</span>
-        <Mono size={12} color={dim(0.4)}>
+        <Mono size={12} color={dim(0.6)}>
           {unit}
         </Mono>
       </div>
-      <div style={{ fontSize: 11.5, color: dim(0.38), marginTop: 3 }}>{note}</div>
+      <div style={{ fontSize: 12, color: dim(0.58), marginTop: 3 }}>{note}</div>
     </div>
   );
 }
@@ -334,7 +334,7 @@ const Dot = ({ color }) => (
 );
 
 const Legend = ({ color, children }) => (
-  <span style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 12, color: dim(0.45) }}>
+  <span style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 12, color: dim(0.6) }}>
     <span style={{ width: 6, height: 6, borderRadius: '50%', background: color }} />
     {children}
   </span>

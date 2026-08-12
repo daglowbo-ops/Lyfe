@@ -3,12 +3,13 @@ import SwipeRow from '../../components/SwipeRow.jsx';
 import { Avatar, Card, Chip, Label, Meter, Mono, PrimaryButton, ScreenTitle, EmptyNote } from '../../components/Primitives.jsx';
 import { useApp } from '../../store/AppProvider.jsx';
 import { daysLeftInMonth, totalBudget, totalSpent, transactionsForMonth } from '../../store/selectors.js';
-import { CATEGORIES, categoryLabel } from '../../data/money.js';
+import { categoryLabel } from '../../data/money.js';
 import { MON_SHORT, key, monthLabel, startOfToday } from '../../lib/date.js';
 import { money, money0 } from '../../lib/format.js';
 import { MNY, MONO, ON_MNY, WARN, dim } from '../../lib/theme.js';
 
 const ALL = 'Todo';
+const QUICK_FILTERS = [ALL, 'Mercado', 'Comer fuera', 'Transporte'];
 
 export default function MoneyTodayScreen() {
   const { state, dispatch, patch } = useApp();
@@ -48,13 +49,13 @@ export default function MoneyTodayScreen() {
       <ScreenTitle
         eyebrow={`${monthLabel(today)} · DAY ${today.getDate()}`}
         title="Spending"
-        right={<Avatar initials={initials} onClick={() => dispatch({ type: 'screen', screen: 'you' })} />}
+        right={<Avatar initials={initials} onClick={() => dispatch({ type: 'openProfile' })} />}
       />
 
       <Card style={{ marginTop: 22 }}>
         <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
           <Label color={MNY}>AVAILABLE THIS MONTH</Label>
-          <Mono color={dim(0.42)}>
+          <Mono color={dim(0.6)}>
             {money0(spent)} / {money0(budget)}
           </Mono>
         </div>
@@ -121,8 +122,8 @@ export default function MoneyTodayScreen() {
         </Mono>
       </div>
 
-      <div className="hscroll" style={{ display: 'flex', gap: 8, marginTop: 12, paddingBottom: 2 }}>
-        {[ALL, ...CATEGORIES].map((c) => (
+      <div aria-label="Transaction filters" style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
+        {QUICK_FILTERS.map((c) => (
           <Chip
             key={c}
             label={c === ALL ? 'All' : categoryLabel(c)}
@@ -130,16 +131,29 @@ export default function MoneyTodayScreen() {
             onClick={() => patch({ txnFilter: c })}
           />
         ))}
+        <Chip
+          label={QUICK_FILTERS.includes(state.txnFilter)
+            ? 'More filters'
+            : `More · ${categoryLabel(state.txnFilter)}`}
+          selected={!QUICK_FILTERS.includes(state.txnFilter)}
+          accent={MNY}
+          onClick={() => dispatch({ type: 'openTxnFilters' })}
+        />
       </div>
 
       {days.map((d) => (
-        <div key={d.date} style={{ marginTop: 22 }}>
+        <section key={d.date} className="ledger-day" style={{ marginTop: 22 }} aria-label={d.label.toLowerCase()}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <Label>{d.label}</Label>
             <Mono color={dim(0.55)}>{money0(d.items.reduce((a, t) => a + t.amt, 0))}</Mono>
           </div>
           {d.items.map((t) => (
-            <SwipeRow key={t.id} id={t.id} onDelete={() => dispatch({ type: 'removeTxn', id: t.id })}>
+            <SwipeRow
+              key={t.id}
+              id={t.id}
+              deleteLabel={`Delete ${t.label}`}
+              onDelete={() => dispatch({ type: 'removeTxn', id: t.id })}
+            >
               <div
                 style={{
                   display: 'flex',
@@ -153,7 +167,7 @@ export default function MoneyTodayScreen() {
                   <span style={{ width: 7, height: 7, borderRadius: 2, background: MNY }} />
                   <div>
                     <div style={{ fontSize: 15, fontWeight: 500, letterSpacing: -0.2 }}>{t.label}</div>
-                    <div style={{ fontFamily: MONO, fontSize: 11, color: dim(0.38), marginTop: 3 }}>
+                    <div style={{ fontFamily: MONO, fontSize: 12, color: dim(0.56), marginTop: 3 }}>
                       {categoryLabel(t.cat)}
                     </div>
                   </div>
@@ -164,10 +178,32 @@ export default function MoneyTodayScreen() {
               </div>
             </SwipeRow>
           ))}
-        </div>
+        </section>
       ))}
 
-      {days.length === 0 && <EmptyNote>No transactions in this category</EmptyNote>}
+      {days.length === 0 && (
+        <div style={{ marginTop: 18 }}>
+          <EmptyNote>No transactions match this filter.</EmptyNote>
+          <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+            {state.txnFilter !== ALL && (
+              <button
+                className="outline"
+                onClick={() => patch({ txnFilter: ALL })}
+                style={{ flex: 1, minHeight: 48, border: `1px solid ${dim(0.16)}`, borderRadius: 14, textAlign: 'center' }}
+              >
+                Clear filter
+              </button>
+            )}
+            <button
+              className="outline-mny"
+              onClick={() => dispatch({ type: 'openAddTxn' })}
+              style={{ flex: 1, minHeight: 48, border: `1px solid ${MNY}`, borderRadius: 14, color: MNY, textAlign: 'center' }}
+            >
+              Add expense
+            </button>
+          </div>
+        </div>
+      )}
     </Screen>
   );
 }
@@ -175,7 +211,7 @@ export default function MoneyTodayScreen() {
 function Cell({ label, value }) {
   return (
     <div>
-      <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: 1.1, color: dim(0.45) }}>{label}</div>
+      <div style={{ fontFamily: MONO, fontSize: 12, letterSpacing: 1.1, color: dim(0.58) }}>{label}</div>
       <div style={{ fontFamily: MONO, fontSize: 14, marginTop: 4 }}>{value}</div>
     </div>
   );

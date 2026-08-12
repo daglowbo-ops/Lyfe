@@ -20,7 +20,7 @@ export const toFloat = (v) => {
   return Number.isFinite(n) && n > 0 ? n : 0;
 };
 
-export const macroLine = (m) => `${m.p}P · ${m.c}C · ${m.f}F`;
+export const macroLine = (m) => `Protein ${m.p} g · Carbs ${m.c} g · Fat ${m.f} g`;
 
 export const displayWeight = (kg, useKg = true, digits = 1) => {
   const value = useKg ? kg : kg * KG_TO_LB;

@@ -1,6 +1,6 @@
 # Fieldnote
 
-Fieldnote is a private, offline-ready health and money log. The product UI is
+Fieldnote is a private web app for health and money records. The product UI is
 English, while user-entered foods, exercises, transaction details, profile
 names, and bill names accept Spanish or any other Unicode text without
 translation or filtering.
@@ -23,10 +23,9 @@ green nutrition, amber training, blue money, and red budget warnings.
 
 ## Data model
 
-All durable data is written to `localStorage` under `fieldnote.v6` first.
-When Supabase is configured and the user signs in by email, the same versioned
-snapshot is synchronized to that user's protected database row. The local copy
-remains the offline source of truth while disconnected.
+Supabase is the single durable data source. A signed-in user owns one versioned
+snapshot protected by Row Level Security; application state in the browser is
+optimistic and remains in memory only until Supabase confirms the write.
 
 - Health logs use local `YYYY-MM-DD` keys. Leaving the app open overnight also
   triggers rollover, so meals and set completion never leak into the next day.
@@ -35,20 +34,18 @@ remains the offline source of truth while disconnected.
 - Saving a completed workout archives its exercises, sets, reps, weights, date,
   and completion time.
 - Navigation, open sheets, lock errors, and half-typed drafts remain transient.
+- Every durable change exposes a saving, saved, or retry state. A failed write
+  is never presented as safely stored.
 
-Snapshots from `fieldnote.v5` are migrated on first load. Numeric weight arrays
-become dated entries and current-month day numbers become full dates.
+Older remote snapshot shapes are reconciled when read. Numeric weight arrays
+become dated entries and legacy current-month day numbers become full dates.
 
-## Offline and privacy
+## Web persistence and privacy
 
-The production build includes a web app manifest and service worker. Once
-loaded, the app shell and previously requested same-origin assets remain
-available offline. Supabase traffic bypasses the service-worker cache so auth
-and database responses are never stored as app-shell assets.
-
-Cloud sync is opt-in. Without a signed-in account, no health or financial
-record is sent over the network. Supabase Row Level Security limits every
-authenticated user to their own snapshot.
+Fieldnote requires an authenticated Supabase session before personal records
+are shown. It does not register a service worker or promise offline operation.
+Supabase Row Level Security limits every authenticated user to their own
+snapshot, and no service-role key is shipped to the browser.
 
 The optional Device lock uses WebAuthn with the browser's platform
 authenticator. Depending on the device, that can be a fingerprint, face scan,
@@ -79,7 +76,7 @@ npm run build
 npm run check
 ```
 
-Core date, migration, rollover, and month-isolation behavior is covered by the
+Core date, reconciliation, rollover, Undo, and month-isolation behavior is covered by the
 Node test suite. ESLint covers the application and tests; TypeScript checks the
 data, date, formatting, persistence, selector, and test modules without
 requiring a TypeScript rewrite of the React screens.

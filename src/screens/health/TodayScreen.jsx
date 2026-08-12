@@ -49,14 +49,14 @@ export default function TodayScreen() {
         <ScreenTitle
           eyebrow={fullLabel(today)}
           title="Today"
-          right={<Avatar initials={initials} onClick={() => dispatch({ type: 'screen', screen: 'you' })} />}
+          right={<Avatar initials={initials} onClick={() => dispatch({ type: 'openProfile' })} />}
         />
       </div>
 
       <Card>
         <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
           <Label color={NUT}>CALORIES LEFT</Label>
-          <Mono color={dim(0.42)}>
+          <Mono color={dim(0.6)}>
             {totals.kcal} / {goal.kcal}
           </Mono>
         </div>
@@ -64,7 +64,7 @@ export default function TodayScreen() {
           <div style={{ fontSize: 64, fontWeight: 600, letterSpacing: -3.5, lineHeight: 1 }}>
             {Math.max(0, goal.kcal - totals.kcal)}
           </div>
-          <div style={{ fontSize: 15, color: dim(0.4), paddingBottom: 9 }}>kcal</div>
+          <div style={{ fontSize: 15, color: dim(0.6), paddingBottom: 9 }}>kcal</div>
         </div>
         <Meter value={pct(totals.kcal, goal.kcal)} color={NUT} />
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14, marginTop: 18 }}>
@@ -77,14 +77,14 @@ export default function TodayScreen() {
       <Card style={{ marginTop: 14, padding: 20 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Label color={TRN}>TODAY'S WORKOUT</Label>
-          <Mono color={dim(0.42)}>
+          <Mono color={dim(0.6)}>
             {done}/{all} SETS
           </Mono>
         </div>
         <div style={{ fontSize: 26, fontWeight: 600, letterSpacing: -0.9, margin: '8px 0 3px' }}>
           {state.curName}
         </div>
-        <div style={{ fontSize: 14, color: dim(0.48) }}>
+        <div style={{ fontSize: 14, color: dim(0.62) }}>
           {state.workout.length} exercises ·{' '}
           {state.workout.map((e) => e.name).slice(0, 2).join(', ')}…
         </div>
@@ -117,7 +117,7 @@ export default function TodayScreen() {
               background: d.isToday ? dim(0.06) : 'transparent',
             }}
           >
-            <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: 0.5, color: dim(0.4) }}>
+            <span style={{ fontFamily: MONO, fontSize: 12, letterSpacing: 0.5, color: dim(0.58) }}>
               {d.dow}
             </span>
             <Dot color={d.ate} />
@@ -143,14 +143,14 @@ export default function TodayScreen() {
               <span style={{ width: 7, height: 7, borderRadius: 2, background: r.col }} />
               <div>
                 <div style={{ fontSize: 15, fontWeight: 500, letterSpacing: -0.2 }}>{r.name}</div>
-                <div style={{ fontSize: 12, color: dim(0.4), marginTop: 2 }}>{r.sub}</div>
+                <div style={{ fontSize: 12, color: dim(0.6), marginTop: 2 }}>{r.sub}</div>
               </div>
             </div>
             <Mono size={13}>{r.val}</Mono>
           </div>
         ))}
         {recent.length === 0 && (
-          <div style={{ fontSize: 14, color: dim(0.4), paddingTop: 6 }}>Nothing logged yet.</div>
+          <div style={{ fontSize: 14, color: dim(0.6), paddingTop: 6 }}>Nothing logged yet.</div>
         )}
       </div>
     </Screen>
@@ -161,7 +161,7 @@ function MacroCell({ label, text, bar }) {
   return (
     <div>
       <div style={{ marginBottom: 7, minWidth: 0 }}>
-        <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: 1.1, color: dim(0.45), whiteSpace: 'nowrap' }}>
+        <div style={{ fontFamily: MONO, fontSize: 12, letterSpacing: 1.1, color: dim(0.6), whiteSpace: 'nowrap' }}>
           {label}
         </div>
         <div style={{ fontFamily: MONO, fontSize: 12, color: dim(0.8), marginTop: 3, whiteSpace: 'nowrap' }}>

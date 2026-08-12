@@ -4,7 +4,7 @@
  */
 export default function Screen({ children }) {
   return (
-    <div
+    <main
       className="scroll screen-in"
       style={{
         flex: 1,
@@ -15,6 +15,6 @@ export default function Screen({ children }) {
       }}
     >
       {children}
-    </div>
+    </main>
   );
 }

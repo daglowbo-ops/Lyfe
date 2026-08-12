@@ -1,30 +1,66 @@
-import { MONO, dim, INK, panel as panelStyle, card as cardStyle } from '../lib/theme.js';
+import { MONO, dim, INK, ON_NUT, panel as panelStyle, card as cardStyle } from '../lib/theme.js';
+
+const METADATA_SIZE = 12;
+
+function metadataSize(size) {
+  return typeof size === 'number' ? Math.max(METADATA_SIZE, size) : size;
+}
+
+function readableMetadataColor(color) {
+  if (typeof color !== 'string') return color;
+  const match = color.match(/^rgba\(233,\s*229,\s*220,\s*([0-9.]+)\)$/i);
+  return match && Number(match[1]) < 0.58 ? dim(0.58) : color;
+}
 
 /** Monospaced tracking-out caption. The app's only section heading style. */
-export function Label({ children, color = dim(0.42), size = 10, style }) {
+export function Label({ children, color = dim(0.62), size = METADATA_SIZE, style, as: Component = 'div' }) {
+  const requestedSize = style?.fontSize ?? size;
+  const requestedColor = style?.color ?? color;
   return (
-    <div style={{ fontFamily: MONO, fontSize: size, letterSpacing: 1.6, color, ...style }}>
+    <Component
+      style={{
+        fontFamily: MONO,
+        letterSpacing: 1.4,
+        lineHeight: 1.35,
+        ...style,
+        fontSize: metadataSize(requestedSize),
+        color: readableMetadataColor(requestedColor),
+      }}
+    >
       {children}
-    </div>
+    </Component>
   );
 }
 
 /** Inline monospaced value, for numbers that sit next to prose. */
-export function Mono({ children, color = dim(0.7), size = 11, style }) {
-  return <span style={{ fontFamily: MONO, fontSize: size, color, ...style }}>{children}</span>;
+export function Mono({ children, color = dim(0.72), size = METADATA_SIZE, style }) {
+  const requestedSize = style?.fontSize ?? size;
+  const requestedColor = style?.color ?? color;
+  return (
+    <span
+      style={{
+        fontFamily: MONO,
+        ...style,
+        fontSize: metadataSize(requestedSize),
+        color: readableMetadataColor(requestedColor),
+      }}
+    >
+      {children}
+    </span>
+  );
 }
 
 export function ScreenTitle({ eyebrow, title, right }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+    <header style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
       <div>
         <Label>{eyebrow}</Label>
-        <div style={{ fontSize: 30, fontWeight: 600, letterSpacing: -1, lineHeight: 1.1, marginTop: 5 }}>
+        <h1 style={{ margin: '5px 0 0', fontSize: 30, fontWeight: 600, letterSpacing: -1, lineHeight: 1.1 }}>
           {title}
-        </div>
+        </h1>
       </div>
       {right}
-    </div>
+    </header>
   );
 }
 
@@ -37,10 +73,17 @@ export function Panel({ children, style }) {
 }
 
 /** Thin progress track. `color` fills, the rest stays at 10% ink. */
-export function Meter({ value, color, height = 5, track = dim(0.1) }) {
+export function Meter({ value, color, height = 5, track = dim(0.1), label = 'Progress' }) {
   const scale = Math.max(0, Math.min(1, Number.parseFloat(value) / 100 || 0));
   return (
-    <div style={{ height, borderRadius: height / 2 + 1, background: track, overflow: 'hidden' }}>
+    <div
+      role="progressbar"
+      aria-label={label}
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-valuenow={Math.round(scale * 100)}
+      style={{ height, borderRadius: height / 2 + 1, background: track, overflow: 'hidden' }}
+    >
       <div
         style={{
           height: '100%',
@@ -57,10 +100,11 @@ export function Meter({ value, color, height = 5, track = dim(0.1) }) {
 }
 
 /** Two-state pill group — Mes/Semana, Buscar/Rápido, Gasto/Ahorro. */
-export function SegmentedControl({ options, value, onChange, style }) {
+export function SegmentedControl({ options, value, onChange, style, ariaLabel = 'View options' }) {
   return (
     <div
-      role="tablist"
+      role="group"
+      aria-label={ariaLabel}
       style={{ display: 'flex', gap: 4, padding: 4, borderRadius: 14, background: dim(0.07), ...style }}
     >
       {options.map((o) => {
@@ -68,8 +112,8 @@ export function SegmentedControl({ options, value, onChange, style }) {
         return (
           <button
             key={o.value}
-            role="tab"
-            aria-selected={on}
+            type="button"
+            aria-pressed={on}
             onClick={() => onChange(o.value)}
             style={{
               flex: 1,
@@ -95,14 +139,16 @@ export function SegmentedControl({ options, value, onChange, style }) {
 
 /** Filter/category chip. Selected chips invert. */
 export function Chip({ label, selected, onClick, accent = INK, height = 40 }) {
+  const controlHeight = Math.max(44, Number(height) || 44);
   return (
     <button
+      type="button"
       onClick={onClick}
       aria-pressed={selected}
       style={{
-        height,
+        height: controlHeight,
         padding: '0 15px',
-        borderRadius: height >= 44 ? 13 : 12,
+        borderRadius: controlHeight >= 44 ? 13 : 12,
         display: 'flex',
         alignItems: 'center',
         fontSize: 13.5,
@@ -132,6 +178,7 @@ export function PrimaryButton({ children, onClick, background, color, disabled, 
       style={{
         width: '100%',
         height,
+        minHeight: 44,
         borderRadius: 14,
         background,
         color,
@@ -152,20 +199,22 @@ export function PrimaryButton({ children, onClick, background, color, disabled, 
 }
 
 /** Outlined secondary action. */
-export function GhostButton({ children, onClick, height = 50, style, className = 'outline' }) {
+export function GhostButton({ children, onClick, height = 50, style, className = 'outline', type = 'button' }) {
   return (
     <button
+      type={type}
       className={className}
       onClick={onClick}
       style={{
         height,
+        minHeight: 44,
         borderRadius: 14,
         border: `1px solid ${dim(0.14)}`,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         fontSize: 15,
-        color: dim(0.55),
+        color: dim(0.65),
         ...style,
       }}
     >
@@ -178,11 +227,13 @@ export function GhostButton({ children, onClick, height = 50, style, className =
 export function AddButton({ children, onClick, accent = 'nut', height = 48, style }) {
   return (
     <button
+      type="button"
       className={`outline-${accent}`}
       onClick={onClick}
       style={{
         width: '100%',
         height,
+        minHeight: 44,
         borderRadius: 13,
         border: `1px dashed ${dim(0.18)}`,
         background: dim(0.03),
@@ -191,7 +242,7 @@ export function AddButton({ children, onClick, accent = 'nut', height = 48, styl
         justifyContent: 'center',
         gap: 8,
         fontSize: 14,
-        color: dim(0.6),
+        color: dim(0.65),
         transition: 'border-color .2s, color .2s',
         ...style,
       }}
@@ -204,13 +255,13 @@ export function AddButton({ children, onClick, accent = 'nut', height = 48, styl
 /** −/+ pair around a value. Used for weights, reps, amounts and set counts. */
 export function Stepper({ value, onDown, onUp, height = 46, labelPrefix, downLabel, upLabel }) {
   const btn = {
-    width: 40,
-    height: 40,
+    width: 44,
+    height: 44,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     fontSize: 19,
-    color: dim(0.45),
+    color: dim(0.65),
     borderRadius: 10,
   };
   return (
@@ -219,21 +270,21 @@ export function Stepper({ value, onDown, onUp, height = 46, labelPrefix, downLab
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        height,
+        height: Math.max(48, Number(height) || 48),
         borderRadius: 13,
         border: `1px solid ${dim(0.1)}`,
         background: '#131311',
         padding: '0 4px',
       }}
     >
-      <button className="stepper" style={btn} onClick={onDown} aria-label={downLabel}>
+      <button type="button" className="stepper" style={btn} onClick={onDown} aria-label={downLabel || 'Decrease value'}>
         −
       </button>
       <span style={{ fontFamily: MONO, fontSize: 15, fontWeight: 500 }}>
-        {labelPrefix && <span style={{ color: dim(0.4) }}>{labelPrefix} </span>}
+        {labelPrefix && <span style={{ color: dim(0.58) }}>{labelPrefix} </span>}
         {value}
       </span>
-      <button className="stepper" style={btn} onClick={onUp} aria-label={upLabel}>
+      <button type="button" className="stepper" style={btn} onClick={onUp} aria-label={upLabel || 'Increase value'}>
         +
       </button>
     </div>
@@ -244,6 +295,7 @@ export function Stepper({ value, onDown, onUp, height = 46, labelPrefix, downLab
 export function CheckRow({ checked, onClick, accent, children }) {
   return (
     <button
+      type="button"
       onClick={onClick}
       role="checkbox"
       aria-checked={checked}
@@ -261,7 +313,7 @@ export function CheckRow({ checked, onClick, accent, children }) {
           transition: 'background .2s, border-color .2s',
           border: `1px solid ${checked ? accent : dim(0.2)}`,
           background: checked ? accent : 'transparent',
-          color: '#0D1A0C',
+          color: ON_NUT,
         }}
       >
         {checked ? '✓' : ''}
@@ -275,6 +327,7 @@ export function CheckRow({ checked, onClick, accent, children }) {
 export function EmptyNote({ children }) {
   return (
     <div
+      role="status"
       style={{
         marginTop: 24,
         padding: '30px 20px',
@@ -282,7 +335,7 @@ export function EmptyNote({ children }) {
         border: `1px dashed ${dim(0.14)}`,
         textAlign: 'center',
         fontSize: 15,
-        color: dim(0.55),
+        color: dim(0.62),
       }}
     >
       {children}
@@ -291,24 +344,30 @@ export function EmptyNote({ children }) {
 }
 
 export function Avatar({ initials, onClick, size = 46 }) {
+  const controlSize = Math.max(44, Number(size) || 44);
+  const style = {
+    width: controlSize,
+    height: controlSize,
+    borderRadius: '50%',
+    border: `1px solid ${dim(0.16)}`,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontFamily: MONO,
+    fontSize: controlSize > 50 ? 16 : 12,
+    color: dim(0.7),
+    flexShrink: 0,
+  };
+  if (!onClick) {
+    return <div aria-hidden="true" style={style}>{initials}</div>;
+  }
   return (
     <button
+      type="button"
       className="outline"
       onClick={onClick}
       aria-label="Your profile"
-      style={{
-        width: size,
-        height: size,
-        borderRadius: '50%',
-        border: `1px solid ${dim(0.16)}`,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontFamily: MONO,
-        fontSize: size > 50 ? 16 : 12,
-        color: dim(0.7),
-        flexShrink: 0,
-      }}
+      style={style}
     >
       {initials}
     </button>

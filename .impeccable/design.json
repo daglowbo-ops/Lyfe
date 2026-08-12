@@ -1,0 +1,200 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-12T04:35:16.1434040Z",
+  "title": "Design System: Fieldnote",
+  "extensions": {
+    "colorMeta": {
+      "field-green": {
+        "role": "primary",
+        "displayName": "Field Green",
+        "canonical": "oklch(0.84 0.15 135)",
+        "tonalRamp": ["oklch(0.15 0.06 135)", "oklch(0.25 0.08 135)", "oklch(0.36 0.10 135)", "oklch(0.48 0.12 135)", "oklch(0.60 0.14 135)", "oklch(0.72 0.15 135)", "oklch(0.84 0.15 135)", "oklch(0.95 0.05 135)"]
+      },
+      "work-amber": {
+        "role": "secondary",
+        "displayName": "Work Amber",
+        "canonical": "oklch(0.84 0.15 55)",
+        "tonalRamp": ["oklch(0.15 0.05 55)", "oklch(0.25 0.07 55)", "oklch(0.36 0.09 55)", "oklch(0.48 0.11 55)", "oklch(0.60 0.13 55)", "oklch(0.72 0.15 55)", "oklch(0.84 0.15 55)", "oklch(0.95 0.05 55)"]
+      },
+      "ledger-blue": {
+        "role": "tertiary",
+        "displayName": "Ledger Blue",
+        "canonical": "oklch(0.84 0.15 245)",
+        "tonalRamp": ["oklch(0.15 0.05 245)", "oklch(0.25 0.07 245)", "oklch(0.36 0.09 245)", "oklch(0.48 0.11 245)", "oklch(0.60 0.13 245)", "oklch(0.72 0.15 245)", "oklch(0.84 0.15 245)", "oklch(0.95 0.05 245)"]
+      },
+      "signal-red": {
+        "role": "warning",
+        "displayName": "Signal Red",
+        "canonical": "oklch(0.76 0.16 30)",
+        "tonalRamp": ["oklch(0.15 0.06 30)", "oklch(0.25 0.08 30)", "oklch(0.36 0.10 30)", "oklch(0.48 0.13 30)", "oklch(0.60 0.15 30)", "oklch(0.70 0.16 30)", "oklch(0.82 0.13 30)", "oklch(0.95 0.05 30)"]
+      },
+      "parchment-ink": {
+        "role": "neutral",
+        "displayName": "Parchment Ink",
+        "canonical": "#e9e5dc",
+        "tonalRamp": ["oklch(0.15 0.006 90)", "oklch(0.25 0.006 90)", "oklch(0.36 0.006 90)", "oklch(0.48 0.006 90)", "oklch(0.60 0.006 90)", "oklch(0.72 0.006 90)", "oklch(0.84 0.006 90)", "oklch(0.95 0.006 90)"]
+      },
+      "charcoal-page": {
+        "role": "neutral",
+        "displayName": "Charcoal Page",
+        "canonical": "#0d0d0c",
+        "tonalRamp": ["oklch(0.15 0.006 90)", "oklch(0.25 0.006 90)", "oklch(0.36 0.006 90)", "oklch(0.48 0.006 90)", "oklch(0.60 0.006 90)", "oklch(0.72 0.006 90)", "oklch(0.84 0.006 90)", "oklch(0.95 0.006 90)"]
+      },
+      "outer-night": {
+        "role": "neutral",
+        "displayName": "Outer Night",
+        "canonical": "#080807",
+        "tonalRamp": ["oklch(0.15 0.006 90)", "oklch(0.25 0.006 90)", "oklch(0.36 0.006 90)", "oklch(0.48 0.006 90)", "oklch(0.60 0.006 90)", "oklch(0.72 0.006 90)", "oklch(0.84 0.006 90)", "oklch(0.95 0.006 90)"]
+      },
+      "hero-surface": {
+        "role": "neutral",
+        "displayName": "Hero Surface",
+        "canonical": "#1a1a17",
+        "tonalRamp": ["oklch(0.15 0.006 90)", "oklch(0.25 0.006 90)", "oklch(0.36 0.006 90)", "oklch(0.48 0.006 90)", "oklch(0.60 0.006 90)", "oklch(0.72 0.006 90)", "oklch(0.84 0.006 90)", "oklch(0.95 0.006 90)"]
+      },
+      "panel-surface": {
+        "role": "neutral",
+        "displayName": "Panel Surface",
+        "canonical": "#111110",
+        "tonalRamp": ["oklch(0.15 0.006 90)", "oklch(0.25 0.006 90)", "oklch(0.36 0.006 90)", "oklch(0.48 0.006 90)", "oklch(0.60 0.006 90)", "oklch(0.72 0.006 90)", "oklch(0.84 0.006 90)", "oklch(0.95 0.006 90)"]
+      },
+      "sheet-surface": {
+        "role": "neutral",
+        "displayName": "Sheet Surface",
+        "canonical": "#141412",
+        "tonalRamp": ["oklch(0.15 0.006 90)", "oklch(0.25 0.006 90)", "oklch(0.36 0.006 90)", "oklch(0.48 0.006 90)", "oklch(0.60 0.006 90)", "oklch(0.72 0.006 90)", "oklch(0.84 0.006 90)", "oklch(0.95 0.006 90)"]
+      }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display Metric", "purpose": "The single dominant quantity in a hero card." },
+      "headline": { "displayName": "Screen Headline", "purpose": "Primary screen titles." },
+      "title": { "displayName": "Subject Title", "purpose": "Workout names and major in-screen subjects." },
+      "body": { "displayName": "Working Body", "purpose": "Rows, descriptions, and direct actions." },
+      "label": { "displayName": "Field Annotation", "purpose": "Dates, categories, units, status, and navigation labels." }
+    },
+    "shadows": [
+      { "name": "hero-lift", "value": "0 10px 28px rgba(0,0,0,.38)", "purpose": "Ambient lift for high-priority summary cards only." },
+      { "name": "shell-ambient", "value": "0 40px 80px rgba(0,0,0,.35), 0 0 0 1px rgba(233,229,220,.06)", "purpose": "Frames the phone against the wide-screen outer night." }
+    ],
+    "motion": [
+      { "name": "press", "value": "transform 0.16s, filter 0.16s", "purpose": "Primary-button compression and brightness feedback." },
+      { "name": "state", "value": "0.2s ease", "purpose": "Borders, color, and compact control state changes." },
+      { "name": "screen-entry", "value": "0.34s cubic-bezier(0.2,0.8,0.2,1)", "purpose": "Short upward reveal when changing screens." },
+      { "name": "sheet-entry", "value": "0.34s cubic-bezier(0.2,0.85,0.25,1)", "purpose": "Weighted bottom-sheet rise." },
+      { "name": "progress", "value": "0.5s cubic-bezier(0.2,0.8,0.2,1)", "purpose": "Meter and chart progress changes." }
+    ],
+    "breakpoints": [
+      { "name": "framed-shell-width", "value": "460px" },
+      { "name": "framed-shell-height", "value": "720px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Field Primary Button",
+      "kind": "button",
+      "refersTo": "button-field",
+      "description": "Primary nutrition or health action.",
+      "html": "<button class=\"ds-btn ds-btn-field\">ADD TO FOOD LOG</button>",
+      "css": ".ds-btn{width:100%;height:52px;border:0;border-radius:14px;padding:0 20px;font-family:Outfit,system-ui,sans-serif;font-size:16px;font-weight:600;letter-spacing:-.2px;cursor:pointer;transition:transform .16s,filter .16s}.ds-btn-field{background:oklch(0.84 0.15 135);color:#0d1a0c}.ds-btn:hover{filter:brightness(1.08)}.ds-btn:active{transform:scale(.975)}.ds-btn:focus-visible{outline:2px solid #e9e5dc;outline-offset:3px}"
+    },
+    {
+      "name": "Work Primary Button",
+      "kind": "button",
+      "refersTo": "button-work",
+      "description": "Primary training or workout action.",
+      "html": "<button class=\"ds-btn ds-btn-work\">START WORKOUT</button>",
+      "css": ".ds-btn{width:100%;height:52px;border:0;border-radius:14px;padding:0 20px;font-family:Outfit,system-ui,sans-serif;font-size:16px;font-weight:600;letter-spacing:-.2px;cursor:pointer;transition:transform .16s,filter .16s}.ds-btn-work{background:oklch(0.84 0.15 55);color:#14100a}.ds-btn:hover{filter:brightness(1.08)}.ds-btn:active{transform:scale(.975)}.ds-btn:focus-visible{outline:2px solid #e9e5dc;outline-offset:3px}"
+    },
+    {
+      "name": "Ledger Primary Button",
+      "kind": "button",
+      "refersTo": "button-ledger",
+      "description": "Primary money or expense action.",
+      "html": "<button class=\"ds-btn ds-btn-ledger\">ADD EXPENSE</button>",
+      "css": ".ds-btn{width:100%;height:56px;border:0;border-radius:16px;padding:0 20px;font-family:Outfit,system-ui,sans-serif;font-size:16px;font-weight:600;letter-spacing:-.2px;cursor:pointer;transition:transform .16s,filter .16s}.ds-btn-ledger{background:oklch(0.84 0.15 245);color:#08131f}.ds-btn:hover{filter:brightness(1.08)}.ds-btn:active{transform:scale(.975)}.ds-btn:focus-visible{outline:2px solid #e9e5dc;outline-offset:3px}"
+    },
+    {
+      "name": "Filter Chips",
+      "kind": "chip",
+      "refersTo": "chip-idle",
+      "description": "Compact filtering with neutral inversion for selection.",
+      "html": "<div class=\"ds-chip-row\"><button class=\"ds-chip ds-chip-on\">ALL</button><button class=\"ds-chip\">GROCERIES</button></div>",
+      "css": ".ds-chip-row{display:flex;gap:8px;background:#0d0d0c;padding:8px}.ds-chip{height:44px;padding:0 15px;border:1px solid rgba(233,229,220,.14);border-radius:12px;background:transparent;color:rgba(233,229,220,.65);font-family:Outfit,system-ui,sans-serif;font-size:13.5px;font-weight:500;cursor:pointer;transition:background .2s,color .2s,border-color .2s}.ds-chip-on{background:#e9e5dc;color:#0d0d0c;border-color:#e9e5dc}.ds-chip:hover{border-color:rgba(233,229,220,.4);color:#e9e5dc}.ds-chip:focus-visible{outline:2px solid #e9e5dc;outline-offset:3px}"
+    },
+    {
+      "name": "Hero Metric Card",
+      "kind": "card",
+      "refersTo": "card-hero",
+      "description": "Lifted summary card for one dominant daily measure.",
+      "html": "<section class=\"ds-hero-card\"><div class=\"ds-hero-row\"><span class=\"ds-hero-label\">CALORIES LEFT</span><span class=\"ds-hero-meta\">0 / 2200</span></div><div class=\"ds-hero-value\">2200 <small>kcal</small></div><div class=\"ds-meter\"><span></span></div></section>",
+      "css": ".ds-hero-card{box-sizing:border-box;padding:22px 20px 18px;border:1px solid rgba(233,229,220,.16);border-radius:22px;background:#1a1a17;color:#e9e5dc;box-shadow:0 10px 28px rgba(0,0,0,.38);font-family:Outfit,system-ui,sans-serif}.ds-hero-row{display:flex;align-items:baseline;justify-content:space-between}.ds-hero-label,.ds-hero-meta{font-family:'JetBrains Mono',ui-monospace,monospace}.ds-hero-label{font-size:12px;letter-spacing:1.6px;color:oklch(0.84 0.15 135)}.ds-hero-meta{font-size:12px;color:rgba(233,229,220,.58)}.ds-hero-value{margin:6px 0 16px;font-size:64px;font-weight:600;line-height:1;letter-spacing:-3.5px}.ds-hero-value small{font-size:15px;font-weight:400;letter-spacing:0;color:rgba(233,229,220,.58)}.ds-meter{height:5px;border-radius:3px;background:rgba(233,229,220,.1);overflow:hidden}.ds-meter span{display:block;width:42%;height:100%;border-radius:inherit;background:oklch(0.84 0.15 135)}"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Opaque inset field for labels and free text.",
+      "html": "<label class=\"ds-field-label\" for=\"ds-field\">DETAIL · OPTIONAL</label><input class=\"ds-field\" id=\"ds-field\" placeholder=\"e.g. Almuerzo with Ana\">",
+      "css": ".ds-field-label{display:block;margin-bottom:8px;color:rgba(233,229,220,.62);font-family:'JetBrains Mono',ui-monospace,monospace;font-size:12px;letter-spacing:1.6px}.ds-field{box-sizing:border-box;width:100%;height:46px;padding:0 14px;border:1px solid rgba(233,229,220,.12);border-radius:13px;background:#0d0d0c;color:#e9e5dc;font-family:Outfit,system-ui,sans-serif;font-size:16px;outline:none}.ds-field::placeholder{color:rgba(233,229,220,.5)}.ds-field:hover{border-color:rgba(233,229,220,.28)}.ds-field:focus-visible{outline:2px solid #e9e5dc;outline-offset:3px}"
+    },
+    {
+      "name": "Module Switch",
+      "kind": "nav",
+      "description": "Persistent two-domain switch at the top of the phone shell.",
+      "html": "<nav class=\"ds-module-switch\"><button class=\"ds-module-on\">Health</button><button>Money</button></nav>",
+      "css": ".ds-module-switch{display:inline-flex;gap:3px;padding:3px;border:1px solid rgba(233,229,220,.09);border-radius:15px;background:rgba(32,32,29,.92);backdrop-filter:blur(16px);font-family:Outfit,system-ui,sans-serif}.ds-module-switch button{height:44px;padding:0 22px;border:0;border-radius:12px;background:transparent;color:rgba(233,229,220,.55);font:inherit;font-size:14px;font-weight:500;cursor:pointer;transition:background .25s,color .25s}.ds-module-switch .ds-module-on{background:#e9e5dc;color:#0d0d0c}.ds-module-switch button:focus-visible{outline:2px solid #e9e5dc;outline-offset:3px}"
+    },
+    {
+      "name": "Bottom Navigation",
+      "kind": "nav",
+      "description": "Compact translucent task navigation with monospaced labels.",
+      "html": "<nav class=\"ds-tabbar\"><button class=\"ds-tab-on\"><span class=\"ds-tab-icon ds-circle\"></span><span>TODAY</span></button><button><span class=\"ds-tab-icon ds-square\"></span><span>FOOD</span></button><button><span class=\"ds-tab-icon ds-bars\"></span><span>TRAIN</span></button></nav>",
+      "css": ".ds-tabbar{display:flex;padding:11px 8px 19px;border-top:1px solid rgba(233,229,220,.08);background:rgba(13,13,12,.86);backdrop-filter:blur(18px)}.ds-tabbar button{flex:1;height:58px;border:0;background:transparent;color:rgba(233,229,220,.55);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:12px;letter-spacing:.6px;cursor:pointer;transition:color .25s}.ds-tabbar .ds-tab-on{color:#e9e5dc}.ds-tab-icon{display:block;width:15px;height:15px;border:1.6px solid currentColor}.ds-circle{border-radius:50%}.ds-square{border-radius:4px}.ds-bars{border-radius:2px;border-width:4px 0 4px}.ds-tabbar button:focus-visible{outline:2px solid #e9e5dc;outline-offset:3px}"
+    },
+    {
+      "name": "Bottom Sheet",
+      "kind": "custom",
+      "description": "Opaque task sheet over a restrained blurred scrim.",
+      "html": "<section class=\"ds-sheet\"><span class=\"ds-sheet-handle\"></span><header><strong>New expense</strong><button>Done</button></header><p>Sheet content</p></section>",
+      "css": ".ds-sheet{box-sizing:border-box;padding:12px 20px 34px;border:1px solid rgba(233,229,220,.12);border-bottom:0;border-radius:26px 26px 0 0;background:#141412;color:#e9e5dc;font-family:Outfit,system-ui,sans-serif}.ds-sheet-handle{display:block;width:38px;height:4px;margin:0 auto 16px;border-radius:3px;background:rgba(233,229,220,.2)}.ds-sheet header{display:flex;align-items:center;justify-content:space-between}.ds-sheet strong{font-size:20px;font-weight:600;letter-spacing:-.6px}.ds-sheet button{height:44px;border:0;background:transparent;color:rgba(233,229,220,.65);font:inherit;font-size:15px;cursor:pointer;transition:color .2s}.ds-sheet button:hover{color:#e9e5dc}.ds-sheet button:focus-visible{outline:2px solid #e9e5dc;outline-offset:3px}.ds-sheet p{color:rgba(233,229,220,.65)}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Night Fieldbook",
+    "overview": "Fieldnote should feel like a well-used personal fieldbook opened after dark: private, grounded, and ready for practical work. Warm near-black pages carry compact layers of information, while parchment-toned type and small color marks make the record feel human rather than clinical.\n\nThe system favors grounded utility over spectacle. Large quantities are immediately legible, exact labels stay quiet, controls feel tactile, and depth is ambient rather than glossy. The interface should remain calm even when it is dense; it is a working instrument for repeated daily use, not a gamified fitness product or a polished fintech showroom.",
+    "keyCharacteristics": [
+      "Warm near-black surfaces with parchment-toned text.",
+      "Sparse domain color: green for nutrition, amber for training, blue for money, red for warnings.",
+      "Outfit carries hierarchy; JetBrains Mono carries labels, dates, and exact values.",
+      "Compact mobile density with generous touch targets and layered, ambient depth.",
+      "Tactile controls, precise state changes, and minimal blur."
+    ],
+    "rules": [
+      { "name": "The Domain Signal Rule", "body": "Each accent is semantic: green is nutrition, amber is training, blue is money, and red is warning. Never exchange them for decoration.", "section": "colors" },
+      { "name": "The Sparse Color Rule", "body": "Accents appear on labels, indicators, progress, and decisive actions; warm neutrals carry the rest of the interface.", "section": "colors" },
+      { "name": "The Two-Register Rule", "body": "Use Outfit for reading and hierarchy; use JetBrains Mono for annotation, measurement, navigation labels, and compact status.", "section": "typography" },
+      { "name": "The One-Giant-Number Rule", "body": "A screen region gets at most one display-scale quantity. Supporting values step down sharply so the primary measure remains unmistakable.", "section": "typography" },
+      { "name": "The One-Phone Rule", "body": "Wider viewports frame the mobile instrument; they do not stretch, reflow, or decorate it into a separate desktop product.", "section": "layout" },
+      { "name": "The Twenty-Pixel Edge Rule", "body": "Primary screen content holds a consistent 20px inset. Internal component padding may vary, but page edges do not drift.", "section": "layout" },
+      { "name": "The One-Lift Rule", "body": "Hero cards may float; supporting panels stay flat and rely on tone, borders, and spacing.", "section": "elevation" },
+      { "name": "The Blur-at-the-Edges Rule", "body": "Backdrop blur belongs only to navigation, switching, and modal scrims; it never becomes the default card material.", "section": "elevation" },
+      { "name": "The Nested Radius Rule", "body": "Inner controls must be visibly tighter than their parent surface; never stack identical large radii into a soft, inflated blob.", "section": "shapes" },
+      { "name": "The Tactile State Rule", "body": "Every interactive component gets one clear response—brightness, border, inversion, compression, or movement—without stacking effects.", "section": "components" }
+    ],
+    "dos": [
+      "Do use Field Green, Work Amber, Ledger Blue, and Signal Red only for their established semantic roles.",
+      "Do preserve warm near-black layers and parchment-toned type instead of introducing cool black, pure white, or generic gray surfaces.",
+      "Do maintain 20px page edges, compact section rhythm, and touch targets around 44px or larger.",
+      "Do pair large Outfit quantities with small JetBrains Mono annotations.",
+      "Do keep blur at the navigational edges and keep cards, panels, and fields opaque.",
+      "Do honor prefers-reduced-motion by removing entry animation and reducing transitions to near-instant state changes."
+    ],
+    "donts": [
+      "Don't use excessive glassmorphism, translucent content cards, glowing panes, or blur as the default surface treatment.",
+      "Don't spread domain accents across large decorative areas or interchange their meanings.",
+      "Don't turn the framed wide-screen view into a multi-column desktop dashboard.",
+      "Don't add shadows to ordinary rows, controls, or secondary panels.",
+      "Don't replace precise labels and values with playful badges, gamified rewards, or ornamental illustrations."
+    ]
+  }
+}

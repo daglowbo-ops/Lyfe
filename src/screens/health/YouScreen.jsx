@@ -14,13 +14,13 @@ const SETTINGS = [
 ];
 
 export default function YouScreen() {
-  const { state, sync, dispatch, resetAll, requestCloudLogin, disconnectCloud } = useApp();
+  const { state, sync, dispatch, resetAll, retrySync, disconnectCloud } = useApp();
   const useKg = state.toggles.kg;
   const unit = weightUnit(useKg);
   const latest = state.weights.at(-1)?.value || 0;
   const [weightDraft, setWeightDraft] = useState('');
-  const [emailDraft, setEmailDraft] = useState('');
   const initials = state.profileName.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join('').toUpperCase() || 'ME';
+  const backLabel = state.module === 'money' ? 'Spending' : 'Today';
 
   const toggleDeviceLock = async () => {
     dispatch({ type: 'lockStatus', busy: true });
@@ -51,11 +51,13 @@ export default function YouScreen() {
     <Screen>
       <button
         className="muted-link"
-        onClick={() => dispatch({ type: 'screen', screen: 'today' })}
-        style={{ display: 'inline-flex', alignItems: 'center', height: 44, paddingRight: 12, fontSize: 15, color: dim(0.5), marginBottom: 6 }}
+        onClick={() => dispatch({ type: 'closeProfile' })}
+        style={{ display: 'inline-flex', alignItems: 'center', height: 44, paddingRight: 12, fontSize: 15, color: dim(0.65), marginBottom: 6 }}
       >
-        ← Today
+        ← {backLabel}
       </button>
+
+      <h1 style={{ margin: '4px 0 18px', fontSize: 30, fontWeight: 600, letterSpacing: -1 }}>Profile</h1>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
         <Avatar initials={initials} size={60} />
@@ -67,8 +69,8 @@ export default function YouScreen() {
             onChange={(event) => dispatch({ type: 'setProfileName', value: event.target.value })}
             style={{ ...input, width: '100%', boxSizing: 'border-box', fontSize: 18, fontWeight: 600 }}
           />
-          <div style={{ fontSize: 13, color: dim(0.48), marginTop: 6 }}>
-            Private on this device · {displayWeight(latest, useKg)} {unit}
+          <div style={{ fontSize: 13, color: dim(0.62), marginTop: 6 }}>
+            Private to your account · {displayWeight(latest, useKg)} {unit}
           </div>
         </div>
       </div>
@@ -77,7 +79,7 @@ export default function YouScreen() {
       <div style={{ marginTop: 10 }}>
         <GoalRow field="kcal" label="Calories" sub="per day" unit="kcal" />
         <GoalRow field="p" label="Protein" sub="grams per day" unit="g" />
-        <div style={{ fontSize: 13, color: dim(0.48), marginTop: 12, lineHeight: 1.5 }}>
+        <div style={{ fontSize: 13, color: dim(0.62), marginTop: 12, lineHeight: 1.5 }}>
           Changes apply today and forward. Past days keep the targets they were measured against.
         </div>
       </div>
@@ -117,63 +119,33 @@ export default function YouScreen() {
         ))}
       </div>
 
-      <Label style={{ marginTop: 26 }}>CLOUD SYNC</Label>
+      <Label style={{ marginTop: 26 }}>ACCOUNT & DATA</Label>
       <div style={{ marginTop: 10 }}>
         <StatusRow
-          title={sync.signedIn ? 'Supabase connected' : 'Local-first storage'}
-          sub={sync.signedIn
-            ? `Signed in as ${sync.email}`
-            : 'Your data stays on this device until you sign in'}
+          title="Supabase account"
+          sub={`Signed in as ${sync.email}`}
           value={syncLabel(sync)}
         />
-        {sync.configured && !sync.signedIn && (
-          <form
-            onSubmit={(event) => {
-              event.preventDefault();
-              requestCloudLogin(emailDraft);
-            }}
-            style={{ display: 'flex', gap: 8, paddingTop: 12 }}
-          >
-            <input
-              type="email"
-              autoComplete="email"
-              aria-label="Email for cloud sync"
-              placeholder="you@example.com"
-              value={emailDraft}
-              onChange={(event) => setEmailDraft(event.target.value)}
-              style={{ ...input, flex: 1, minWidth: 0, fontSize: 15 }}
-            />
-            <PrimaryButton
-              type="submit"
-              background={NUT}
-              color={ON_NUT}
-              disabled={sync.status === 'sending' || !emailDraft.trim()}
-              style={{ width: 116 }}
-            >
-              {sync.status === 'sending' ? 'Sending…' : 'Sign in'}
-            </PrimaryButton>
-          </form>
-        )}
-        {sync.status === 'email-sent' && (
-          <div role="status" style={{ color: NUT, fontSize: 13, lineHeight: 1.45, padding: '10px 0' }}>
-            Check your inbox and open the secure sign-in link on this device.
-          </div>
-        )}
         {sync.error && (
-          <div role="alert" style={{ color: WARN, fontSize: 13, lineHeight: 1.45, padding: '10px 0' }}>
-            {sync.error}
+          <div style={{ paddingTop: 10 }}>
+            <div role="alert" style={{ color: WARN, fontSize: 13, lineHeight: 1.45 }}>
+              {sync.error}
+            </div>
+            <GhostButton style={{ width: '100%', marginTop: 10 }} onClick={retrySync}>
+              Retry saving
+            </GhostButton>
           </div>
         )}
-        {sync.signedIn && (
-          <GhostButton style={{ width: '100%', marginTop: 12 }} onClick={disconnectCloud}>
-            Sign out of cloud sync
-          </GhostButton>
-        )}
+        <GhostButton
+          style={{ width: '100%', marginTop: 12 }}
+          onClick={() => void disconnectCloud().catch(() => undefined)}
+        >
+          Sign out
+        </GhostButton>
       </div>
 
       <Label style={{ marginTop: 26 }}>APP & PRIVACY</Label>
       <div style={{ marginTop: 10 }}>
-        <StatusRow title="Offline ready" sub="The app and your records work without a connection" value="ON DEVICE" />
         {SETTINGS.map(([settingKey, label, sub]) => (
           <ToggleRow
             key={settingKey}
@@ -200,10 +172,10 @@ export default function YouScreen() {
       <GhostButton
         style={{ width: '100%', marginTop: 26 }}
         onClick={() => {
-          if (window.confirm('Delete meals, workouts, expenses, budgets, and targets from this device?')) resetAll();
+          if (window.confirm('Replace all meals, workouts, expenses, budgets, and targets in your account with a fresh record?')) resetAll();
         }}
       >
-        Reset all data
+        Reset account data
       </GhostButton>
     </Screen>
   );
@@ -215,7 +187,7 @@ function GoalRow({ field, label, sub, unit }) {
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '13px 0', borderBottom: `1px solid ${dim(0.07)}` }}>
       <div>
         <label htmlFor={`goal-${field}`} style={{ fontSize: 15, fontWeight: 500 }}>{label}</label>
-        <div style={{ fontSize: 12, color: dim(0.48), marginTop: 2 }}>{sub}</div>
+        <div style={{ fontSize: 12, color: dim(0.62), marginTop: 2 }}>{sub}</div>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, height: 48, padding: '0 12px', borderRadius: 13, border: `1px solid ${dim(0.14)}`, background: '#0D0D0C' }}>
         <input
@@ -226,7 +198,7 @@ function GoalRow({ field, label, sub, unit }) {
           onChange={(event) => dispatch({ type: 'setGoal', field, value: event.target.value })}
           style={{ width: 76, height: 44, border: 'none', background: 'transparent', color: '#E9E5DC', textAlign: 'right', fontFamily: MONO, fontSize: 16, outline: 'none', padding: 0 }}
         />
-        <Mono size={12} color={dim(0.45)}>{unit}</Mono>
+        <Mono size={12} color={dim(0.62)}>{unit}</Mono>
       </div>
     </div>
   );
@@ -243,7 +215,7 @@ function ToggleRow({ label, sub, checked, onClick, disabled }) {
     >
       <div style={{ textAlign: 'left', minWidth: 0 }}>
         <div style={{ fontSize: 15, fontWeight: 500 }}>{label}</div>
-        <div style={{ fontSize: 12, color: dim(0.48), marginTop: 2, lineHeight: 1.35 }}>{sub}</div>
+        <div style={{ fontSize: 12, color: dim(0.62), marginTop: 2, lineHeight: 1.35 }}>{sub}</div>
       </div>
       <div style={{ width: 48, height: 28, borderRadius: 16, padding: 2, flexShrink: 0, transition: 'background .25s', background: checked ? NUT : dim(0.16) }}>
         <div style={{ width: 24, height: 24, borderRadius: '50%', background: '#0D0D0C', transition: 'transform .25s cubic-bezier(.2,.8,.2,1)', transform: checked ? 'translateX(20px)' : 'none' }} />
@@ -257,7 +229,7 @@ function StatusRow({ title, sub, value }) {
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, padding: '15px 0', borderBottom: `1px solid ${dim(0.07)}` }}>
       <div>
         <div style={{ fontSize: 15, fontWeight: 500 }}>{title}</div>
-        <div style={{ fontSize: 12, color: dim(0.48), marginTop: 2 }}>{sub}</div>
+        <div style={{ fontSize: 12, color: dim(0.62), marginTop: 2 }}>{sub}</div>
       </div>
       <Label color={NUT}>{value}</Label>
     </div>
@@ -265,14 +237,10 @@ function StatusRow({ title, sub, value }) {
 }
 
 function syncLabel(sync) {
-  if (!sync.configured) return 'ON DEVICE';
-  if (sync.status === 'checking') return 'CHECKING';
-  if (sync.status === 'syncing') return 'SYNCING';
-  if (sync.status === 'sending') return 'SENDING';
-  if (sync.status === 'email-sent') return 'EMAIL SENT';
+  if (sync.status === 'loading' || sync.status === 'checking') return 'LOADING';
+  if (sync.status === 'saving' || sync.status === 'syncing') return 'SAVING';
   if (sync.status === 'error') return 'RETRY';
-  if (sync.signedIn) return 'SYNCED';
-  return 'SIGN IN';
+  return 'SAVED';
 }
 
 function goalBlocks(state) {

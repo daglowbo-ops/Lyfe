@@ -1,7 +1,7 @@
 import Sheet from '../components/Sheet.jsx';
 import { CheckRow, Label, Mono, PrimaryButton, SegmentedControl } from '../components/Primitives.jsx';
 import { useApp } from '../store/AppProvider.jsx';
-import { CATALOG } from '../data/foods.js';
+import { CATALOG, foodMatchesQuery } from '../data/foods.js';
 import { slotLabel } from '../data/foods.js';
 import { macroLine, toInt } from '../lib/format.js';
 import { MONO, NUT, ON_NUT, dim, input } from '../lib/theme.js';
@@ -30,15 +30,16 @@ export default function FoodSheet() {
 
 function SearchMode() {
   const { state, dispatch, patch } = useApp();
-  const q = state.query.trim().toLowerCase();
+  const q = state.query.trim();
   const all = state.customFoods.concat(CATALOG);
-  const results = q ? all.filter((f) => f.name.toLowerCase().includes(q)) : all.slice(0, RECENT_COUNT);
+  const results = q ? all.filter((food) => foodMatchesQuery(food, q)) : all.slice(0, RECENT_COUNT);
 
   return (
     <div className="fade-in" style={{ display: 'flex', flexDirection: 'column', minHeight: 0, flex: 1 }}>
       <input
         type="text"
         maxLength={120}
+        aria-label="Search foods in English or Spanish"
         placeholder="Search foods in English or Spanish"
         value={state.query}
         onChange={(e) => patch({ query: e.target.value })}
@@ -59,10 +60,10 @@ function SearchMode() {
           >
             <button
               onClick={() => dispatch({ type: 'addFood', item: f })}
-              style={{ flex: 1, textAlign: 'left' }}
+              style={{ flex: 1, minHeight: 44, textAlign: 'left' }}
             >
               <div style={{ fontSize: 15, fontWeight: 500, letterSpacing: -0.2 }}>{f.name}</div>
-              <div style={{ fontFamily: MONO, fontSize: 11, color: dim(0.38), marginTop: 3 }}>
+              <div style={{ fontFamily: MONO, fontSize: 12, color: dim(0.58), marginTop: 3 }}>
                 {f.custom ? 'Saved by you · ' : ''}
                 {macroLine(f)}
               </div>
@@ -74,8 +75,8 @@ function SearchMode() {
                 onClick={() => dispatch({ type: 'addFood', item: f })}
                 aria-label={`Add ${f.name}`}
                 style={{
-                  width: 32,
-                  height: 32,
+                  width: 44,
+                  height: 44,
                   borderRadius: '50%',
                   background: NUT,
                   color: ON_NUT,
@@ -92,7 +93,7 @@ function SearchMode() {
           </div>
         ))}
         {results.length === 0 && (
-          <div style={{ fontSize: 14, color: dim(0.45), paddingTop: 14 }}>
+          <div style={{ fontSize: 14, color: dim(0.62), paddingTop: 14 }}>
             No match. Use Quick entry to log it in English, Spanish, or any language.
           </div>
         )}
@@ -107,13 +108,13 @@ function QuickMode() {
   const set = (patch) => dispatch({ type: 'draftFood', patch });
   const kcal = toInt(d.kcal);
 
-  const macroField = (field, placeholder) => (
+  const macroField = (field, placeholder, label) => (
     <input
       key={field}
       type="number"
       inputMode="numeric"
       placeholder={placeholder}
-      aria-label={placeholder}
+      aria-label={label}
       value={d[field]}
       onChange={(e) => set({ [field]: e.target.value })}
       style={{
@@ -134,6 +135,7 @@ function QuickMode() {
       <input
         type="text"
         maxLength={120}
+        aria-label="Food name in English or Spanish"
         placeholder="e.g. Lasaña de mamá"
         value={d.name}
         onChange={(e) => set({ name: e.target.value })}
@@ -172,9 +174,9 @@ function QuickMode() {
 
       <Label style={{ margin: '18px 0 8px' }}>MACROS · GRAMS · OPTIONAL</Label>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
-        {macroField('p', 'P')}
-        {macroField('c', 'C')}
-        {macroField('f', 'F')}
+        {macroField('p', 'P', 'Protein in grams')}
+        {macroField('c', 'C', 'Carbohydrates in grams')}
+        {macroField('f', 'F', 'Fat in grams')}
       </div>
 
       <CheckRow checked={d.save} accent={NUT} onClick={() => set({ save: !d.save })}>

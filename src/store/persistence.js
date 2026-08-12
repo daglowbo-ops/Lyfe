@@ -1,28 +1,11 @@
 import { addDays, key, monthKey, startOfToday } from '../lib/date.js';
 
-export const STORAGE_KEY = 'fieldnote.v6';
-const LEGACY_KEYS = ['fieldnote.v5'];
-
-/** Durable user-owned data. This shape is also the future sync boundary. */
+/** Durable user-owned data. Supabase stores this exact snapshot shape. */
 export const PERSISTED = [
   'activeDate', 'meals', 'workout', 'sessionFinished', 'dailyLogs', 'workoutHistory',
   'templates', 'curName', 'customFoods', 'hist', 'goalHist', 'plan', 'weights', 'goals',
   'txns', 'monthHist', 'budgets', 'favs', 'income', 'bills', 'profileName', 'toggles',
 ];
-
-export function load() {
-  try {
-    const current = localStorage.getItem(STORAGE_KEY);
-    if (current) return JSON.parse(current);
-    for (const legacyKey of LEGACY_KEYS) {
-      const legacy = localStorage.getItem(legacyKey);
-      if (legacy) return { ...JSON.parse(legacy), _legacy: legacyKey };
-    }
-    return null;
-  } catch {
-    return null;
-  }
-}
 
 export function snapshot(state) {
   const out = { schemaVersion: 6, updatedAt: new Date().toISOString() };
@@ -34,25 +17,6 @@ export function fingerprint(state) {
   const durable = {};
   for (const field of PERSISTED) durable[field] = state[field];
   return JSON.stringify(durable);
-}
-
-export function save(state) {
-  const payload = snapshot(state);
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
-  } catch {
-    // Storage can be unavailable or full. The app remains usable in memory.
-  }
-  return payload;
-}
-
-export function clear() {
-  try {
-    localStorage.removeItem(STORAGE_KEY);
-    for (const legacyKey of LEGACY_KEYS) localStorage.removeItem(legacyKey);
-  } catch {
-    // Ignore unavailable storage.
-  }
 }
 
 const isDayMap = (value, check) =>

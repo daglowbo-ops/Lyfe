@@ -27,8 +27,12 @@ export default function AddExpenseSheet() {
           <input
             type="number"
             inputMode="decimal"
+            min="0.01"
+            max="99999999"
+            step="0.01"
             placeholder="0.00"
             aria-label="Amount in bolivianos"
+            aria-describedby="expense-amount-hint"
             value={d.amt}
             onChange={(e) => set({ amt: e.target.value })}
             style={{
@@ -48,9 +52,12 @@ export default function AddExpenseSheet() {
             +
           </BigStep>
         </div>
+        <div id="expense-amount-hint" style={{ fontSize: 13, color: dim(0.58), marginTop: 8 }}>
+          Required · enter an amount greater than Bs 0
+        </div>
 
         <Label style={{ margin: '18px 0 8px' }}>CATEGORY</Label>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+        <div role="group" aria-label="Expense category" style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
           {CATEGORIES.map((c) => (
             <Chip key={c} label={categoryLabel(c)} height={44} selected={d.cat === c} onClick={() => set({ cat: c })} />
           ))}
@@ -60,6 +67,7 @@ export default function AddExpenseSheet() {
         <input
           type="text"
           maxLength={120}
+          aria-label="Expense detail, optional"
           placeholder="e.g. Almuerzo with Ana"
           value={d.label}
           onChange={(e) => set({ label: e.target.value })}
@@ -80,7 +88,7 @@ export default function AddExpenseSheet() {
             dispatch({ type: 'addTxn', amt: d.amt, label: d.label, cat: d.cat, fav: d.fav && d.label.trim() })
           }
         >
-          Add {amt > 0 ? money(amt) : ''}
+          {amt > 0 ? `Add ${money(amt)}` : 'Enter an amount to add'}
         </PrimaryButton>
       </div>
     </Sheet>

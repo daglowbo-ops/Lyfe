@@ -14,11 +14,11 @@ export default function BudgetScreen() {
   return (
     <Screen>
       <Label>MONTHLY PLAN</Label>
-      <div style={{ fontSize: 30, fontWeight: 600, letterSpacing: -1, marginTop: 5 }}>Budgets</div>
+      <h1 style={{ fontSize: 30, fontWeight: 600, letterSpacing: -1, margin: '5px 0 0' }}>Budgets</h1>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 20 }}>
         <Panel>
-          <Label color={dim(0.45)} style={{ letterSpacing: 1.1, marginBottom: 7 }}>MONTHLY INCOME</Label>
+          <Label color={dim(0.6)} style={{ letterSpacing: 1.1, marginBottom: 7 }}>MONTHLY INCOME</Label>
           <input
             aria-label="Monthly income in bolivianos"
             type="number"
@@ -62,7 +62,7 @@ export default function BudgetScreen() {
               <div
                 style={{
                   fontFamily: MONO,
-                  fontSize: 11,
+                  fontSize: 12,
                   marginTop: 4,
                   color: r.over ? WARN : dim(0.75),
                 }}
@@ -84,7 +84,7 @@ export default function BudgetScreen() {
                 background: '#0D0D0C',
               }}
             >
-              <Mono size={12} color={dim(0.4)}>
+              <Mono size={12} color={dim(0.6)}>
                 Bs
               </Mono>
               <input

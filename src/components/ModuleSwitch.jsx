@@ -10,10 +10,11 @@ export default function ModuleSwitch({ module, onChange }) {
     return (
       <button
         key={id}
+        type="button"
         onClick={() => onChange(id)}
         aria-pressed={on}
         style={{
-          height: 40,
+          height: 44,
           padding: '0 22px',
           borderRadius: 12,
           display: 'flex',
@@ -22,7 +23,7 @@ export default function ModuleSwitch({ module, onChange }) {
           fontWeight: 500,
           transition: 'background .25s, color .25s',
           background: on ? INK : 'transparent',
-          color: on ? '#0D0D0C' : dim(0.55),
+          color: on ? '#0D0D0C' : dim(0.62),
         }}
       >
         {label}
@@ -44,6 +45,8 @@ export default function ModuleSwitch({ module, onChange }) {
       }}
     >
       <div
+        role="group"
+        aria-label="Choose module"
         style={{
           display: 'flex',
           gap: 3,

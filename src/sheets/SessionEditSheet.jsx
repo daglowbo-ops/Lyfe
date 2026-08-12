@@ -55,7 +55,7 @@ export default function SessionEditSheet() {
                   alignItems: 'center',
                   justifyContent: 'center',
                   fontSize: 16,
-                  color: dim(0.4),
+                  color: dim(0.65),
                   flexShrink: 0,
                 }}
               >

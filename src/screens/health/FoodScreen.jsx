@@ -15,7 +15,7 @@ export default function FoodScreen() {
   return (
     <Screen>
       <Label>{fullLabel(startOfToday())}</Label>
-      <div style={{ fontSize: 30, fontWeight: 600, letterSpacing: -1, marginTop: 5 }}>Food log</div>
+      <h1 style={{ fontSize: 30, fontWeight: 600, letterSpacing: -1, margin: '5px 0 0' }}>Food log</h1>
 
       <div
         style={{
@@ -28,7 +28,7 @@ export default function FoodScreen() {
         }}
       >
         <div style={{ fontSize: 40, fontWeight: 600, letterSpacing: -2, lineHeight: 1 }}>{totals.kcal}</div>
-        <div style={{ fontSize: 13, color: dim(0.42) }}>
+        <div style={{ fontSize: 13, color: dim(0.62) }}>
           of {state.goals.kcal} kcal · {macroLine(totals)}
         </div>
       </div>
@@ -56,7 +56,7 @@ export default function FoodScreen() {
                   >
                     <div>
                       <div style={{ fontSize: 15, fontWeight: 500, letterSpacing: -0.2 }}>{m.name}</div>
-                      <div style={{ fontFamily: MONO, fontSize: 11, color: dim(0.38), marginTop: 3 }}>
+                      <div style={{ fontFamily: MONO, fontSize: 12, color: dim(0.58), marginTop: 3 }}>
                         {macroLine(m)}
                       </div>
                     </div>

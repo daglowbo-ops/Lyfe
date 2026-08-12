@@ -8,7 +8,7 @@ web
 
 ## Users
 
-Fieldnote is primarily for its creator and a small circle of friends. Each person uses it as a private personal log to keep day-to-day health and money records understandable. An account is optional and exists only for private cloud sync.
+Fieldnote is primarily for its creator and a small circle of friends. Each person uses a private account to keep day-to-day health and money records understandable across web sessions.
 
 ## Product Purpose
 
@@ -25,6 +25,7 @@ Fieldnote combines private health and money tracking in one web app. Its disting
 ## Operating Context
 
 - Fieldnote is a mobile-first web app.
+- A Supabase session is required before personal records are shown or edited; offline operation is not a product goal.
 - The interface is in English. User-entered foods, exercises, transaction details, profile names, and bill names accept Spanish and other Unicode text without translation or filtering.
 - Money amounts currently use Bolivianos.
 - Health and Money are separate modules inside the same app. The optional device lock protects the Money module with the browser's platform authenticator when a secure context and compatible device are available.
@@ -34,7 +35,8 @@ Fieldnote combines private health and money tracking in one web app. Its disting
 
 - Health capabilities include meal and macro logging, custom foods, workout templates, set and rest tracking, completed-workout archives, workout planning, goals, dated weight entries, and progress statistics.
 - Money capabilities include dated expenses, quick favorites, editable income and category limits, recurring bills, historical calendars, category drill-down, and six-month statistics.
-- Optional Supabase sync uses email-link authentication and a Row Level Security policy that restricts each user to their own row.
+- Supabase is the sole durable source of truth. Email-link authentication and Row Level Security restrict each user to their own row.
+- Browser state may update optimistically, but the UI must expose saving, saved, and retry states and must never claim an unconfirmed write succeeded.
 - Daily rollover must prevent meals and set completion from leaking into a new day. Historical expenses, goals, and completed workouts must retain their original dates and context.
 
 ## Brand Commitments

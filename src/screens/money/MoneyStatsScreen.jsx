@@ -37,7 +37,7 @@ export default function MoneyStatsScreen() {
   // For spending, down is good; for saving, up is.
   const good = saved ? deltaPct >= 0 : deltaPct <= 0;
   const vsAvg = Math.round(((series[sel] - avg) / (avg || 1)) * 100);
-  const deltaColor = prev === null ? dim(0.4) : good ? MNY : WARN;
+  const deltaColor = prev === null ? dim(0.6) : good ? MNY : WARN;
 
   const spent = totalSpent(state.txns);
   const byCat = spentByCategory(state).sort((a, b) => b.spent - a.spent);
@@ -46,7 +46,7 @@ export default function MoneyStatsScreen() {
   return (
     <Screen>
       <Label>LAST {WINDOW} MONTHS</Label>
-      <div style={{ fontSize: 30, fontWeight: 600, letterSpacing: -1, marginTop: 5 }}>Statistics</div>
+      <h1 style={{ fontSize: 30, fontWeight: 600, letterSpacing: -1, margin: '5px 0 0' }}>Statistics</h1>
 
       <SegmentedControl
         style={{ marginTop: 18, borderRadius: 15 }}
@@ -110,9 +110,9 @@ export default function MoneyStatsScreen() {
                 flex: 1,
                 textAlign: 'center',
                 fontFamily: MONO,
-                fontSize: 10.5,
+                fontSize: 12,
                 transition: 'color .25s',
-                color: i === sel ? INK : dim(0.32),
+                color: i === sel ? INK : dim(0.58),
               }}
             >
               {m.label}
@@ -148,7 +148,7 @@ export default function MoneyStatsScreen() {
           <div style={{ fontSize: 26, fontWeight: 600, letterSpacing: -1.2 }}>
             {Math.round((Math.max(0, state.income - spent) / (state.income || 1)) * 100)}%
           </div>
-          <Label color={dim(0.45)} style={{ letterSpacing: 1.2, marginTop: 5 }}>
+          <Label color={dim(0.6)} style={{ letterSpacing: 1.2, marginTop: 5 }}>
             OF INCOME
           </Label>
         </Panel>
@@ -156,7 +156,7 @@ export default function MoneyStatsScreen() {
 
       <div style={{ marginTop: 26, display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
         <Label>WHERE IT WENT</Label>
-        <Label color={dim(0.4)}>TAP TO FILTER</Label>
+        <Label color={dim(0.6)}>TAP TO FILTER</Label>
       </div>
       <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 14 }}>
         {byCat.map((c) => (
@@ -208,7 +208,7 @@ export default function MoneyStatsScreen() {
 function Foot({ label, value, color }) {
   return (
     <div>
-      <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: 1.1, color: dim(0.4) }}>{label}</div>
+      <div style={{ fontFamily: MONO, fontSize: 12, letterSpacing: 1.1, color: dim(0.6) }}>{label}</div>
       <div style={{ fontFamily: MONO, fontSize: 14, marginTop: 4, color: color || undefined }}>{value}</div>
     </div>
   );

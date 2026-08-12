@@ -39,7 +39,9 @@ button {
 }
 
 button:focus-visible,
-input:focus-visible {
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
   outline: 2px solid var(--ink) !important;
   outline-offset: 3px;
 }
@@ -66,7 +68,7 @@ input[type='number']::-webkit-inner-spin-button {
 }
 
 input::placeholder {
-  color: rgba(233, 229, 220, 0.3);
+  color: rgba(233, 229, 220, 0.5);
 }
 
 /* Scrolling regions keep their scrollbars off-screen; the design relies on
@@ -105,6 +107,84 @@ input::placeholder {
   color: var(--ink);
   width: 100vw;
   height: 100dvh;
+}
+
+/* A restrained ledger rule gives Money records a recognisable fieldbook
+   rhythm without changing the incumbent card-and-ink system. */
+.ledger-day {
+  position: relative;
+  padding-inline-start: 12px;
+}
+.ledger-day::before {
+  content: '';
+  position: absolute;
+  inset-block: 2px 0;
+  inset-inline-start: 1px;
+  width: 1px;
+  background: color-mix(in oklch, var(--mny) 20%, transparent);
+}
+.ledger-day::after {
+  content: '';
+  position: absolute;
+  inset-block-start: 7px;
+  inset-inline-start: -2px;
+  width: 7px;
+  height: 1px;
+  background: var(--mny);
+}
+
+.save-status {
+  position: absolute;
+  z-index: 52;
+  inset-block-start: calc(env(safe-area-inset-top, 0px) + 62px);
+  inset-inline-end: 20px;
+  min-height: 44px;
+  padding: 0 11px;
+  border: 1px solid rgba(233, 229, 220, 0.16);
+  border-radius: 12px;
+  background: #171715;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.38);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 12px;
+  color: rgba(233, 229, 220, 0.78);
+}
+.save-status-error {
+  color: var(--warn);
+  border-color: color-mix(in oklch, var(--warn) 45%, transparent);
+}
+.save-status button {
+  min-height: 44px;
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.action-toast {
+  position: absolute;
+  z-index: 54;
+  inset-inline: 20px;
+  inset-block-end: calc(env(safe-area-inset-bottom, 0px) + 88px);
+  min-height: 54px;
+  padding: 7px 8px 7px 16px;
+  border: 1px solid rgba(233, 229, 220, 0.16);
+  border-radius: 14px;
+  background: #1a1a17;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.38);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+}
+.action-toast span {
+  flex: 1;
+  min-width: 0;
+}
+.action-toast button {
+  min-height: 44px;
+  padding-inline: 8px;
+  font-weight: 600;
 }
 
 /* Below the breakpoint the app is the device; the frame would only waste room. */

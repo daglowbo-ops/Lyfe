@@ -34,7 +34,7 @@ export default function SessionPickSheet() {
                 style={{ flex: 1, textAlign: 'left' }}
               >
                 <div style={{ fontSize: 16, fontWeight: 500, letterSpacing: -0.3 }}>{t.name}</div>
-                <div style={{ fontSize: 12, color: dim(0.4), marginTop: 2 }}>
+                <div style={{ fontSize: 12, color: dim(0.6), marginTop: 2 }}>
                   {t.exercises.length} exercises ·{' '}
                   {t.exercises.reduce((a, e) => a + e.sets.length, 0)} sets
                 </div>
@@ -43,7 +43,7 @@ export default function SessionPickSheet() {
                 className="muted-link"
                 onClick={() => dispatch({ type: 'removeTemplate', i })}
                 aria-label={`Delete ${t.name}`}
-                style={{ fontSize: 13.5, color: dim(0.35), padding: '14px 10px', margin: '-14px -4px -14px 0' }}
+                style={{ fontSize: 13.5, color: dim(0.65), padding: '14px 10px', margin: '-14px -4px -14px 0' }}
               >
                 Delete
               </button>
