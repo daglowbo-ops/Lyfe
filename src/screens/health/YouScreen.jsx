@@ -131,8 +131,16 @@ export default function YouScreen() {
             <div role="alert" style={{ color: WARN, fontSize: 13, lineHeight: 1.45 }}>
               {sync.error}
             </div>
-            <GhostButton style={{ width: '100%', marginTop: 10 }} onClick={retrySync}>
-              Retry saving
+            <GhostButton
+              style={{ width: '100%', marginTop: 10 }}
+              onClick={() => {
+                const conflict = sync.errorSource === 'conflict';
+                if (!conflict || window.confirm('Reload the latest cloud record? Unsaved changes in this session will be replaced.')) {
+                  void retrySync();
+                }
+              }}
+            >
+              {sync.errorSource === 'conflict' ? 'Reload latest record' : 'Retry saving'}
             </GhostButton>
           </div>
         )}

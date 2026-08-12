@@ -36,6 +36,8 @@ optimistic and remains in memory only until Supabase confirms the write.
 - Navigation, open sheets, lock errors, and half-typed drafts remain transient.
 - Every durable change exposes a saving, saved, or retry state. A failed write
   is never presented as safely stored.
+- Snapshot versions use optimistic concurrency. If another session saves first,
+  Fieldnote stops the write and asks before loading the newer cloud record.
 
 Older remote snapshot shapes are reconciled when read. Numeric weight arrays
 become dated entries and legacy current-month day numbers become full dates.

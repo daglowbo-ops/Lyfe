@@ -42,25 +42,24 @@ export async function readCloudSnapshot(userId) {
   const client = await requireClient();
   const { data, error } = await client
     .from('fieldnote_snapshots')
-    .select('payload, client_updated_at, updated_at')
+    .select('payload, client_updated_at, updated_at, version')
     .eq('user_id', userId)
     .maybeSingle();
   if (error) throw error;
   return data;
 }
 
-export async function writeCloudSnapshot(userId, payload) {
+export async function writeCloudSnapshot(payload, expectedVersion) {
   const client = await requireClient();
   const { data, error } = await client
-    .from('fieldnote_snapshots')
-    .upsert({
-      user_id: userId,
-      payload,
-      schema_version: payload.schemaVersion,
-      client_updated_at: payload.updatedAt,
-    }, { onConflict: 'user_id' })
-    .select('client_updated_at, updated_at')
+    .rpc('save_fieldnote_snapshot', {
+      p_payload: payload,
+      p_schema_version: payload.schemaVersion,
+      p_client_updated_at: payload.updatedAt,
+      p_expected_version: expectedVersion,
+    })
     .single();
   if (error) throw error;
+  if (!data) throw new Error('The cloud save returned no record.');
   return data;
 }

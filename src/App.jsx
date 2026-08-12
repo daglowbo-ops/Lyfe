@@ -108,10 +108,19 @@ function SaveStatus({ sync, retry }) {
     return <div className="save-status" role="status">Saving…</div>;
   }
   if (sync.status === 'error') {
+    const conflict = sync.errorSource === 'conflict';
     return (
       <div className="save-status save-status-error" role="alert">
-        <span>Couldn’t save</span>
-        <button onClick={retry}>Retry</button>
+        <span>{conflict ? 'Newer record found' : 'Couldn’t save'}</span>
+        <button
+          onClick={() => {
+            if (!conflict || window.confirm('Reload the latest cloud record? Unsaved changes in this session will be replaced.')) {
+              void retry();
+            }
+          }}
+        >
+          {conflict ? 'Reload latest' : 'Retry'}
+        </button>
       </div>
     );
   }

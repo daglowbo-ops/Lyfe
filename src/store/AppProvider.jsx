@@ -75,6 +75,7 @@ export function AppProvider({ children }) {
   const sessionRef = useRef(null);
   const cloudUserRef = useRef(null);
   const cloudReadyRef = useRef(false);
+  const cloudVersionRef = useRef(0);
   const loadingUserRef = useRef(null);
   const loadAttemptRef = useRef(0);
   const syncTimerRef = useRef(null);
@@ -109,20 +110,24 @@ export function AppProvider({ children }) {
         const payload = snapshot(current);
         let saved;
         try {
-          saved = await writeCloudSnapshot(userId, payload);
+          saved = await writeCloudSnapshot(payload, cloudVersionRef.current);
         } catch (error) {
+          const conflict = error?.code === '40001' || error?.code === '23505';
           if (mountedRef.current && userId === cloudUserRef.current) {
             setSync((value) => ({
               ...value,
               status: 'error',
-              error: error?.message || 'Your changes could not be saved. Try again.',
-              errorSource: 'save',
+              error: conflict
+                ? 'This record changed in another session. Reload the latest version before continuing.'
+                : error?.message || 'Your changes could not be saved. Try again.',
+              errorSource: conflict ? 'conflict' : 'save',
             }));
           }
           return false;
         }
 
         if (userId !== cloudUserRef.current) return false;
+        cloudVersionRef.current = Number(saved?.version) || cloudVersionRef.current + 1;
         lastSavedFingerprintRef.current = nextFingerprint;
         mustWrite = false;
 
@@ -159,6 +164,7 @@ export function AppProvider({ children }) {
       loadingUserRef.current = null;
       cloudReadyRef.current = false;
       cloudUserRef.current = null;
+      cloudVersionRef.current = 0;
       clearTimeout(syncTimerRef.current);
       const empty = prepareNewAccount();
       lastSavedFingerprintRef.current = fingerprint(empty);
@@ -214,11 +220,13 @@ export function AppProvider({ children }) {
         ? prepareData(remote.payload)
         : prepareNewAccount(user.user_metadata?.full_name || 'Your name');
       let lastSyncedAt = remote?.updated_at || remote?.client_updated_at || null;
+      cloudVersionRef.current = Number(remote?.version) || 0;
       if (!remote?.payload) {
         const payload = snapshot(data);
-        const created = await writeCloudSnapshot(user.id, payload);
+        const created = await writeCloudSnapshot(payload, 0);
         if (attempt !== loadAttemptRef.current || user.id !== cloudUserRef.current) return false;
         lastSyncedAt = created?.updated_at || payload.updatedAt;
+        cloudVersionRef.current = Number(created?.version) || 1;
       }
 
       lastSavedFingerprintRef.current = fingerprint(data);
@@ -406,6 +414,9 @@ export function AppProvider({ children }) {
   const retrySync = useCallback(async () => {
     if (sync.errorSource === 'save' && cloudReadyRef.current) {
       return persistLatest({ force: true });
+    }
+    if (sync.errorSource === 'conflict' && sessionRef.current?.user) {
+      return loadSession(sessionRef.current, { force: true });
     }
     if (sessionRef.current?.user) {
       return loadSession(sessionRef.current, { force: true });
