@@ -17,10 +17,11 @@ import { rolloverData } from './model.js';
 import { clearDeviceLock, hasDeviceCredential } from '../lib/deviceLock.js';
 import { supabaseConfigured } from '../lib/supabase.js';
 import {
+  createCloudAccount,
   getCloudSession,
   onCloudAuthChange,
   readCloudSnapshot,
-  requestCloudMagicLink,
+  signInCloudAccount,
   signOutCloud,
   writeCloudSnapshot,
 } from './cloud.js';
@@ -358,32 +359,26 @@ export function AppProvider({ children }) {
     };
   }, []);
 
-  const requestCloudLogin = useCallback(async (email) => {
+  const authenticateWithPassword = useCallback(async (mode, email, password) => {
     try {
-      const normalized = await requestCloudMagicLink(email);
-      if (mountedRef.current) {
-        setSync((value) => ({
-          ...value,
-          authStatus: 'link-sent',
-          status: 'saved',
-          email: normalized,
-          error: '',
-          errorSource: '',
-        }));
-      }
-      return normalized;
+      const result = mode === 'create'
+        ? await createCloudAccount(email, password)
+        : await signInCloudAccount(email, password);
+      await loadSession(result.session);
+      return result.email;
     } catch (error) {
       if (mountedRef.current) {
         setSync((value) => ({
           ...value,
-          status: 'error',
-          error: error?.message || 'The sign-in link could not be sent. Try again.',
-          errorSource: 'auth',
+          authStatus: 'signed-out',
+          status: 'saved',
+          error: '',
+          errorSource: '',
         }));
       }
       throw error;
     }
-  }, []);
+  }, [loadSession]);
 
   const disconnectCloud = useCallback(async () => {
     clearTimeout(syncTimerRef.current);
@@ -421,9 +416,6 @@ export function AppProvider({ children }) {
     if (sessionRef.current?.user) {
       return loadSession(sessionRef.current, { force: true });
     }
-    if (sync.errorSource === 'auth' && sync.email) {
-      return requestCloudLogin(sync.email);
-    }
     if (sync.errorSource === 'auth') {
       if (mountedRef.current) {
         setSync((value) => ({ ...value, status: 'checking', error: '', errorSource: '' }));
@@ -444,7 +436,7 @@ export function AppProvider({ children }) {
       }
     }
     return false;
-  }, [loadSession, persistLatest, requestCloudLogin, sync.email, sync.errorSource]);
+  }, [loadSession, persistLatest, sync.errorSource]);
 
   const value = useMemo(
     () => ({
@@ -452,7 +444,7 @@ export function AppProvider({ children }) {
       sync,
       dispatch,
       patch: (patch) => dispatch({ type: 'patch', patch }),
-      requestCloudLogin,
+      authenticateWithPassword,
       retrySync,
       disconnectCloud,
       signOut: disconnectCloud,
@@ -461,7 +453,7 @@ export function AppProvider({ children }) {
         dispatch({ type: 'hydrate', data: prepareNewAccount() });
       },
     }),
-    [disconnectCloud, requestCloudLogin, retrySync, state, sync],
+    [authenticateWithPassword, disconnectCloud, retrySync, state, sync],
   );
 
   const appReady = sync.signedIn && sync.dataReady;
@@ -470,7 +462,7 @@ export function AppProvider({ children }) {
       {appReady ? children : (
         <AuthScreen
           sync={sync}
-          onLogin={requestCloudLogin}
+          onAuthenticate={authenticateWithPassword}
           onRetry={retrySync}
           onSignOut={disconnectCloud}
         />

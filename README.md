@@ -49,6 +49,10 @@ are shown. It does not register a service worker or promise offline operation.
 Supabase Row Level Security limits every authenticated user to their own
 snapshot, and no service-role key is shipped to the browser.
 
+Accounts use an email address and password managed by Supabase Auth. Passwords
+are never stored in the application snapshot or handled as readable account
+data. Email confirmation is disabled for the current small private user group.
+
 The optional Device lock uses WebAuthn with the browser's platform
 authenticator. Depending on the device, that can be a fingerprint, face scan,
 PIN, or screen lock. It requires a secure context (`https` or `localhost`) and

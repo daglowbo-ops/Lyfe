@@ -20,16 +20,29 @@ export async function onCloudAuthChange(callback) {
   return () => data.subscription.unsubscribe();
 }
 
-export async function requestCloudMagicLink(email) {
+function credentials(email, password) {
   const normalized = String(email || '').trim().toLowerCase();
   if (!/^\S+@\S+\.\S+$/.test(normalized)) throw new Error('Enter a valid email address.');
+  if (String(password || '').length < 6) throw new Error('Use at least 6 characters for your password.');
+  return { email: normalized, password: String(password) };
+}
+
+export async function createCloudAccount(email, password) {
+  const values = credentials(email, password);
   const client = await requireClient();
-  const { error } = await client.auth.signInWithOtp({
-    email: normalized,
-    options: { emailRedirectTo: window.location.origin },
-  });
+  const { data, error } = await client.auth.signUp(values);
   if (error) throw error;
-  return normalized;
+  if (!data.session) throw new Error('Your account was created, but Supabase still requires email confirmation.');
+  return { email: values.email, session: data.session };
+}
+
+export async function signInCloudAccount(email, password) {
+  const values = credentials(email, password);
+  const client = await requireClient();
+  const { data, error } = await client.auth.signInWithPassword(values);
+  if (error) throw error;
+  if (!data.session) throw new Error('Fieldnote could not open your session. Try again.');
+  return { email: values.email, session: data.session };
 }
 
 export async function signOutCloud() {

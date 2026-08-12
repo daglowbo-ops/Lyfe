@@ -35,7 +35,7 @@ Fieldnote combines private health and money tracking in one web app. Its disting
 
 - Health capabilities include meal and macro logging, custom foods, workout templates, set and rest tracking, completed-workout archives, workout planning, goals, dated weight entries, and progress statistics.
 - Money capabilities include dated expenses, quick favorites, editable income and category limits, recurring bills, historical calendars, category drill-down, and six-month statistics.
-- Supabase is the sole durable source of truth. Email-link authentication and Row Level Security restrict each user to their own row.
+- Supabase is the sole durable source of truth. Email-and-password authentication and Row Level Security restrict each user to their own row. Account creation signs the user in immediately without a confirmation email while this remains a small private product.
 - Browser state may update optimistically, but the UI must expose saving, saved, and retry states and must never claim an unconfirmed write succeeded.
 - Concurrent cloud writes must be version-checked; a stale session must surface a conflict instead of silently overwriting a newer record.
 - Daily rollover must prevent meals and set completion from leaking into a new day. Historical expenses, goals, and completed workouts must retain their original dates and context.

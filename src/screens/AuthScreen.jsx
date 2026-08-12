@@ -1,7 +1,13 @@
 import { useState } from 'react';
 import PhoneShell from '../components/PhoneShell.jsx';
-import { GhostButton, PrimaryButton } from '../components/Primitives.jsx';
+import {
+  GhostButton,
+  PrimaryButton,
+  SegmentedControl,
+} from '../components/Primitives.jsx';
 import { dim, INK, input, MONO } from '../lib/theme.js';
+
+const EMAIL_PATTERN = /^\S+@\S+\.\S+$/;
 
 const copyByStatus = {
   checking: {
@@ -75,76 +81,82 @@ function StatusView({ status, error, configured, onRetry, onSignOut }) {
   );
 }
 
-function SignInView({ sync, onLogin }) {
+function friendlyAuthError(error, mode) {
+  const message = String(error?.message || '').toLowerCase();
+  if (message.includes('invalid login credentials')) return 'Email or password is incorrect.';
+  if (message.includes('already registered') || message.includes('already been registered')) {
+    return 'An account already exists for this email. Choose Sign in instead.';
+  }
+  if (message.includes('password')) return 'Use a password with at least 6 characters.';
+  if (message.includes('rate limit') || message.includes('too many')) return 'Too many attempts. Wait a moment and try again.';
+  if (message.includes('confirmation')) return 'This account still needs confirmation. Please try again in a moment.';
+  return mode === 'create'
+    ? 'We could not create your account. Check your connection and try again.'
+    : 'We could not sign you in. Check your details and try again.';
+}
+
+function AccountView({ sync, onAuthenticate }) {
+  const [mode, setMode] = useState('create');
   const [email, setEmail] = useState(sync.email || '');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
-  const [editingEmail, setEditingEmail] = useState(false);
-  const linkSent = sync.authStatus === 'link-sent' && !editingEmail;
 
-  const sendLink = async (nextEmail) => {
+  const creating = mode === 'create';
+  const emailValid = EMAIL_PATTERN.test(email.trim());
+  const passwordValid = password.length >= 6;
+
+  const changeMode = (nextMode) => {
+    setMode(nextMode);
+    setFormError('');
+  };
+
+  const submit = async (event) => {
+    event.preventDefault();
     if (submitting) return;
+    if (!emailValid) {
+      setFormError('Enter a valid email address.');
+      return;
+    }
+    if (!passwordValid) {
+      setFormError('Use a password with at least 6 characters.');
+      return;
+    }
+
     setSubmitting(true);
     setFormError('');
     try {
-      await onLogin(nextEmail);
-      setEditingEmail(false);
+      await onAuthenticate(mode, email, password);
     } catch (error) {
-      setFormError(error?.message || 'The sign-in link could not be sent. Try again.');
+      setFormError(friendlyAuthError(error, mode));
     } finally {
       setSubmitting(false);
     }
   };
 
-  const submit = (event) => {
-    event.preventDefault();
-    void sendLink(email);
-  };
-
-  if (linkSent) {
-    return (
-      <div style={{ marginTop: 'auto', marginBottom: 'auto' }}>
-        <h1 style={{ margin: 0, maxWidth: 320, fontSize: 36, lineHeight: 1.02, letterSpacing: -1.35 }}>
-          Check your inbox
-        </h1>
-        <p role="status" aria-live="polite" style={{ margin: '15px 0 0', color: dim(0.65), fontSize: 15, lineHeight: 1.5 }}>
-          We sent a secure sign-in link to <span style={{ color: INK }}>{sync.email}</span>. Open it in this browser to continue.
-        </p>
-        {formError && (
-          <div role="alert" style={{ marginTop: 12, color: 'var(--warn)', fontSize: 13.5, lineHeight: 1.4 }}>
-            {formError}
-          </div>
-        )}
-        <GhostButton
-          onClick={() => void sendLink(sync.email)}
-          style={{ width: '100%', marginTop: 26 }}
-        >
-          {submitting ? 'Sending link…' : 'Send another link'}
-        </GhostButton>
-        <button
-          className="muted-link"
-          onClick={() => {
-            setEmail('');
-            setEditingEmail(true);
-          }}
-          style={{ width: '100%', minHeight: 44, marginTop: 8, textAlign: 'center', color: dim(0.62), fontSize: 14 }}
-        >
-          Use a different email
-        </button>
-      </div>
-    );
-  }
-
   return (
-    <div style={{ marginTop: 'auto', marginBottom: 'auto' }}>
-      <h1 style={{ margin: 0, maxWidth: 330, fontSize: 38, lineHeight: 1, letterSpacing: -1.5 }}>
-        Your private record, online.
+    <div className="screen-in" style={{ marginTop: 'clamp(38px, 9vh, 72px)', marginBottom: 32 }}>
+      <SegmentedControl
+        ariaLabel="Account access"
+        value={mode}
+        onChange={changeMode}
+        options={[
+          { value: 'create', label: 'Create account' },
+          { value: 'sign-in', label: 'Sign in' },
+        ]}
+      />
+
+      <h1 style={{ margin: '28px 0 0', maxWidth: 330, fontSize: 38, lineHeight: 1, letterSpacing: -1.5 }}>
+        {creating ? 'Create your account.' : 'Welcome back.'}
       </h1>
-      <p style={{ margin: '16px 0 0', maxWidth: 330, color: dim(0.62), fontSize: 15, lineHeight: 1.5 }}>
-        Sign in to open your health and money entries. Fieldnote keeps each account separate in Supabase.
+      <p style={{ margin: '14px 0 0', maxWidth: 340, color: dim(0.64), fontSize: 15, lineHeight: 1.5 }}>
+        {creating
+          ? 'Use your email and a password. Your private record opens immediately—no confirmation email.'
+          : 'Enter the email and password you used when creating your account.'}
       </p>
 
-      <form onSubmit={submit} noValidate style={{ marginTop: 30 }}>
+      <form onSubmit={submit} noValidate style={{ marginTop: 26 }}>
         <label htmlFor="fieldnote-email" style={{ display: 'block', fontFamily: MONO, fontSize: 12, letterSpacing: 1.35, color: dim(0.62) }}>
           EMAIL ADDRESS
         </label>
@@ -156,35 +168,71 @@ function SignInView({ sync, onLogin }) {
           spellCheck="false"
           required
           value={email}
-          onChange={(event) => setEmail(event.target.value)}
+          onChange={(event) => {
+            setEmail(event.target.value);
+            setFormError('');
+          }}
           placeholder="you@example.com"
-          aria-describedby={formError ? 'fieldnote-auth-error' : 'fieldnote-auth-help'}
+          aria-describedby={formError ? 'fieldnote-auth-error' : undefined}
           aria-invalid={Boolean(formError)}
           style={{ ...input, boxSizing: 'border-box', width: '100%', height: 52, marginTop: 9 }}
         />
-        <div id="fieldnote-auth-help" style={{ marginTop: 9, color: dim(0.62), fontSize: 12.5, lineHeight: 1.4 }}>
-          No password. We’ll email you a secure link.
+
+        <label htmlFor="fieldnote-password" style={{ display: 'block', marginTop: 18, fontFamily: MONO, fontSize: 12, letterSpacing: 1.35, color: dim(0.62) }}>
+          PASSWORD
+        </label>
+        <div style={{ position: 'relative', marginTop: 9 }}>
+          <input
+            id="fieldnote-password"
+            type={showPassword ? 'text' : 'password'}
+            autoComplete={creating ? 'new-password' : 'current-password'}
+            required
+            minLength={6}
+            value={password}
+            onChange={(event) => {
+              setPassword(event.target.value);
+              setFormError('');
+            }}
+            aria-describedby={formError ? 'fieldnote-auth-error' : 'fieldnote-password-help'}
+            aria-invalid={Boolean(formError)}
+            style={{ ...input, boxSizing: 'border-box', width: '100%', height: 52, paddingRight: 78 }}
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword((value) => !value)}
+            aria-label={showPassword ? 'Hide password' : 'Show password'}
+            style={{ position: 'absolute', top: 4, right: 5, minWidth: 66, height: 44, textAlign: 'center', color: dim(0.68), fontSize: 13, fontWeight: 600 }}
+          >
+            {showPassword ? 'Hide' : 'Show'}
+          </button>
         </div>
+        <div id="fieldnote-password-help" style={{ marginTop: 9, color: dim(0.56), fontSize: 12.5, lineHeight: 1.4 }}>
+          {creating ? 'At least 6 characters.' : 'Your Fieldnote account password.'}
+        </div>
+
         {formError && (
-          <div id="fieldnote-auth-error" role="alert" style={{ marginTop: 12, color: 'var(--warn)', fontSize: 13.5, lineHeight: 1.4 }}>
+          <div id="fieldnote-auth-error" role="alert" aria-live="polite" style={{ marginTop: 12, color: 'var(--warn)', fontSize: 13.5, lineHeight: 1.4 }}>
             {formError}
           </div>
         )}
+
         <PrimaryButton
           type="submit"
           background={INK}
           color="#0D0D0C"
-          disabled={submitting || !email.trim()}
+          disabled={submitting || !emailValid || !passwordValid}
           style={{ marginTop: 20 }}
         >
-          {submitting ? 'Sending link…' : 'Email me a sign-in link'}
+          {submitting
+            ? (creating ? 'Creating account…' : 'Signing in…')
+            : (creating ? 'Create account' : 'Sign in')}
         </PrimaryButton>
       </form>
     </div>
   );
 }
 
-export default function AuthScreen({ sync, onLogin, onRetry, onSignOut }) {
+export default function AuthScreen({ sync, onAuthenticate, onRetry, onSignOut }) {
   const waiting = sync.status === 'checking' || sync.status === 'loading';
   const loadError = sync.status === 'error'
     && (sync.signedIn || !sync.configured || sync.authStatus === 'checking');
@@ -194,6 +242,8 @@ export default function AuthScreen({ sync, onLogin, onRetry, onSignOut }) {
       <main
         style={{
           flex: 1,
+          minHeight: 0,
+          overflowY: 'auto',
           display: 'flex',
           flexDirection: 'column',
           padding: 'calc(env(safe-area-inset-top, 0px) + 28px) 24px calc(env(safe-area-inset-bottom, 0px) + 30px)',
@@ -210,9 +260,9 @@ export default function AuthScreen({ sync, onLogin, onRetry, onSignOut }) {
             onSignOut={sync.signedIn ? onSignOut : undefined}
           />
         ) : (
-          <SignInView sync={sync} onLogin={onLogin} />
+          <AccountView sync={sync} onAuthenticate={onAuthenticate} />
         )}
-        <p style={{ margin: 0, fontFamily: MONO, fontSize: 12, letterSpacing: 0.8, lineHeight: 1.5, color: dim(0.52) }}>
+        <p style={{ margin: 'auto 0 0', fontFamily: MONO, fontSize: 12, letterSpacing: 0.8, lineHeight: 1.5, color: dim(0.52) }}>
           PRIVATE BY ACCOUNT · HEALTH + MONEY
         </p>
       </main>
