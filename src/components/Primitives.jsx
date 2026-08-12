@@ -1,0 +1,316 @@
+import { MONO, dim, INK, panel as panelStyle, card as cardStyle } from '../lib/theme.js';
+
+/** Monospaced tracking-out caption. The app's only section heading style. */
+export function Label({ children, color = dim(0.42), size = 10, style }) {
+  return (
+    <div style={{ fontFamily: MONO, fontSize: size, letterSpacing: 1.6, color, ...style }}>
+      {children}
+    </div>
+  );
+}
+
+/** Inline monospaced value, for numbers that sit next to prose. */
+export function Mono({ children, color = dim(0.7), size = 11, style }) {
+  return <span style={{ fontFamily: MONO, fontSize: size, color, ...style }}>{children}</span>;
+}
+
+export function ScreenTitle({ eyebrow, title, right }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+      <div>
+        <Label>{eyebrow}</Label>
+        <div style={{ fontSize: 30, fontWeight: 600, letterSpacing: -1, lineHeight: 1.1, marginTop: 5 }}>
+          {title}
+        </div>
+      </div>
+      {right}
+    </div>
+  );
+}
+
+export function Card({ children, style }) {
+  return <div style={{ ...cardStyle, padding: '22px 20px 18px', ...style }}>{children}</div>;
+}
+
+export function Panel({ children, style }) {
+  return <div style={{ ...panelStyle, ...style }}>{children}</div>;
+}
+
+/** Thin progress track. `color` fills, the rest stays at 10% ink. */
+export function Meter({ value, color, height = 5, track = dim(0.1) }) {
+  const scale = Math.max(0, Math.min(1, Number.parseFloat(value) / 100 || 0));
+  return (
+    <div style={{ height, borderRadius: height / 2 + 1, background: track, overflow: 'hidden' }}>
+      <div
+        style={{
+          height: '100%',
+          borderRadius: height / 2 + 1,
+          background: color,
+          width: '100%',
+          transform: `scaleX(${scale})`,
+          transformOrigin: 'left center',
+          transition: 'transform .5s cubic-bezier(.2,.8,.2,1)',
+        }}
+      />
+    </div>
+  );
+}
+
+/** Two-state pill group — Mes/Semana, Buscar/Rápido, Gasto/Ahorro. */
+export function SegmentedControl({ options, value, onChange, style }) {
+  return (
+    <div
+      role="tablist"
+      style={{ display: 'flex', gap: 4, padding: 4, borderRadius: 14, background: dim(0.07), ...style }}
+    >
+      {options.map((o) => {
+        const on = o.value === value;
+        return (
+          <button
+            key={o.value}
+            role="tab"
+            aria-selected={on}
+            onClick={() => onChange(o.value)}
+            style={{
+              flex: 1,
+              height: 44,
+              borderRadius: 12,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: 15,
+              fontWeight: 500,
+              transition: 'background .25s, color .25s',
+              background: on ? INK : 'transparent',
+              color: on ? '#0D0D0C' : dim(0.6),
+            }}
+          >
+            {o.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+/** Filter/category chip. Selected chips invert. */
+export function Chip({ label, selected, onClick, accent = INK, height = 40 }) {
+  return (
+    <button
+      onClick={onClick}
+      aria-pressed={selected}
+      style={{
+        height,
+        padding: '0 15px',
+        borderRadius: height >= 44 ? 13 : 12,
+        display: 'flex',
+        alignItems: 'center',
+        fontSize: 13.5,
+        fontWeight: 500,
+        whiteSpace: 'nowrap',
+        flexShrink: 0,
+        transition: 'background .2s, color .2s, border-color .2s',
+        border: `1px solid ${selected ? accent : dim(0.14)}`,
+        background: selected ? accent : 'transparent',
+        color: selected ? '#0D0D0C' : dim(0.65),
+      }}
+    >
+      {label}
+    </button>
+  );
+}
+
+/** Full-width call to action in one of the module accents. */
+export function PrimaryButton({ children, onClick, background, color, disabled, height = 52, style, type = 'button' }) {
+  return (
+    <button
+      type={type}
+      className="press"
+      onClick={disabled ? undefined : onClick}
+      disabled={disabled}
+      aria-disabled={disabled || undefined}
+      style={{
+        width: '100%',
+        height,
+        borderRadius: 14,
+        background,
+        color,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontSize: 16,
+        fontWeight: 600,
+        letterSpacing: -0.2,
+        opacity: disabled ? 0.35 : 1,
+        cursor: disabled ? 'default' : 'pointer',
+        ...style,
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
+/** Outlined secondary action. */
+export function GhostButton({ children, onClick, height = 50, style, className = 'outline' }) {
+  return (
+    <button
+      className={className}
+      onClick={onClick}
+      style={{
+        height,
+        borderRadius: 14,
+        border: `1px solid ${dim(0.14)}`,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontSize: 15,
+        color: dim(0.55),
+        ...style,
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
+/** Dashed "add another" affordance. */
+export function AddButton({ children, onClick, accent = 'nut', height = 48, style }) {
+  return (
+    <button
+      className={`outline-${accent}`}
+      onClick={onClick}
+      style={{
+        width: '100%',
+        height,
+        borderRadius: 13,
+        border: `1px dashed ${dim(0.18)}`,
+        background: dim(0.03),
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 8,
+        fontSize: 14,
+        color: dim(0.6),
+        transition: 'border-color .2s, color .2s',
+        ...style,
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
+/** −/+ pair around a value. Used for weights, reps, amounts and set counts. */
+export function Stepper({ value, onDown, onUp, height = 46, labelPrefix, downLabel, upLabel }) {
+  const btn = {
+    width: 40,
+    height: 40,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: 19,
+    color: dim(0.45),
+    borderRadius: 10,
+  };
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        height,
+        borderRadius: 13,
+        border: `1px solid ${dim(0.1)}`,
+        background: '#131311',
+        padding: '0 4px',
+      }}
+    >
+      <button className="stepper" style={btn} onClick={onDown} aria-label={downLabel}>
+        −
+      </button>
+      <span style={{ fontFamily: MONO, fontSize: 15, fontWeight: 500 }}>
+        {labelPrefix && <span style={{ color: dim(0.4) }}>{labelPrefix} </span>}
+        {value}
+      </span>
+      <button className="stepper" style={btn} onClick={onUp} aria-label={upLabel}>
+        +
+      </button>
+    </div>
+  );
+}
+
+/** Square checkbox used in the two "save this for later" options. */
+export function CheckRow({ checked, onClick, accent, children }) {
+  return (
+    <button
+      onClick={onClick}
+      role="checkbox"
+      aria-checked={checked}
+      style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 16, height: 44 }}
+    >
+      <span
+        style={{
+          width: 24,
+          height: 24,
+          borderRadius: 8,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: 14,
+          transition: 'background .2s, border-color .2s',
+          border: `1px solid ${checked ? accent : dim(0.2)}`,
+          background: checked ? accent : 'transparent',
+          color: '#0D1A0C',
+        }}
+      >
+        {checked ? '✓' : ''}
+      </span>
+      <span style={{ fontSize: 14, color: dim(0.7) }}>{children}</span>
+    </button>
+  );
+}
+
+/** Empty state inside a dashed frame. */
+export function EmptyNote({ children }) {
+  return (
+    <div
+      style={{
+        marginTop: 24,
+        padding: '30px 20px',
+        borderRadius: 18,
+        border: `1px dashed ${dim(0.14)}`,
+        textAlign: 'center',
+        fontSize: 15,
+        color: dim(0.55),
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+export function Avatar({ initials, onClick, size = 46 }) {
+  return (
+    <button
+      className="outline"
+      onClick={onClick}
+      aria-label="Your profile"
+      style={{
+        width: size,
+        height: size,
+        borderRadius: '50%',
+        border: `1px solid ${dim(0.16)}`,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontFamily: MONO,
+        fontSize: size > 50 ? 16 : 12,
+        color: dim(0.7),
+        flexShrink: 0,
+      }}
+    >
+      {initials}
+    </button>
+  );
+}

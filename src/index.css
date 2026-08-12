@@ -1,0 +1,262 @@
+:root {
+  --ink: #e9e5dc;
+  --bg: #0d0d0c;
+  --nut: oklch(0.84 0.15 135);
+  --trn: oklch(0.84 0.15 55);
+  --mny: oklch(0.84 0.15 245);
+  --warn: oklch(0.76 0.16 30);
+  color-scheme: dark;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: #080807;
+  color: var(--ink);
+  font-family: Outfit, system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior: none;
+}
+
+#root {
+  height: 100%;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  text-align: inherit;
+}
+
+button:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--ink) !important;
+  outline-offset: 3px;
+}
+
+input {
+  font: inherit;
+  font-size: max(16px, 1em);
+}
+
+button,
+input,
+.wrap {
+  overflow-wrap: anywhere;
+}
+
+/* Chrome/Safari draw stepper arrows that fight the app's own +/- controls. */
+input[type='number'] {
+  -moz-appearance: textfield;
+}
+input[type='number']::-webkit-outer-spin-button,
+input[type='number']::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input::placeholder {
+  color: rgba(233, 229, 220, 0.3);
+}
+
+/* Scrolling regions keep their scrollbars off-screen; the design relies on
+   edge-to-edge content. */
+.scroll {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.scroll::-webkit-scrollbar,
+.hscroll::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+.hscroll {
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+/* ── App shell ──────────────────────────────────────────────────── */
+
+.shell {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.phone {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  color: var(--ink);
+  width: 100vw;
+  height: 100dvh;
+}
+
+/* Below the breakpoint the app is the device; the frame would only waste room. */
+.shell-caption {
+  display: none;
+}
+
+@media (min-width: 460px) and (min-height: 720px) {
+  .shell {
+    gap: 18px;
+    padding: 40px 20px;
+    box-sizing: border-box;
+  }
+  .phone {
+    width: 402px;
+    height: min(874px, calc(100dvh - 120px));
+    border-radius: 44px;
+    box-shadow: 0 40px 80px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(233, 229, 220, 0.06);
+  }
+  .shell-caption {
+    display: block;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 10px;
+    letter-spacing: 1.6px;
+    color: rgba(233, 229, 220, 0.3);
+    text-align: center;
+  }
+}
+
+/* ── Interaction states ─────────────────────────────────────────── */
+
+.press {
+  transition: transform 0.16s, filter 0.16s;
+}
+.press:active {
+  transform: scale(0.975);
+}
+.press:hover {
+  filter: brightness(1.08);
+}
+
+.outline {
+  transition: border-color 0.2s, color 0.2s;
+}
+.outline:hover {
+  border-color: rgba(233, 229, 220, 0.4);
+  color: var(--ink);
+}
+
+.outline-nut:hover {
+  border-color: var(--nut);
+  color: var(--nut);
+}
+.outline-trn:hover {
+  border-color: var(--trn);
+  color: var(--trn);
+}
+.outline-mny:hover {
+  border-color: var(--mny);
+}
+
+.stepper {
+  transition: background 0.15s, color 0.15s;
+}
+.stepper:hover {
+  background: rgba(233, 229, 220, 0.07);
+  color: var(--ink);
+}
+
+.rowlink {
+  transition: background 0.18s;
+}
+.rowlink:hover {
+  background: rgba(233, 229, 220, 0.08);
+}
+
+.muted-link {
+  transition: color 0.2s;
+}
+.muted-link:hover {
+  color: var(--ink);
+}
+
+/* ── Motion ─────────────────────────────────────────────────────── */
+
+@keyframes scrIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes sheetUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: none;
+  }
+}
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes popIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes growH {
+  from {
+    height: 0;
+  }
+}
+
+.screen-in {
+  animation: scrIn 0.34s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.fade-in {
+  animation: fadeIn 0.3s both;
+}
+.sheet-in {
+  animation: sheetUp 0.34s cubic-bezier(0.2, 0.85, 0.25, 1) both;
+}
+.pop-in {
+  animation: popIn 0.28s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.grow-in {
+  animation: growH 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .screen-in,
+  .fade-in,
+  .sheet-in,
+  .pop-in,
+  .grow-in {
+    animation: none;
+  }
+  * {
+    transition-duration: 0.01ms !important;
+  }
+}

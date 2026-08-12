@@ -1,0 +1,82 @@
+import Screen from '../../components/Screen.jsx';
+import SwipeRow from '../../components/SwipeRow.jsx';
+import { AddButton, Label, Mono } from '../../components/Primitives.jsx';
+import { useApp } from '../../store/AppProvider.jsx';
+import { dayTotals } from '../../store/selectors.js';
+import { SLOTS, slotLabel } from '../../data/foods.js';
+import { fullLabel, startOfToday } from '../../lib/date.js';
+import { macroLine } from '../../lib/format.js';
+import { MONO, dim } from '../../lib/theme.js';
+
+export default function FoodScreen() {
+  const { state, dispatch } = useApp();
+  const totals = dayTotals(state.meals);
+
+  return (
+    <Screen>
+      <Label>{fullLabel(startOfToday())}</Label>
+      <div style={{ fontSize: 30, fontWeight: 600, letterSpacing: -1, marginTop: 5 }}>Food log</div>
+
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'baseline',
+          gap: 10,
+          marginTop: 18,
+          paddingBottom: 18,
+          borderBottom: `1px solid ${dim(0.09)}`,
+        }}
+      >
+        <div style={{ fontSize: 40, fontWeight: 600, letterSpacing: -2, lineHeight: 1 }}>{totals.kcal}</div>
+        <div style={{ fontSize: 13, color: dim(0.42) }}>
+          of {state.goals.kcal} kcal · {macroLine(totals)}
+        </div>
+      </div>
+
+      {SLOTS.map((slot) => {
+        const items = state.meals.filter((m) => m.slot === slot);
+        return (
+          <div key={slot} style={{ marginTop: 24 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Label>{slotLabel(slot).toUpperCase()}</Label>
+              <Mono color={dim(0.55)}>{items.reduce((a, m) => a + m.kcal, 0)} kcal</Mono>
+            </div>
+
+            <div style={{ marginTop: 6 }}>
+              {items.map((m) => (
+                <SwipeRow key={m.id} id={m.id} onDelete={() => dispatch({ type: 'removeFood', id: m.id })}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '13px 0',
+                      borderBottom: `1px solid ${dim(0.07)}`,
+                    }}
+                  >
+                    <div>
+                      <div style={{ fontSize: 15, fontWeight: 500, letterSpacing: -0.2 }}>{m.name}</div>
+                      <div style={{ fontFamily: MONO, fontSize: 11, color: dim(0.38), marginTop: 3 }}>
+                        {macroLine(m)}
+                      </div>
+                    </div>
+                    <Mono size={13} color={dim(0.75)} style={{ paddingLeft: 14 }}>
+                      {m.kcal}
+                    </Mono>
+                  </div>
+                </SwipeRow>
+              ))}
+            </div>
+
+            <AddButton
+              style={{ marginTop: 10 }}
+              onClick={() => dispatch({ type: 'openFoodSheet', slot })}
+            >
+              Add to {slotLabel(slot)}
+            </AddButton>
+          </div>
+        );
+      })}
+    </Screen>
+  );
+}

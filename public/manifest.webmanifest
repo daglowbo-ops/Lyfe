@@ -1,0 +1,19 @@
+{
+  "name": "Fieldnote — Health and money",
+  "short_name": "Fieldnote",
+  "description": "A private, offline-ready health and money log.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0d0d0c",
+  "theme_color": "#0d0d0c",
+  "lang": "en",
+  "categories": ["health", "finance", "lifestyle"],
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": true,
+    "noEmit": true,
+    "strict": false,
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable", "WebWorker"],
+    "jsx": "react-jsx",
+    "skipLibCheck": true,
+    "allowImportingTsExtensions": true
+  },
+  "include": [
+    "src/lib/date.js",
+    "src/lib/format.js",
+    "src/data/*.js",
+    "src/store/model.js",
+    "src/store/selectors.js",
+    "src/store/persistence.js",
+    "tests/**/*.js",
+    "vite.config.js"
+  ]
+}

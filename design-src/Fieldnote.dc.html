@@ -1,0 +1,1670 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#080807;font-family:Outfit,system-ui,sans-serif}
+a{color:oklch(0.84 0.15 135);text-decoration:none}a:hover{color:oklch(0.9 0.12 135)}
+*{-webkit-tap-highlight-color:transparent}
+::-webkit-scrollbar{width:0;height:0}
+@keyframes scrIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@keyframes sheetUp{from{transform:translateY(100%)}to{transform:none}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes popIn{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:none}}
+@keyframes growW{from{width:0}}
+</style>
+</helmet>
+<div style="min-height:100vh;display:flex;align-items:flex-start;justify-content:center;gap:56px;padding:56px 40px 80px;box-sizing:border-box">
+<div style="display:flex;flex-direction:column;gap:18px;align-items:center">
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" dark="{{ true }}" hint-size="402px,874px">
+<div style="height:100%;display:flex;flex-direction:column;background:#0D0D0C;color:#E9E5DC;position:relative;overflow:hidden">
+<div style="position:absolute;top:54px;left:0;right:0;display:flex;justify-content:center;z-index:45;pointer-events:none">
+<div style="display:flex;gap:3px;padding:3px;border-radius:15px;background:rgba(32,32,29,.92);backdrop-filter:blur(16px);border:1px solid rgba(233,229,220,.09);pointer-events:auto">
+<div onClick="{{ switchHealth }}" style="height:40px;padding:0 22px;border-radius:12px;display:flex;align-items:center;font-size:14px;font-weight:500;cursor:pointer;transition:background .25s,color .25s;background:{{ hBg }};color:{{ hFg }}">Salud</div>
+<div onClick="{{ switchMoney }}" style="height:40px;padding:0 22px;border-radius:12px;display:flex;align-items:center;font-size:14px;font-weight:500;cursor:pointer;transition:background .25s,color .25s;background:{{ mBg }};color:{{ mFg }}">Dinero</div>
+</div>
+</div>
+
+<sc-if value="{{ isToday }}" hint-placeholder-val="{{ true }}">
+<div style="flex:1;overflow-y:auto;padding:110px 20px 108px;animation:scrIn .34s cubic-bezier(.2,.8,.2,1) both">
+<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:26px">
+<div>
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.6px;color:rgba(233,229,220,.42)">{{ todayLabel }}</div>
+<div style="font-size:30px;font-weight:600;letter-spacing:-1px;line-height:1.1;margin-top:5px">Hoy</div>
+</div>
+<div onClick="{{ goYou }}" style="width:46px;height:46px;border-radius:50%;border:1px solid rgba(233,229,220,.16);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:12px;color:rgba(233,229,220,.7);cursor:pointer" style-hover="border-color:rgba(233,229,220,.4)">RK</div>
+</div>
+
+<div style="border:1px solid rgba(233,229,220,.16);border-radius:22px;padding:22px 20px 18px;background:#1A1A17;box-shadow:0 10px 28px rgba(0,0,0,.38)">
+<div style="display:flex;align-items:baseline;justify-content:space-between">
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.6px;color:oklch(0.84 0.15 135)">CALORÍAS RESTANTES</div>
+<div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:rgba(233,229,220,.42)">{{ kcalIn }} / {{ kcalGoal }}</div>
+</div>
+<div style="display:flex;align-items:baseline;gap:8px;margin:6px 0 16px">
+<div style="font-size:64px;font-weight:600;letter-spacing:-3.5px;line-height:1">{{ kcalLeft }}</div>
+<div style="font-size:15px;color:rgba(233,229,220,.4);padding-bottom:9px">kcal</div>
+</div>
+<div style="height:5px;border-radius:3px;background:rgba(233,229,220,.1);overflow:hidden">
+<div style="height:100%;border-radius:3px;background:oklch(0.84 0.15 135);transition:width .5s cubic-bezier(.2,.8,.2,1);width:{{ kcalPct }}"></div>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-top:18px">
+<sc-for list="{{ macros }}" as="m" hint-placeholder-count="3">
+<div>
+<div style="margin-bottom:7px;min-width:0">
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.1px;color:rgba(233,229,220,.45);white-space:nowrap">{{ m.label }}</div>
+<div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:rgba(233,229,220,.8);margin-top:3px;white-space:nowrap">{{ m.txt }}</div>
+</div>
+<sc-if value="{{ m.bar }}" hint-placeholder-val="{{ true }}">
+<div style="height:3px;border-radius:2px;background:rgba(233,229,220,.1);overflow:hidden">
+<div style="height:100%;background:rgba(233,229,220,.55);transition:width .5s;width:{{ m.pct }}"></div>
+</div>
+</sc-if>
+</div>
+</sc-for>
+</div>
+</div>
+
+<div style="margin-top:14px;border:1px solid rgba(233,229,220,.16);border-radius:22px;padding:20px;background:#1A1A17;box-shadow:0 10px 28px rgba(0,0,0,.38)">
+<div style="display:flex;align-items:center;justify-content:space-between">
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.6px;color:oklch(0.84 0.15 55)">SESIÓN DE HOY</div>
+<div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:rgba(233,229,220,.42)">{{ setsDoneTxt }}</div>
+</div>
+<div style="font-size:26px;font-weight:600;letter-spacing:-.9px;margin:8px 0 3px">{{ wName }}</div>
+<div style="font-size:14px;color:rgba(233,229,220,.48)">{{ wSummary }}</div>
+<div onClick="{{ goTrain }}" style="margin-top:18px;height:52px;border-radius:14px;background:oklch(0.84 0.15 55);color:#14100A;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600;letter-spacing:-.2px;cursor:pointer;transition:transform .16s,filter .16s" style-hover="filter:brightness(1.08)" style-active="transform:scale(.975)">{{ trainCta }}</div>
+</div>
+
+<div style="margin-top:26px;display:flex;align-items:center;justify-content:space-between">
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.6px;color:rgba(233,229,220,.42)">ÚLTIMOS 7 DÍAS</div>
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.6px;color:rgba(233,229,220,.42)">{{ streakTxt }}</div>
+</div>
+<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:12px">
+<sc-for list="{{ weekDots }}" as="d" hint-placeholder-count="7">
+<div style="border:1px solid rgba(233,229,220,.09);border-radius:12px;padding:10px 0 9px;display:flex;flex-direction:column;align-items:center;gap:7px;background:{{ d.bg }}">
+<span style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.5px;color:rgba(233,229,220,.4)">{{ d.dow }}</span>
+<span style="width:6px;height:6px;border-radius:50%;background:{{ d.ate }}"></span>
+<span style="width:6px;height:6px;border-radius:50%;background:{{ d.trn }}"></span>
+</div>
+</sc-for>
+</div>
+
+<div style="margin-top:26px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.6px;color:rgba(233,229,220,.42)">ACTIVIDAD RECIENTE</div>
+<div style="margin-top:10px;display:flex;flex-direction:column">
+<sc-for list="{{ recent }}" as="r" hint-placeholder-count="3">
+<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid rgba(233,229,220,.07)">
+<div style="display:flex;align-items:center;gap:12px">
+<span style="width:7px;height:7px;border-radius:2px;background:{{ r.col }}"></span>
+<div>
+<div style="font-size:15px;font-weight:500;letter-spacing:-.2px">{{ r.name }}</div>
+<div style="font-size:12px;color:rgba(233,229,220,.4);margin-top:2px">{{ r.sub }}</div>
+</div>
+</div>
+<div style="font-family:'JetBrains Mono',monospace;font-size:13px;color:rgba(233,229,220,.7)">{{ r.val }}</div>
+</div>
+</sc-for>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isFood }}">
+<div style="flex:1;overflow-y:auto;padding:110px 20px 108px;animation:scrIn .34s cubic-bezier(.2,.8,.2,1) both">
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.6px;color:rgba(233,229,220,.42)">{{ todayLabel }}</div>
+<div style="font-size:30px;font-weight:600;letter-spacing:-1px;margin-top:5px">Registro</div>
+<div style="display:flex;align-items:baseline;gap:10px;margin-top:18px;padding-bottom:18px;border-bottom:1px solid rgba(233,229,220,.09)">
+<div style="font-size:40px;font-weight:600;letter-spacing:-2px;line-height:1">{{ kcalIn }}</div>
+<div style="font-size:13px;color:rgba(233,229,220,.42)">de {{ kcalGoal }} kcal · {{ macroLine }}</div>
+</div>
+<sc-for list="{{ mealGroups }}" as="g" hint-placeholder-count="4">
+<div style="margin-top:24px">
+<div style="display:flex;align-items:center;justify-content:space-between">
+<span style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.6px;color:rgba(233,229,220,.42)">{{ g.slot }}</span>
+<span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:rgba(233,229,220,.55)">{{ g.total }}</span>
+</div>
+<div style="margin-top:6px">
+<sc-for list="{{ g.items }}" as="it" hint-placeholder-count="2">
+<div style="position:relative;overflow:hidden;animation:fadeIn .3s both">
+<div onClick="{{ it.del }}" style="position:absolute;right:0;top:0;bottom:1px;width:88px;display:flex;align-items:center;justify-content:center;border-radius:10px;background:oklch(0.76 0.16 30);color:#1B0A05;font-size:14px;font-weight:600;cursor:pointer">Borrar</div>
+<div onPointerDown="{{ it.down }}" onPointerMove="{{ it.move }}" onPointerUp="{{ it.up }}" onPointerLeave="{{ it.up }}" style="position:relative;background:#0D0D0C;display:flex;align-items:center;justify-content:space-between;padding:13px 0;border-bottom:1px solid rgba(233,229,220,.07);touch-action:pan-y;cursor:grab;transform:translateX({{ it.dx }});transition:{{ it.tr }}">
+<div>
+<div style="font-size:15px;font-weight:500;letter-spacing:-.2px">{{ it.name }}</div>
+<div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:rgba(233,229,220,.38);margin-top:3px">{{ it.macro }}</div>
+</div>
+<div style="font-family:'JetBrains Mono',monospace;font-size:13px;color:rgba(233,229,220,.75);padding-left:14px">{{ it.kcal }}</div>
+</div>
+</div>
+</sc-for>
+</div>
+<div onClick="{{ g.add }}" style="margin-top:10px;height:48px;border-radius:13px;border:1px dashed rgba(233,229,220,.16);background:rgba(233,229,220,.03);display:flex;align-items:center;justify-content:center;gap:8px;font-size:14px;color:rgba(233,229,220,.6);cursor:pointer;transition:border-color .2s,color .2s" style-hover="border-color:oklch(0.84 0.15 135);color:oklch(0.84 0.15 135)">Añadir a {{ g.slot }}</div>
+</div>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{ isTrain }}">
+<div style="flex:1;overflow-y:auto;padding:110px 20px 108px;animation:scrIn .34s cubic-bezier(.2,.8,.2,1) both">
+<div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+<div onClick="{{ openPick }}" style="display:flex;align-items:center;gap:8px;height:44px;padding:0 14px;border-radius:13px;border:1px solid rgba(233,229,220,.14);cursor:pointer;transition:border-color .2s" style-hover="border-color:oklch(0.84 0.15 55)">
+<span style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:1.4px;color:oklch(0.84 0.15 55)">{{ wNameUp }}</span>
+<span style="font-size:9px;color:rgba(233,229,220,.45)">▾</span>
+</div>
+<div onClick="{{ openEdit }}" style="height:44px;padding:0 16px;border-radius:13px;border:1px solid rgba(233,229,220,.14);display:flex;align-items:center;font-size:14px;color:rgba(233,229,220,.6);cursor:pointer;transition:border-color .2s,color .2s" style-hover="border-color:rgba(233,229,220,.4);color:#E9E5DC">Editar sesión</div>
+</div>
+<div style="display:flex;align-items:flex-end;justify-content:space-between;margin-top:14px">
+<div style="font-size:26px;font-weight:600;letter-spacing:-1px;line-height:1.15;padding-right:12px">{{ ex.name }}</div>
+<div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:rgba(233,229,220,.42);white-space:nowrap">{{ exCount }}</div>
+</div>
+<div style="display:flex;gap:5px;margin-top:4px">
+<sc-for list="{{ exDots }}" as="e" hint-placeholder-count="4">
+<div onClick="{{ e.go }}" style="flex:1;padding:14px 0;cursor:pointer"><div style="height:4px;border-radius:2px;transition:background .3s;background:{{ e.bg }}"></div></div>
+</sc-for>
+</div>
+
+<div style="margin-top:20px;display:flex;gap:10px">
+<div style="flex:1;border:1px solid rgba(233,229,220,.06);border-radius:16px;padding:14px 16px;background:#111110">
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.3px;color:rgba(233,229,220,.4)">ÚLTIMA VEZ</div>
+<div style="font-size:17px;font-weight:500;margin-top:6px;letter-spacing:-.3px">{{ ex.last }}</div>
+</div>
+<div style="flex:1;border:1px solid rgba(233,229,220,.06);border-radius:16px;padding:14px 16px;background:#111110">
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.3px;color:rgba(233,229,220,.4)">OBJETIVO</div>
+<div style="font-size:17px;font-weight:500;margin-top:6px;letter-spacing:-.3px">{{ ex.target }}</div>
+</div>
+</div>
+
+<div style="margin-top:22px;display:grid;grid-template-columns:26px 1fr 1fr 44px;gap:10px;align-items:center;padding-bottom:8px">
+<span style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.1px;color:rgba(233,229,220,.35)">#</span>
+<span style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.1px;color:rgba(233,229,220,.35)">PESO</span>
+<span style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.1px;color:rgba(233,229,220,.35)">REPS</span>
+<span></span>
+</div>
+<sc-for list="{{ sets }}" as="s" hint-placeholder-count="4">
+<div style="display:grid;grid-template-columns:26px 1fr 1fr 44px;gap:10px;align-items:center;padding:7px 0;opacity:{{ s.op }};transition:opacity .3s">
+<span style="font-family:'JetBrains Mono',monospace;font-size:13px;color:rgba(233,229,220,.45)">{{ s.n }}</span>
+<div style="display:flex;align-items:center;justify-content:space-between;height:46px;border-radius:13px;border:1px solid rgba(233,229,220,.1);background:#131311;padding:0 4px">
+<span onClick="{{ s.wDown }}" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;font-size:19px;color:rgba(233,229,220,.45);cursor:pointer;border-radius:10px" style-hover="background:rgba(233,229,220,.07);color:#E9E5DC">−</span>
+<span style="font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:500">{{ s.w }}</span>
+<span onClick="{{ s.wUp }}" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;font-size:19px;color:rgba(233,229,220,.45);cursor:pointer;border-radius:10px" style-hover="background:rgba(233,229,220,.07);color:#E9E5DC">+</span>
+</div>
+<div style="display:flex;align-items:center;justify-content:space-between;height:46px;border-radius:13px;border:1px solid rgba(233,229,220,.1);background:#131311;padding:0 4px">
+<span onClick="{{ s.rDown }}" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;font-size:19px;color:rgba(233,229,220,.45);cursor:pointer;border-radius:10px" style-hover="background:rgba(233,229,220,.07);color:#E9E5DC">−</span>
+<span style="font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:500">{{ s.r }}</span>
+<span onClick="{{ s.rUp }}" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;font-size:19px;color:rgba(233,229,220,.45);cursor:pointer;border-radius:10px" style-hover="background:rgba(233,229,220,.07);color:#E9E5DC">+</span>
+</div>
+<span onClick="{{ s.toggle }}" style="width:44px;height:46px;border-radius:13px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .25s,border-color .25s;border:1px solid {{ s.bd }};background:{{ s.bg }};color:{{ s.fg }};font-size:16px">{{ s.mark }}</span>
+</div>
+</sc-for>
+
+<div style="display:flex;gap:10px;margin-top:22px">
+<div onClick="{{ prevEx }}" style="width:56px;height:52px;border-radius:14px;border:1px solid rgba(233,229,220,.14);display:flex;align-items:center;justify-content:center;font-size:17px;color:rgba(233,229,220,.6);cursor:pointer" style-hover="border-color:rgba(233,229,220,.4);color:#E9E5DC">←</div>
+<div onClick="{{ nextEx }}" style="flex:1;height:52px;border-radius:14px;background:rgba(233,229,220,.1);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:500;cursor:pointer;transition:background .2s" style-hover="background:rgba(233,229,220,.18)">{{ nextLabel }}</div>
+</div>
+<div style="margin-top:16px;display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:11px;color:rgba(233,229,220,.4)">
+<span>VOLUMEN {{ volTxt }}</span>
+<span>{{ setsDoneTxt }}</span>
+</div>
+</div>
+<sc-if value="{{ resting }}">
+<div style="position:absolute;left:14px;right:14px;bottom:98px;border-radius:18px;background:#1B1A17;border:1px solid rgba(233,229,220,.14);padding:14px 16px 12px;animation:popIn .28s cubic-bezier(.2,.8,.2,1) both;z-index:30">
+<div style="display:flex;align-items:center;justify-content:space-between">
+<span style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.6px;color:oklch(0.84 0.15 55)">DESCANSO</span>
+<span style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:500">{{ restTxt }}</span>
+<span onClick="{{ skipRest }}" style="height:38px;padding:0 6px;margin-right:-6px;display:flex;align-items:center;font-size:14px;color:rgba(233,229,220,.6);cursor:pointer" style-hover="color:#E9E5DC">Saltar</span>
+</div>
+<div style="height:3px;border-radius:2px;background:rgba(233,229,220,.12);margin-top:10px;overflow:hidden">
+<div style="height:100%;background:oklch(0.84 0.15 55);transition:width 1s linear;width:{{ restPct }}"></div>
+</div>
+</div>
+</sc-if>
+</sc-if>
+
+<sc-if value="{{ isPlan }}">
+<div style="flex:1;overflow-y:auto;padding:110px 20px 108px;animation:scrIn .34s cubic-bezier(.2,.8,.2,1) both">
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.6px;color:rgba(233,229,220,.42)">{{ monthLabel }}</div>
+<div style="font-size:30px;font-weight:600;letter-spacing:-1px;margin-top:5px">Plan</div>
+<div style="display:flex;gap:4px;margin-top:18px;padding:4px;border-radius:14px;background:rgba(233,229,220,.07)">
+<div onClick="{{ setMonth }}" style="flex:1;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:500;cursor:pointer;transition:background .25s,color .25s;background:{{ monthBg }};color:{{ monthFg }}">Mes</div>
+<div onClick="{{ setWeek }}" style="flex:1;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:500;cursor:pointer;transition:background .25s,color .25s;background:{{ weekBg }};color:{{ weekFg }}">Semana</div>
+</div>
+
+<sc-if value="{{ isMonth }}">
+<div style="animation:fadeIn .3s both">
+<div style="display:flex;align-items:center;justify-content:space-between;margin-top:18px">
+<div onClick="{{ prevMonth }}" style="width:46px;height:46px;border-radius:14px;border:1px solid rgba(233,229,220,.12);display:flex;align-items:center;justify-content:center;font-size:16px;color:rgba(233,229,220,.6);cursor:pointer" style-hover="border-color:rgba(233,229,220,.4);color:#E9E5DC">‹</div>
+<div style="font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:1.6px;color:rgba(233,229,220,.7)">{{ monthLabel }}</div>
+<div onClick="{{ nextMonth }}" style="width:46px;height:46px;border-radius:14px;border:1px solid rgba(233,229,220,.12);display:flex;align-items:center;justify-content:center;font-size:16px;color:rgba(233,229,220,.6);cursor:pointer;transition:opacity .2s;opacity:{{ nextMonthOp }}" style-hover="border-color:rgba(233,229,220,.4);color:#E9E5DC">›</div>
+</div>
+<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-top:16px">
+<sc-for list="{{ dows }}" as="d" hint-placeholder-count="7">
+<div style="text-align:center;font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.6px;color:rgba(233,229,220,.32);padding-bottom:8px">{{ d }}</div>
+</sc-for>
+</div>
+<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px">
+<sc-for list="{{ cells }}" as="c" hint-placeholder-count="35">
+<div onClick="{{ c.pick }}" style="aspect-ratio:1;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;transition:background .2s;opacity:{{ c.op }};background:{{ c.bg }}">
+<span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:{{ c.fg }}">{{ c.label }}</span>
+<span style="display:flex;gap:3px;height:5px">
+<span style="width:5px;height:5px;border-radius:50%;background:{{ c.ate }}"></span>
+<span style="width:5px;height:5px;border-radius:50%;background:{{ c.trn }}"></span>
+</span>
+</div>
+</sc-for>
+</div>
+<div style="margin-top:20px;border:1px solid rgba(233,229,220,.06);border-radius:20px;padding:18px;background:#111110">
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.6px;color:rgba(233,229,220,.42)">{{ selLabel }}</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px">
+<div style="border-radius:14px;background:rgba(233,229,220,.04);padding:14px">
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.1px;color:oklch(0.84 0.15 135)">CALORÍAS</div>
+<div style="display:flex;align-items:baseline;gap:6px;margin-top:7px">
+<span style="font-size:24px;font-weight:600;letter-spacing:-1px">{{ selKcal }}</span>
+<span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:rgba(233,229,220,.4)">/ {{ selGoal }}</span>
+</div>
+<div style="font-size:11.5px;color:rgba(233,229,220,.38);margin-top:3px">comido / objetivo</div>
+</div>
+<div style="border-radius:14px;background:rgba(233,229,220,.04);padding:14px">
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.1px;color:oklch(0.84 0.15 135)">PROTEÍNA</div>
+<div style="display:flex;align-items:baseline;gap:6px;margin-top:7px">
+<span style="font-size:24px;font-weight:600;letter-spacing:-1px">{{ selProt }}</span>
+<span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:rgba(233,229,220,.4)">/ {{ selProtGoal }} g</span>
+</div>
+<div style="font-size:11.5px;color:rgba(233,229,220,.38);margin-top:3px">comido / objetivo</div>
+</div>
+</div>
+<sc-if value="{{ selFuture }}">
+<div style="position:relative;margin-top:16px;z-index:20">
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.2px;color:oklch(0.84 0.15 55);margin-bottom:8px">SESIÓN</div>
+<div onClick="{{ selToggle }}" style="height:50px;border-radius:14px;border:1px solid rgba(233,229,220,.14);background:rgba(233,229,220,.05);display:flex;align-items:center;justify-content:space-between;padding:0 16px;cursor:pointer;transition:border-color .2s" style-hover="border-color:oklch(0.84 0.15 55)">
+<span style="font-size:16px;font-weight:500;letter-spacing:-.3px">{{ selPlanName }}</span>
+<span style="font-size:9px;color:rgba(233,229,220,.45);transition:transform .22s;transform:{{ selChev }}">▼</span>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{ selPast }}">
+<div style="margin-top:16px;display:flex;align-items:center;gap:10px;height:50px;border-radius:14px;border:1px solid rgba(233,229,220,.07);padding:0 16px">
+<span style="width:14px;height:11px;border-radius:3px;border:1.4px solid rgba(233,229,220,.35)"></span>
+<span style="font-size:13.5px;color:rgba(233,229,220,.45)">{{ selPastNote }}</span>
+</div>
+</sc-if>
+<div style="display:flex;gap:18px;margin-top:18px;padding-top:14px;border-top:1px solid rgba(233,229,220,.08)">
+<span style="display:flex;align-items:center;gap:7px;font-size:12px;color:rgba(233,229,220,.45)"><span style="width:6px;height:6px;border-radius:50%;background:oklch(0.84 0.15 135)"></span>calorías ok</span>
+<span style="display:flex;align-items:center;gap:7px;font-size:12px;color:rgba(233,229,220,.45)"><span style="width:6px;height:6px;border-radius:50%;background:oklch(0.84 0.15 55)"></span>entrenado</span>
+</div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isWeek }}">
+<div style="margin-top:20px;animation:fadeIn .3s both">
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.6px;color:rgba(233,229,220,.42);margin-bottom:12px">ELIGE LA SESIÓN DE CADA DÍA</div>
+<sc-for list="{{ weekRows }}" as="w" hint-placeholder-count="7">
+<div style="position:relative;margin-bottom:8px;z-index:{{ w.z }}">
+<div onClick="{{ w.toggle }}" style="display:flex;align-items:center;gap:14px;padding:15px 16px;border-radius:16px;border:1px solid rgba(233,229,220,.09);cursor:pointer;transition:border-color .2s,background .2s;background:{{ w.bg }}" style-hover="border-color:rgba(233,229,220,.28)">
+<div style="width:38px">
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;color:rgba(233,229,220,.4)">{{ w.dow }}</div>
+<div style="font-family:'JetBrains Mono',monospace;font-size:15px;margin-top:2px">{{ w.day }}</div>
+</div>
+<div style="width:3px;height:34px;border-radius:2px;background:{{ w.bar }}"></div>
+<div style="flex:1;min-width:0">
+<div style="display:flex;align-items:center;gap:7px">
+<span style="font-size:16px;font-weight:500;letter-spacing:-.3px;color:{{ w.fg }}">{{ w.name }}</span>
+<span style="font-size:9px;color:rgba(233,229,220,.45);transition:transform .22s;transform:{{ w.chev }}">▼</span>
+</div>
+<div style="font-size:12px;color:rgba(233,229,220,.4);margin-top:2px">{{ w.sub }}</div>
+</div>
+<div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:rgba(233,229,220,.45)">{{ w.kcal }}</div>
+</div>
+</div>
+</sc-for>
+</div>
+</sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{ isStats }}">
+<div style="flex:1;overflow-y:auto;padding:110px 20px 108px;animation:scrIn .34s cubic-bezier(.2,.8,.2,1) both">
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.6px;color:rgba(233,229,220,.42)">ÚLTIMAS 12 SEMANAS</div>
+<div style="font-size:30px;font-weight:600;letter-spacing:-1px;margin-top:5px">Progreso</div>
+
+<div style="margin-top:22px;border:1px solid rgba(233,229,220,.06);border-radius:20px;padding:18px;background:#111110">
+<div style="display:flex;align-items:baseline;justify-content:space-between">
+<div>
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.6px;color:rgba(233,229,220,.42)">PESO CORPORAL</div>
+<div style="display:flex;align-items:baseline;gap:8px;margin-top:6px">
+<span style="font-size:38px;font-weight:600;letter-spacing:-2px;line-height:1">{{ wNow }}</span>
+<span style="font-size:13px;color:rgba(233,229,220,.4)">kg</span>
+</div>
+</div>
+<div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:oklch(0.84 0.15 135)">{{ wDelta }}</div>
+</div>
+<svg viewBox="0 0 300 84" preserveAspectRatio="none" style="width:100%;height:84px;margin-top:14px;overflow:visible">
+<polyline points="{{ wPoints }}" fill="none" stroke="rgba(233,229,220,0.75)" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"></polyline>
+</svg>
+<div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:10px;color:rgba(233,229,220,.32);margin-top:6px">
+<span>{{ wFirstLabel }}</span><span>HOY</span>
+</div>
+</div>
+
+<div style="margin-top:14px;border:1px solid rgba(233,229,220,.06);border-radius:20px;padding:18px;background:#111110">
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.6px;color:rgba(233,229,220,.42)">VOLUMEN SEMANAL</div>
+<div style="display:flex;align-items:flex-end;gap:6px;height:96px;margin-top:16px">
+<sc-for list="{{ volBars }}" as="b" hint-placeholder-count="12">
+<div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;height:100%">
+<div style="border-radius:4px 4px 2px 2px;animation:growW .6s cubic-bezier(.2,.8,.2,1) both;height:{{ b.h }};background:{{ b.bg }}"></div>
+</div>
+</sc-for>
+</div>
+<div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:10px;color:rgba(233,229,220,.32);margin-top:8px">
+<span>S1</span><span>S12</span>
+</div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px">
+<div style="border:1px solid rgba(233,229,220,.06);border-radius:20px;padding:18px;background:#111110">
+<div style="font-size:32px;font-weight:600;letter-spacing:-1.4px">{{ adhKcal }}</div>
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.2px;color:oklch(0.84 0.15 135);margin-top:5px">DÍAS EN OBJETIVO</div>
+</div>
+<div style="border:1px solid rgba(233,229,220,.06);border-radius:20px;padding:18px;background:#111110">
+<div style="font-size:32px;font-weight:600;letter-spacing:-1.4px">{{ adhTrain }}</div>
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.2px;color:oklch(0.84 0.15 55);margin-top:5px">SESIONES HECHAS</div>
+</div>
+</div>
+
+<div style="margin-top:26px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.6px;color:rgba(233,229,220,.42)">RÉCORDS RECIENTES</div>
+<sc-for list="{{ prs }}" as="p" hint-placeholder-count="3">
+<div style="display:flex;align-items:center;justify-content:space-between;padding:15px 0;border-bottom:1px solid rgba(233,229,220,.07)">
+<div>
+<div style="font-size:15px;font-weight:500;letter-spacing:-.2px">{{ p.name }}</div>
+<div style="font-size:12px;color:rgba(233,229,220,.4);margin-top:2px">{{ p.when }}</div>
+</div>
+<div style="font-family:'JetBrains Mono',monospace;font-size:14px;color:oklch(0.84 0.15 55)">{{ p.val }}</div>
+</div>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{ isYou }}">
+<div style="flex:1;overflow-y:auto;padding:110px 20px 108px;animation:scrIn .34s cubic-bezier(.2,.8,.2,1) both">
+<div onClick="{{ goToday }}" style="display:inline-flex;align-items:center;height:44px;padding-right:12px;font-size:15px;color:rgba(233,229,220,.5);cursor:pointer;margin-bottom:6px" style-hover="color:#E9E5DC">← Hoy</div>
+<div style="display:flex;align-items:center;gap:16px">
+<div style="width:60px;height:60px;border-radius:50%;border:1px solid rgba(233,229,220,.16);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:16px;color:rgba(233,229,220,.7)">RK</div>
+<div>
+<div style="font-size:24px;font-weight:600;letter-spacing:-.8px">Robin Kade</div>
+<div style="font-size:13px;color:rgba(233,229,220,.42);margin-top:2px">Definición · 81.4 kg · 5 sesiones/sem</div>
+</div>
+</div>
+<div style="margin-top:26px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.6px;color:rgba(233,229,220,.42)">OBJETIVOS DIARIOS</div>
+<div style="margin-top:10px">
+<sc-for list="{{ goalRows }}" as="g" hint-placeholder-count="4">
+<div style="display:flex;align-items:center;justify-content:space-between;padding:13px 0;border-bottom:1px solid rgba(233,229,220,.07)">
+<div>
+<div style="font-size:15px;font-weight:500;letter-spacing:-.2px">{{ g.label }}</div>
+<div style="font-size:12px;color:rgba(233,229,220,.38);margin-top:2px">{{ g.sub }}</div>
+</div>
+<div style="display:flex;align-items:center;gap:6px;height:48px;padding:0 12px;border-radius:13px;border:1px solid rgba(233,229,220,.14);background:#0D0D0C">
+<input type="number" inputmode="numeric" value="{{ g.val }}" onChange="{{ g.set }}" style="width:76px;height:44px;border:none;background:transparent;color:#E9E5DC;text-align:right;font-family:'JetBrains Mono',monospace;font-size:16px;outline:none;padding:0">
+<span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:rgba(233,229,220,.4)">{{ g.unit }}</span>
+</div>
+</div>
+</sc-for>
+<div style="font-size:12.5px;color:rgba(233,229,220,.38);margin-top:12px;line-height:1.5">Se aplica desde hoy en adelante. Los días pasados conservan el objetivo que tenían.</div>
+</div>
+
+<div style="margin-top:26px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.6px;color:rgba(233,229,220,.42)">HISTORIAL DE OBJETIVOS</div>
+<div style="margin-top:10px">
+<sc-for list="{{ goalBlocks }}" as="b" hint-placeholder-count="4">
+<div style="display:flex;align-items:center;justify-content:space-between;padding:13px 0;border-bottom:1px solid rgba(233,229,220,.07)">
+<div style="display:flex;align-items:center;gap:11px">
+<span style="width:6px;height:6px;border-radius:50%;background:{{ b.col }}"></span>
+<span style="font-family:'JetBrains Mono',monospace;font-size:12.5px;color:rgba(233,229,220,.55)">{{ b.range }}</span>
+</div>
+<span style="font-family:'JetBrains Mono',monospace;font-size:13px;color:{{ b.col }}">{{ b.vals }}</span>
+</div>
+</sc-for>
+</div>
+<div style="margin-top:26px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.6px;color:rgba(233,229,220,.42)">APP</div>
+<div style="margin-top:10px">
+<sc-for list="{{ toggles }}" as="t" hint-placeholder-count="3">
+<div onClick="{{ t.flip }}" style="display:flex;align-items:center;justify-content:space-between;padding:15px 0;border-bottom:1px solid rgba(233,229,220,.07);cursor:pointer">
+<div>
+<div style="font-size:15px;font-weight:500;letter-spacing:-.2px">{{ t.label }}</div>
+<div style="font-size:12px;color:rgba(233,229,220,.38);margin-top:2px">{{ t.sub }}</div>
+</div>
+<div style="width:48px;height:28px;border-radius:16px;padding:2px;transition:background .25s;background:{{ t.trackBg }}">
+<div style="width:24px;height:24px;border-radius:50%;background:#0D0D0C;transition:transform .25s cubic-bezier(.2,.8,.2,1);transform:{{ t.knob }}"></div>
+</div>
+</div>
+</sc-for>
+</div>
+<div onClick="{{ resetAll }}" style="margin-top:26px;height:50px;border-radius:14px;border:1px solid rgba(233,229,220,.14);display:flex;align-items:center;justify-content:center;font-size:15px;color:rgba(233,229,220,.55);cursor:pointer" style-hover="border-color:rgba(233,229,220,.35);color:#E9E5DC">Restablecer datos</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ sheet }}">
+<div style="position:absolute;inset:0;z-index:60;display:flex;flex-direction:column;justify-content:flex-end">
+<div onClick="{{ closeSheet }}" style="position:absolute;inset:0;background:rgba(8,8,7,.6);backdrop-filter:blur(3px);animation:fadeIn .25s both"></div>
+<div style="position:relative;background:#141412;border-top:1px solid rgba(233,229,220,.12);border-radius:26px 26px 0 0;padding:12px 20px 34px;max-height:76%;display:flex;flex-direction:column;animation:sheetUp .34s cubic-bezier(.2,.85,.25,1) both">
+<div style="width:38px;height:4px;border-radius:3px;background:rgba(233,229,220,.2);margin:0 auto 16px"></div>
+<div style="display:flex;align-items:center;justify-content:space-between">
+<div style="font-size:20px;font-weight:600;letter-spacing:-.6px">Añadir a {{ slot }}</div>
+<div onClick="{{ closeSheet }}" style="height:40px;padding:0 12px;margin-right:-10px;display:flex;align-items:center;font-size:15px;color:rgba(233,229,220,.55);cursor:pointer" style-hover="color:#E9E5DC">Listo</div>
+</div>
+<div style="display:flex;gap:4px;margin-top:14px;padding:4px;border-radius:13px;background:rgba(233,229,220,.07);flex-shrink:0">
+<div onClick="{{ modeSearch }}" style="flex:1;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:500;cursor:pointer;transition:background .25s,color .25s;background:{{ searchBg }};color:{{ searchFg }}">Buscar</div>
+<div onClick="{{ modeQuick }}" style="flex:1;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:500;cursor:pointer;transition:background .25s,color .25s;background:{{ quickBg }};color:{{ quickFg }}">Rápido</div>
+</div>
+
+<sc-if value="{{ isSearchMode }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;flex-direction:column;min-height:0;flex:1;animation:fadeIn .25s both">
+<input type="text" placeholder="Buscar alimentos" value="{{ query }}" onChange="{{ setQuery }}" style="margin-top:12px;height:46px;border-radius:13px;border:1px solid rgba(233,229,220,.12);background:#0D0D0C;color:#E9E5DC;padding:0 14px;font-family:Outfit,sans-serif;font-size:15px;outline:none;flex-shrink:0">
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.6px;color:rgba(233,229,220,.42);margin:16px 0 4px">{{ resultsLabel }}</div>
+<div style="overflow-y:auto;flex:1;-webkit-overflow-scrolling:touch">
+<sc-for list="{{ results }}" as="f" hint-placeholder-count="6">
+<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid rgba(233,229,220,.07)">
+<div onClick="{{ f.add }}" style="flex:1;cursor:pointer">
+<div style="font-size:15px;font-weight:500;letter-spacing:-.2px">{{ f.name }}</div>
+<div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:rgba(233,229,220,.38);margin-top:3px">{{ f.macro }}</div>
+</div>
+<div style="display:flex;align-items:center;gap:12px">
+<span style="font-family:'JetBrains Mono',monospace;font-size:13px;color:rgba(233,229,220,.7)">{{ f.kcal }}</span>
+<span onClick="{{ f.add }}" style="width:32px;height:32px;border-radius:50%;background:oklch(0.84 0.15 135);color:#0D1A0C;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:600;cursor:pointer;transition:transform .16s" style-active="transform:scale(.9)">+</span>
+</div>
+</div>
+</sc-for>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isQuickMode }}">
+<div style="overflow-y:auto;flex:1;padding-top:14px;animation:fadeIn .25s both">
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.6px;color:rgba(233,229,220,.42);margin-bottom:8px">ETIQUETA</div>
+<input type="text" placeholder="ej. Lasaña de mamá" value="{{ qName }}" onChange="{{ setQName }}" style="width:100%;box-sizing:border-box;height:46px;border-radius:13px;border:1px solid rgba(233,229,220,.12);background:#0D0D0C;color:#E9E5DC;padding:0 14px;font-family:Outfit,sans-serif;font-size:15px;outline:none">
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.6px;color:rgba(233,229,220,.42);margin:18px 0 8px">CALORÍAS</div>
+<div style="display:flex;align-items:center;gap:8px">
+<span onClick="{{ qKcalDown }}" style="width:52px;height:56px;border-radius:14px;border:1px solid rgba(233,229,220,.12);display:flex;align-items:center;justify-content:center;font-size:20px;color:rgba(233,229,220,.55);cursor:pointer" style-hover="background:rgba(233,229,220,.07);color:#E9E5DC">−</span>
+<input type="number" inputmode="numeric" placeholder="0" value="{{ qKcal }}" onChange="{{ setQKcal }}" style="flex:1;min-width:0;height:56px;border-radius:14px;border:1px solid rgba(233,229,220,.12);background:#0D0D0C;color:#E9E5DC;text-align:center;font-family:'JetBrains Mono',monospace;font-size:26px;font-weight:500;outline:none">
+<span onClick="{{ qKcalUp }}" style="width:52px;height:56px;border-radius:14px;border:1px solid rgba(233,229,220,.12);display:flex;align-items:center;justify-content:center;font-size:20px;color:rgba(233,229,220,.55);cursor:pointer" style-hover="background:rgba(233,229,220,.07);color:#E9E5DC">+</span>
+</div>
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.6px;color:rgba(233,229,220,.42);margin:18px 0 8px">MACROS · GRAMOS · OPCIONAL</div>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+<input type="number" inputmode="numeric" placeholder="P" value="{{ qP }}" onChange="{{ setQP }}" style="min-width:0;height:48px;border-radius:13px;border:1px solid rgba(233,229,220,.12);background:#0D0D0C;color:#E9E5DC;text-align:center;font-family:'JetBrains Mono',monospace;font-size:16px;outline:none">
+<input type="number" inputmode="numeric" placeholder="C" value="{{ qC }}" onChange="{{ setQC }}" style="min-width:0;height:48px;border-radius:13px;border:1px solid rgba(233,229,220,.12);background:#0D0D0C;color:#E9E5DC;text-align:center;font-family:'JetBrains Mono',monospace;font-size:16px;outline:none">
+<input type="number" inputmode="numeric" placeholder="F" value="{{ qF }}" onChange="{{ setQF }}" style="min-width:0;height:48px;border-radius:13px;border:1px solid rgba(233,229,220,.12);background:#0D0D0C;color:#E9E5DC;text-align:center;font-family:'JetBrains Mono',monospace;font-size:16px;outline:none">
+</div>
+<div onClick="{{ toggleQSave }}" style="display:flex;align-items:center;gap:12px;margin-top:18px;cursor:pointer">
+<span style="width:24px;height:24px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;transition:background .2s,border-color .2s;border:1px solid {{ qSaveBd }};background:{{ qSaveBg }};color:#0D1A0C">{{ qSaveMark }}</span>
+<span style="font-size:14px;color:rgba(233,229,220,.7)">Guardar en mis alimentos</span>
+</div>
+<div onClick="{{ quickAdd }}" style="margin-top:20px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600;transition:opacity .2s;cursor:pointer;opacity:{{ quickOp }};background:oklch(0.84 0.15 135);color:#0D1A0C">Añadir {{ qKcalLabel }} a {{ slot }}</div>
+</div>
+</sc-if>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ pickSheet }}">
+<div style="position:absolute;inset:0;z-index:60;display:flex;flex-direction:column;justify-content:flex-end">
+<div onClick="{{ closePick }}" style="position:absolute;inset:0;background:rgba(8,8,7,.6);backdrop-filter:blur(3px);animation:fadeIn .25s both"></div>
+<div style="position:relative;background:#141412;border-top:1px solid rgba(233,229,220,.12);border-radius:26px 26px 0 0;padding:12px 20px 34px;max-height:76%;display:flex;flex-direction:column;animation:sheetUp .34s cubic-bezier(.2,.85,.25,1) both">
+<div style="width:38px;height:4px;border-radius:3px;background:rgba(233,229,220,.2);margin:0 auto 16px"></div>
+<div style="display:flex;align-items:center;justify-content:space-between">
+<div style="font-size:20px;font-weight:600;letter-spacing:-.6px">Sesión de hoy</div>
+<div onClick="{{ closePick }}" style="height:40px;padding:0 12px;margin-right:-10px;display:flex;align-items:center;font-size:15px;color:rgba(233,229,220,.55);cursor:pointer" style-hover="color:#E9E5DC">Listo</div>
+</div>
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.6px;color:rgba(233,229,220,.42);margin:18px 0 4px">MIS SESIONES</div>
+<div style="overflow-y:auto;flex:1">
+<sc-for list="{{ templates }}" as="t" hint-placeholder-count="5">
+<div onClick="{{ t.pick }}" style="display:flex;align-items:center;gap:14px;padding:15px 14px;margin-bottom:8px;border-radius:16px;cursor:pointer;transition:border-color .2s;border:1px solid {{ t.bd }};background:{{ t.bg }}">
+<div style="width:3px;height:32px;border-radius:2px;background:{{ t.bar }}"></div>
+<div style="flex:1">
+<div style="font-size:16px;font-weight:500;letter-spacing:-.3px">{{ t.name }}</div>
+<div style="font-size:12px;color:rgba(233,229,220,.4);margin-top:2px">{{ t.sub }}</div>
+</div>
+<div onClick="{{ t.remove }}" style="font-size:13.5px;color:rgba(233,229,220,.35);cursor:pointer;padding:14px 10px;margin:-14px -4px -14px 0" style-hover="color:#E9E5DC">Borrar</div>
+</div>
+</sc-for>
+<div onClick="{{ newTemplate }}" style="height:52px;border-radius:14px;border:1px dashed rgba(233,229,220,.18);display:flex;align-items:center;justify-content:center;font-size:14px;color:rgba(233,229,220,.6);cursor:pointer;margin-top:4px;transition:border-color .2s,color .2s" style-hover="border-color:oklch(0.84 0.15 55);color:oklch(0.84 0.15 55)">Crear nueva sesión</div>
+</div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ editSheet }}">
+<div style="position:absolute;inset:0;z-index:60;display:flex;flex-direction:column;justify-content:flex-end">
+<div onClick="{{ closeEdit }}" style="position:absolute;inset:0;background:rgba(8,8,7,.6);backdrop-filter:blur(3px);animation:fadeIn .25s both"></div>
+<div style="position:relative;background:#141412;border-top:1px solid rgba(233,229,220,.12);border-radius:26px 26px 0 0;padding:12px 20px 30px;height:86%;display:flex;flex-direction:column;animation:sheetUp .34s cubic-bezier(.2,.85,.25,1) both">
+<div style="width:38px;height:4px;border-radius:3px;background:rgba(233,229,220,.2);margin:0 auto 16px"></div>
+<div style="display:flex;align-items:center;justify-content:space-between">
+<div style="font-size:20px;font-weight:600;letter-spacing:-.6px">Editar sesión</div>
+<div onClick="{{ closeEdit }}" style="height:40px;padding:0 12px;margin-right:-10px;display:flex;align-items:center;font-size:15px;color:rgba(233,229,220,.55);cursor:pointer" style-hover="color:#E9E5DC">Listo</div>
+</div>
+<input type="text" value="{{ wName }}" onChange="{{ setWName }}" style="margin-top:14px;height:46px;border-radius:13px;border:1px solid rgba(233,229,220,.12);background:#0D0D0C;color:#E9E5DC;padding:0 14px;font-family:Outfit,sans-serif;font-size:16px;font-weight:500;outline:none;flex-shrink:0">
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.6px;color:rgba(233,229,220,.42);margin:18px 0 6px">EJERCICIOS · SERIES × REPS</div>
+<div style="overflow-y:auto;flex:1;-webkit-overflow-scrolling:touch;margin:0 -4px;padding:0 4px">
+<sc-for list="{{ editRows }}" as="e" hint-placeholder-count="4">
+<div style="border:1px solid rgba(233,229,220,.1);border-radius:16px;padding:12px 12px 12px;margin-bottom:8px;background:#0F0F0E">
+<div style="display:flex;align-items:center;gap:8px">
+<input type="text" value="{{ e.name }}" onChange="{{ e.rename }}" style="flex:1;min-width:0;height:44px;border-radius:12px;border:1px solid rgba(233,229,220,.1);background:#0D0D0C;color:#E9E5DC;padding:0 12px;font-family:Outfit,sans-serif;font-size:15px;font-weight:500;outline:none">
+<span onClick="{{ e.remove }}" style="width:44px;height:44px;border-radius:12px;border:1px solid rgba(233,229,220,.1);display:flex;align-items:center;justify-content:center;font-size:16px;color:rgba(233,229,220,.4);cursor:pointer" style-hover="color:#E9E5DC;border-color:rgba(233,229,220,.35)">×</span>
+</div>
+<div style="display:flex;align-items:center;gap:10px;margin-top:10px">
+<div style="flex:1;display:flex;align-items:center;justify-content:space-between;height:48px;border-radius:12px;border:1px solid rgba(233,229,220,.1);padding:0 4px">
+<span onClick="{{ e.setsDown }}" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;font-size:18px;color:rgba(233,229,220,.45);cursor:pointer;border-radius:9px" style-hover="background:rgba(233,229,220,.07);color:#E9E5DC">−</span>
+<span style="font-family:'JetBrains Mono',monospace;font-size:13px"><span style="color:rgba(233,229,220,.4)">SERIES </span>{{ e.setCount }}</span>
+<span onClick="{{ e.setsUp }}" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;font-size:18px;color:rgba(233,229,220,.45);cursor:pointer;border-radius:9px" style-hover="background:rgba(233,229,220,.07);color:#E9E5DC">+</span>
+</div>
+<div style="flex:1;display:flex;align-items:center;justify-content:space-between;height:48px;border-radius:12px;border:1px solid rgba(233,229,220,.1);padding:0 4px">
+<span onClick="{{ e.repsDown }}" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;font-size:18px;color:rgba(233,229,220,.45);cursor:pointer;border-radius:9px" style-hover="background:rgba(233,229,220,.07);color:#E9E5DC">−</span>
+<span style="font-family:'JetBrains Mono',monospace;font-size:13px"><span style="color:rgba(233,229,220,.4)">REPS </span>{{ e.reps }}</span>
+<span onClick="{{ e.repsUp }}" style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;font-size:18px;color:rgba(233,229,220,.45);cursor:pointer;border-radius:9px" style-hover="background:rgba(233,229,220,.07);color:#E9E5DC">+</span>
+</div>
+</div>
+</div>
+</sc-for>
+<div onClick="{{ addExercise }}" style="height:50px;border-radius:14px;border:1px dashed rgba(233,229,220,.18);display:flex;align-items:center;justify-content:center;font-size:14px;color:rgba(233,229,220,.6);cursor:pointer;margin-bottom:8px;transition:border-color .2s,color .2s" style-hover="border-color:oklch(0.84 0.15 55);color:oklch(0.84 0.15 55)">Añadir ejercicio</div>
+</div>
+<div style="display:flex;gap:10px;margin-top:14px;flex-shrink:0">
+<div onClick="{{ saveTemplate }}" style="flex:1;height:52px;border-radius:14px;background:oklch(0.84 0.15 55);color:#14100A;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:600;cursor:pointer;transition:filter .16s" style-hover="filter:brightness(1.08)">{{ saveLabel }}</div>
+<div onClick="{{ closeEdit }}" style="width:120px;height:52px;border-radius:14px;border:1px solid rgba(233,229,220,.14);display:flex;align-items:center;justify-content:center;font-size:15px;color:rgba(233,229,220,.65);cursor:pointer" style-hover="border-color:rgba(233,229,220,.4);color:#E9E5DC">Solo hoy</div>
+</div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isMToday }}">
+<div style="flex:1;overflow-y:auto;padding:110px 20px 108px;animation:scrIn .34s cubic-bezier(.2,.8,.2,1) both">
+<div style="display:flex;align-items:flex-start;justify-content:space-between">
+<div>
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.6px;color:rgba(233,229,220,.42)">AGOSTO 2026 · DÍA 10</div>
+<div style="font-size:30px;font-weight:600;letter-spacing:-1px;line-height:1.1;margin-top:5px">Gastos</div>
+</div>
+<div onClick="{{ goYou }}" style="width:46px;height:46px;border-radius:50%;border:1px solid rgba(233,229,220,.16);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:12px;color:rgba(233,229,220,.7);cursor:pointer" style-hover="border-color:rgba(233,229,220,.4)">RK</div>
+</div>
+
+<div style="margin-top:22px;border:1px solid rgba(233,229,220,.16);border-radius:22px;padding:22px 20px 18px;background:#1A1A17;box-shadow:0 10px 28px rgba(0,0,0,.38)">
+<div style="display:flex;align-items:baseline;justify-content:space-between">
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.6px;color:oklch(0.84 0.15 245)">DISPONIBLE ESTE MES</div>
+<div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:rgba(233,229,220,.42)">{{ monthSpent }} / {{ monthBudget }}</div>
+</div>
+<div style="font-size:56px;font-weight:600;letter-spacing:-3px;line-height:1;margin:8px 0 16px">{{ monthLeft }}</div>
+<div style="height:5px;border-radius:3px;background:rgba(233,229,220,.1);overflow:hidden">
+<div style="height:100%;border-radius:3px;transition:width .5s cubic-bezier(.2,.8,.2,1);width:{{ monthPct }};background:{{ overBar }}"></div>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-top:18px">
+<div>
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.1px;color:rgba(233,229,220,.45)">HOY</div>
+<div style="font-family:'JetBrains Mono',monospace;font-size:14px;margin-top:4px">{{ todaySpend }}</div>
+</div>
+<div>
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.1px;color:rgba(233,229,220,.45)">POR DÍA</div>
+<div style="font-family:'JetBrains Mono',monospace;font-size:14px;margin-top:4px">{{ dailyAllow }}</div>
+</div>
+<div>
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.1px;color:rgba(233,229,220,.45)">QUEDAN</div>
+<div style="font-family:'JetBrains Mono',monospace;font-size:14px;margin-top:4px">{{ daysLeftTxt }}</div>
+</div>
+</div>
+</div>
+
+<div onClick="{{ openAdd }}" style="margin-top:14px;height:56px;border-radius:16px;background:oklch(0.84 0.15 245);color:#08131F;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600;cursor:pointer;transition:transform .16s,filter .16s" style-hover="filter:brightness(1.08)" style-active="transform:scale(.978)">Añadir gasto</div>
+
+<div style="margin-top:24px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.6px;color:rgba(233,229,220,.42)">UN TOQUE</div>
+<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+<sc-for list="{{ favs }}" as="f" hint-placeholder-count="3">
+<div onClick="{{ f.add }}" style="height:48px;padding:0 16px;border-radius:14px;border:1px solid rgba(233,229,220,.14);background:rgba(233,229,220,.05);display:flex;align-items:center;gap:10px;cursor:pointer;transition:border-color .2s" style-hover="border-color:oklch(0.84 0.15 245)">
+<span style="font-size:14px;font-weight:500">{{ f.label }}</span>
+<span style="font-family:'JetBrains Mono',monospace;font-size:13px;color:rgba(233,229,220,.55)">{{ f.amt }}</span>
+</div>
+</sc-for>
+</div>
+
+<div style="margin-top:28px;display:flex;align-items:baseline;justify-content:space-between">
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.6px;color:rgba(233,229,220,.42)">MOVIMIENTOS</div>
+<div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:rgba(233,229,220,.5)">{{ filterTotal }}</div>
+</div>
+<div style="display:flex;gap:8px;margin-top:12px;overflow-x:auto;padding-bottom:2px">
+<sc-for list="{{ filterChips }}" as="c" hint-placeholder-count="8">
+<div onClick="{{ c.pick }}" style="height:40px;padding:0 15px;border-radius:12px;display:flex;align-items:center;font-size:13.5px;font-weight:500;white-space:nowrap;cursor:pointer;flex-shrink:0;transition:background .2s,color .2s,border-color .2s;border:1px solid {{ c.bd }};background:{{ c.bg }};color:{{ c.fg }}">{{ c.label }}</div>
+</sc-for>
+</div>
+<sc-for list="{{ byDay }}" as="d" hint-placeholder-count="5">
+<div style="margin-top:22px">
+<div style="display:flex;align-items:center;justify-content:space-between">
+<span style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.6px;color:rgba(233,229,220,.42)">{{ d.label }}</span>
+<span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:rgba(233,229,220,.55)">{{ d.total }}</span>
+</div>
+<sc-for list="{{ d.items }}" as="t" hint-placeholder-count="2">
+<div style="position:relative;overflow:hidden;animation:fadeIn .3s both">
+<div onClick="{{ t.del }}" style="position:absolute;right:0;top:0;bottom:1px;width:88px;display:flex;align-items:center;justify-content:center;border-radius:10px;background:oklch(0.76 0.16 30);color:#1B0A05;font-size:14px;font-weight:600;cursor:pointer">Borrar</div>
+<div onPointerDown="{{ t.down }}" onPointerMove="{{ t.move }}" onPointerUp="{{ t.up }}" onPointerLeave="{{ t.up }}" style="position:relative;background:#0D0D0C;display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid rgba(233,229,220,.07);touch-action:pan-y;cursor:grab;transform:translateX({{ t.dx }});transition:{{ t.tr }}">
+<div style="display:flex;align-items:center;gap:12px">
+<span style="width:7px;height:7px;border-radius:2px;background:oklch(0.84 0.15 245)"></span>
+<div>
+<div style="font-size:15px;font-weight:500;letter-spacing:-.2px">{{ t.label }}</div>
+<div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:rgba(233,229,220,.38);margin-top:3px">{{ t.cat }}</div>
+</div>
+</div>
+<div style="font-family:'JetBrains Mono',monospace;font-size:13px;color:rgba(233,229,220,.75);padding-left:14px">{{ t.amt }}</div>
+</div>
+</div>
+</sc-for>
+</div>
+</sc-for>
+<sc-if value="{{ noTxns }}">
+<div style="margin-top:24px;padding:30px 20px;border-radius:18px;border:1px dashed rgba(233,229,220,.14);text-align:center">
+<div style="font-size:15px;color:rgba(233,229,220,.55)">Sin movimientos en esta categoría</div>
+</div>
+</sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{ isMBudget }}">
+<div style="flex:1;overflow-y:auto;padding:110px 20px 108px;animation:scrIn .34s cubic-bezier(.2,.8,.2,1) both">
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.6px;color:rgba(233,229,220,.42)">PLAN MENSUAL</div>
+<div style="font-size:30px;font-weight:600;letter-spacing:-1px;margin-top:5px">Presupuestos</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px">
+<div style="border:1px solid rgba(233,229,220,.06);border-radius:20px;padding:18px;background:#111110">
+<div style="font-size:26px;font-weight:600;letter-spacing:-1.2px">{{ incomeTxt }}</div>
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.1px;color:rgba(233,229,220,.45);margin-top:5px">INGRESO</div>
+</div>
+<div style="border:1px solid rgba(233,229,220,.06);border-radius:20px;padding:18px;background:#111110">
+<div style="font-size:26px;font-weight:600;letter-spacing:-1.2px">{{ budgetedTxt }}</div>
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.1px;color:oklch(0.84 0.15 245);margin-top:5px">ASIGNADO</div>
+</div>
+</div>
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.6px;color:rgba(233,229,220,.42);margin:24px 0 4px">{{ unbudgeted }} SIN ASIGNAR</div>
+<sc-for list="{{ perCat }}" as="c" hint-placeholder-count="7">
+<div style="border:1px solid rgba(233,229,220,.06);border-radius:18px;padding:16px;margin-top:10px;background:#111110">
+<div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+<div style="min-width:0">
+<div style="font-size:16px;font-weight:500;letter-spacing:-.3px">{{ c.cat }}</div>
+<div style="font-family:'JetBrains Mono',monospace;font-size:11px;margin-top:4px;color:{{ c.fg }}">{{ c.spent }} gastado · {{ c.left }}</div>
+</div>
+<div style="display:flex;align-items:center;gap:6px;flex-shrink:0;height:48px;padding:0 12px;border-radius:13px;border:1px solid rgba(233,229,220,.14);background:#0D0D0C">
+<span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:rgba(233,229,220,.4)">Bs</span>
+<input type="number" inputmode="numeric" value="{{ c.limitVal }}" onChange="{{ c.setLimit }}" style="width:74px;height:44px;border:none;background:transparent;color:#E9E5DC;text-align:right;font-family:'JetBrains Mono',monospace;font-size:16px;outline:none;padding:0"></div>
+</div>
+<div style="height:4px;border-radius:2px;background:rgba(233,229,220,.09);overflow:hidden;margin-top:12px">
+<div style="height:100%;transition:width .4s;width:{{ c.pct }};background:{{ c.bar }}"></div>
+</div>
+</div>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{ isMPlan }}">
+<div style="flex:1;overflow-y:auto;padding:110px 20px 108px;animation:scrIn .34s cubic-bezier(.2,.8,.2,1) both">
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.6px;color:rgba(233,229,220,.42)">AGOSTO 2026</div>
+<div style="font-size:30px;font-weight:600;letter-spacing:-1px;margin-top:5px">Calendario</div>
+<div style="display:flex;gap:4px;margin-top:18px;padding:4px;border-radius:15px;background:rgba(233,229,220,.07)">
+<div onClick="{{ setMMonth }}" style="flex:1;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:500;cursor:pointer;transition:background .25s,color .25s;background:{{ mMonthBg }};color:{{ mMonthFg }}">Mes</div>
+<div onClick="{{ setMBills }}" style="flex:1;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:500;cursor:pointer;transition:background .25s,color .25s;background:{{ mBillsBg }};color:{{ mBillsFg }}">Próximos</div>
+</div>
+<sc-if value="{{ isMMonth }}">
+<div style="animation:fadeIn .3s both">
+<div style="display:flex;align-items:center;justify-content:space-between;margin-top:18px">
+<div onClick="{{ mPrevMonth }}" style="width:46px;height:46px;border-radius:14px;border:1px solid rgba(233,229,220,.12);display:flex;align-items:center;justify-content:center;font-size:16px;color:rgba(233,229,220,.6);cursor:pointer" style-hover="border-color:rgba(233,229,220,.4);color:#E9E5DC">‹</div>
+<div style="font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:1.6px;color:rgba(233,229,220,.7)">{{ mMonthLabel }}</div>
+<div onClick="{{ mNextMonth }}" style="width:46px;height:46px;border-radius:14px;border:1px solid rgba(233,229,220,.12);display:flex;align-items:center;justify-content:center;font-size:16px;color:rgba(233,229,220,.6);cursor:pointer;transition:opacity .2s;opacity:{{ mNextMonthOp }}" style-hover="border-color:rgba(233,229,220,.4);color:#E9E5DC">›</div>
+</div>
+<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-top:16px">
+<sc-for list="{{ dows }}" as="d" hint-placeholder-count="7">
+<div style="text-align:center;font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.6px;color:rgba(233,229,220,.32);padding-bottom:8px">{{ d }}</div>
+</sc-for>
+</div>
+<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px">
+<sc-for list="{{ mCells }}" as="c" hint-placeholder-count="35">
+<div onClick="{{ c.pick }}" style="aspect-ratio:1;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:6px 0 7px;gap:5px;cursor:pointer;transition:background .2s;opacity:{{ c.op }};background:{{ c.bg }}">
+<span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:{{ c.fg }}">{{ c.label }}</span>
+<span style="width:16px;height:14px;display:flex;align-items:flex-end;justify-content:center">
+<span style="width:16px;border-radius:2px;transition:height .3s;height:{{ c.h }};background:{{ c.bar }}"></span>
+</span>
+</div>
+</sc-for>
+</div>
+<div style="margin-top:20px;border:1px solid rgba(233,229,220,.06);border-radius:20px;padding:18px;background:#111110">
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.6px;color:rgba(233,229,220,.42)">{{ mSelLabel }}</div>
+<div style="display:flex;align-items:baseline;gap:12px;margin-top:12px">
+<div style="font-size:28px;font-weight:600;letter-spacing:-1.2px">{{ mSelTotal }}</div>
+<div style="font-size:13px;color:rgba(233,229,220,.42)">{{ mSelCount }}</div>
+</div>
+<div style="display:flex;align-items:center;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid rgba(233,229,220,.07)">
+<div style="height:4px;flex:1;border-radius:2px;background:rgba(233,229,220,.09);overflow:hidden">
+<div style="height:100%;transition:width .4s;width:{{ mSelPacePct }};background:{{ mSelPaceCol }}"></div>
+</div>
+<span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:{{ mSelPaceCol }};white-space:nowrap">{{ mSelPace }}</span>
+</div>
+<sc-if value="{{ mSelHas }}">
+<div style="margin-top:8px">
+<sc-for list="{{ mSelItems }}" as="t" hint-placeholder-count="3">
+<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid rgba(233,229,220,.06)">
+<div style="display:flex;align-items:center;gap:11px;min-width:0">
+<span style="width:6px;height:6px;border-radius:2px;background:oklch(0.84 0.15 245);flex-shrink:0"></span>
+<div style="min-width:0">
+<div style="font-size:14.5px;font-weight:500;letter-spacing:-.2px">{{ t.label }}</div>
+<div style="font-family:'JetBrains Mono',monospace;font-size:10.5px;color:rgba(233,229,220,.36);margin-top:2px">{{ t.cat }}</div>
+</div>
+</div>
+<div style="font-family:'JetBrains Mono',monospace;font-size:13px;color:rgba(233,229,220,.7);padding-left:12px">{{ t.amt }}</div>
+</div>
+</sc-for>
+</div>
+</sc-if>
+<sc-if value="{{ mSelEmpty }}">
+<div style="margin-top:14px;font-size:14px;color:rgba(233,229,220,.4)">{{ mSelEmptyTxt }}</div>
+</sc-if>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{ isMBills }}">
+<div style="margin-top:20px;animation:fadeIn .3s both">
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.6px;color:rgba(233,229,220,.42);margin-bottom:12px">{{ billsTotal }} POR PAGAR ESTE MES</div>
+<sc-for list="{{ bills }}" as="b" hint-placeholder-count="4">
+<div style="display:flex;align-items:center;gap:14px;padding:16px;margin-bottom:8px;border-radius:16px;border:1px solid rgba(233,229,220,.09)">
+<div style="width:3px;height:34px;border-radius:2px;background:oklch(0.84 0.15 245)"></div>
+<div style="flex:1">
+<div style="font-size:16px;font-weight:500;letter-spacing:-.3px">{{ b.name }}</div>
+<div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:rgba(233,229,220,.4);margin-top:3px">{{ b.when }}</div>
+</div>
+<div style="font-family:'JetBrains Mono',monospace;font-size:14px;color:rgba(233,229,220,.75)">{{ b.amt }}</div>
+</div>
+</sc-for>
+</div>
+</sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{ isMStats }}">
+<div style="flex:1;overflow-y:auto;padding:110px 20px 108px;animation:scrIn .34s cubic-bezier(.2,.8,.2,1) both">
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.6px;color:rgba(233,229,220,.42)">ÚLTIMOS 6 MESES</div>
+<div style="font-size:30px;font-weight:600;letter-spacing:-1px;margin-top:5px">Estadísticas</div>
+<div style="display:flex;gap:4px;margin-top:18px;padding:4px;border-radius:15px;background:rgba(233,229,220,.07)">
+<div onClick="{{ statSpend }}" style="flex:1;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:500;cursor:pointer;transition:background .25s,color .25s;background:{{ statSpendBg }};color:{{ statSpendFg }}">Gasto</div>
+<div onClick="{{ statSaved }}" style="flex:1;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:500;cursor:pointer;transition:background .25s,color .25s;background:{{ statSavedBg }};color:{{ statSavedFg }}">Ahorro</div>
+</div>
+
+<div style="margin-top:16px;border:1px solid rgba(233,229,220,.16);border-radius:22px;padding:20px;background:#1A1A17;box-shadow:0 10px 28px rgba(0,0,0,.38)">
+<div style="display:flex;align-items:baseline;justify-content:space-between">
+<div>
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.6px;color:oklch(0.84 0.15 245)">{{ statSelLabel }}</div>
+<div style="font-size:40px;font-weight:600;letter-spacing:-2px;line-height:1;margin-top:8px">{{ statSelVal }}</div>
+</div>
+<div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:{{ statDeltaCol }}">{{ statDelta }}</div>
+</div>
+<div style="display:flex;align-items:flex-end;gap:8px;height:118px;margin-top:20px">
+<sc-for list="{{ monthBars }}" as="b" hint-placeholder-count="6">
+<div onClick="{{ b.pick }}" style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;height:100%;cursor:pointer;padding-top:6px">
+<div style="border-radius:5px 5px 2px 2px;transition:height .4s cubic-bezier(.2,.8,.2,1),background .25s;height:{{ b.h }};background:{{ b.bg }}"></div>
+</div>
+</sc-for>
+</div>
+<div style="display:flex;gap:8px;margin-top:10px">
+<sc-for list="{{ monthBars }}" as="b" hint-placeholder-count="6">
+<div onClick="{{ b.pick }}" style="flex:1;text-align:center;font-family:'JetBrains Mono',monospace;font-size:10.5px;cursor:pointer;transition:color .25s;color:{{ b.lblCol }}">{{ b.label }}</div>
+</sc-for>
+</div>
+<div style="display:flex;justify-content:space-between;margin-top:16px;padding-top:14px;border-top:1px solid rgba(233,229,220,.08)">
+<div>
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.1px;color:rgba(233,229,220,.4)">PROMEDIO 6M</div>
+<div style="font-family:'JetBrains Mono',monospace;font-size:14px;margin-top:4px">{{ statAvg }}</div>
+</div>
+<div>
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.1px;color:rgba(233,229,220,.4)">MÁXIMO</div>
+<div style="font-family:'JetBrains Mono',monospace;font-size:14px;margin-top:4px">{{ statMax }}</div>
+</div>
+<div>
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.1px;color:rgba(233,229,220,.4)">VS PROMEDIO</div>
+<div style="font-family:'JetBrains Mono',monospace;font-size:14px;margin-top:4px;color:{{ statDeltaCol }}">{{ statVsAvg }}</div>
+</div>
+</div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px">
+<div style="border:1px solid rgba(233,229,220,.06);border-radius:20px;padding:18px;background:#111110">
+<div style="font-size:26px;font-weight:600;letter-spacing:-1.2px">{{ savedTxt }}</div>
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.2px;color:oklch(0.84 0.15 245);margin-top:5px">AHORRADO ESTE MES</div>
+</div>
+<div style="border:1px solid rgba(233,229,220,.06);border-radius:20px;padding:18px;background:#111110">
+<div style="font-size:26px;font-weight:600;letter-spacing:-1.2px">{{ saveRate }}</div>
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.2px;color:rgba(233,229,220,.45);margin-top:5px">DEL INGRESO</div>
+</div>
+</div>
+
+<div style="margin-top:26px;display:flex;align-items:baseline;justify-content:space-between">
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.6px;color:rgba(233,229,220,.42)">EN QUÉ SE FUE</div>
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.6px;color:rgba(233,229,220,.32)">TOCA PARA FILTRAR</div>
+</div>
+<div style="margin-top:14px;display:flex;flex-direction:column;gap:14px">
+<sc-for list="{{ statCats }}" as="c" hint-placeholder-count="7">
+<div onClick="{{ c.drill }}" style="cursor:pointer">
+<div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:7px">
+<span style="font-size:15px;font-weight:500;color:{{ c.fg }}">{{ c.cat }}</span>
+<span style="font-family:'JetBrains Mono',monospace;font-size:13px;color:rgba(233,229,220,.6)">{{ c.spent }} · {{ c.share }}</span>
+</div>
+<div style="height:6px;border-radius:3px;background:rgba(233,229,220,.09);overflow:hidden">
+<div style="height:100%;transition:width .45s cubic-bezier(.2,.8,.2,1);width:{{ c.w }};background:{{ c.bg }}"></div>
+</div>
+</div>
+</sc-for>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ locked }}">
+<div style="position:absolute;inset:0;z-index:55;background:#0D0D0C;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;padding:0 40px;animation:fadeIn .28s both">
+<div style="width:78px;height:78px;border-radius:50%;border:1.5px solid rgba(233,229,220,.2);display:flex;align-items:center;justify-content:center">
+<div style="width:26px;height:22px;border-radius:5px;border:1.5px solid oklch(0.84 0.15 245)"></div>
+</div>
+<div style="text-align:center">
+<div style="font-size:22px;font-weight:600;letter-spacing:-.7px">Finanzas bloqueadas</div>
+<div style="font-size:14px;color:rgba(233,229,220,.45);margin-top:8px;line-height:1.5">Tus saldos y movimientos se quedan en este dispositivo, detrás de Face ID.</div>
+</div>
+<div onClick="{{ unlock }}" style="height:54px;padding:0 30px;border-radius:15px;background:oklch(0.84 0.15 245);color:#08131F;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600;cursor:pointer;transition:transform .16s,filter .16s" style-hover="filter:brightness(1.08)" style-active="transform:scale(.975)">Desbloquear con Face ID</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ addSheet }}">
+<div style="position:absolute;inset:0;z-index:60;display:flex;flex-direction:column;justify-content:flex-end">
+<div onClick="{{ closeAdd }}" style="position:absolute;inset:0;background:rgba(8,8,7,.6);backdrop-filter:blur(3px);animation:fadeIn .25s both"></div>
+<div style="position:relative;background:#141412;border-top:1px solid rgba(233,229,220,.12);border-radius:26px 26px 0 0;padding:12px 20px 34px;max-height:82%;display:flex;flex-direction:column;animation:sheetUp .34s cubic-bezier(.2,.85,.25,1) both">
+<div style="width:38px;height:4px;border-radius:3px;background:rgba(233,229,220,.2);margin:0 auto 16px"></div>
+<div style="display:flex;align-items:center;justify-content:space-between">
+<div style="font-size:20px;font-weight:600;letter-spacing:-.6px">Nuevo gasto</div>
+<div onClick="{{ closeAdd }}" style="height:40px;padding:0 12px;margin-right:-10px;display:flex;align-items:center;font-size:15px;color:rgba(233,229,220,.55);cursor:pointer" style-hover="color:#E9E5DC">Listo</div>
+</div>
+<div style="overflow-y:auto;flex:1;padding-top:14px">
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.6px;color:rgba(233,229,220,.42);margin-bottom:8px">MONTO</div>
+<div style="display:flex;align-items:center;gap:8px">
+<span onClick="{{ aAmtDown }}" style="width:52px;height:56px;border-radius:14px;border:1px solid rgba(233,229,220,.12);display:flex;align-items:center;justify-content:center;font-size:20px;color:rgba(233,229,220,.55);cursor:pointer" style-hover="background:rgba(233,229,220,.07);color:#E9E5DC">−</span>
+<input type="number" inputmode="decimal" placeholder="0.00" value="{{ aAmt }}" onChange="{{ setAAmt }}" style="flex:1;min-width:0;height:56px;border-radius:14px;border:1px solid rgba(233,229,220,.12);background:#0D0D0C;color:#E9E5DC;text-align:center;font-family:'JetBrains Mono',monospace;font-size:26px;font-weight:500;outline:none">
+<span onClick="{{ aAmtUp }}" style="width:52px;height:56px;border-radius:14px;border:1px solid rgba(233,229,220,.12);display:flex;align-items:center;justify-content:center;font-size:20px;color:rgba(233,229,220,.55);cursor:pointer" style-hover="background:rgba(233,229,220,.07);color:#E9E5DC">+</span>
+</div>
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.6px;color:rgba(233,229,220,.42);margin:18px 0 8px">CATEGORÍA</div>
+<div style="display:flex;flex-wrap:wrap;gap:8px">
+<sc-for list="{{ catChips }}" as="c" hint-placeholder-count="7">
+<div onClick="{{ c.pick }}" style="height:44px;padding:0 16px;border-radius:13px;display:flex;align-items:center;font-size:14px;font-weight:500;cursor:pointer;transition:background .2s,color .2s,border-color .2s;border:1px solid {{ c.bd }};background:{{ c.bg }};color:{{ c.fg }}">{{ c.label }}</div>
+</sc-for>
+</div>
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.6px;color:rgba(233,229,220,.42);margin:18px 0 8px">ETIQUETA · OPCIONAL</div>
+<input type="text" placeholder="ej. Almuerzo" value="{{ aLabel }}" onChange="{{ setALabel }}" style="width:100%;box-sizing:border-box;height:48px;border-radius:13px;border:1px solid rgba(233,229,220,.12);background:#0D0D0C;color:#E9E5DC;padding:0 14px;font-family:Outfit,sans-serif;font-size:15px;outline:none">
+<div onClick="{{ toggleAFav }}" style="display:flex;align-items:center;gap:12px;margin-top:16px;height:44px;cursor:pointer">
+<span style="width:24px;height:24px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;transition:background .2s,border-color .2s;border:1px solid {{ aFavBd }};background:{{ aFavBg }};color:#08131F">{{ aFavMark }}</span>
+<span style="font-size:14px;color:rgba(233,229,220,.7)">Guardar como atajo de un toque</span>
+</div>
+<div onClick="{{ confirmAdd }}" style="margin-top:14px;height:54px;border-radius:15px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600;cursor:pointer;transition:opacity .2s;opacity:{{ addOp }};background:oklch(0.84 0.15 245);color:#08131F">Añadir {{ aAmtLabel }}</div>
+</div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ menuOpen }}">
+<div style="position:absolute;inset:0;z-index:60;display:flex;flex-direction:column;justify-content:flex-end">
+<div onClick="{{ closeMenu }}" style="position:absolute;inset:0;background:rgba(8,8,7,.6);backdrop-filter:blur(3px);animation:fadeIn .25s both"></div>
+<div style="position:relative;background:#141412;border-top:1px solid rgba(233,229,220,.12);border-radius:26px 26px 0 0;padding:12px 20px 34px;max-height:76%;display:flex;flex-direction:column;animation:sheetUp .34s cubic-bezier(.2,.85,.25,1) both">
+<div style="width:38px;height:4px;border-radius:3px;background:rgba(233,229,220,.2);margin:0 auto 16px"></div>
+<div style="display:flex;align-items:center;justify-content:space-between">
+<div style="font-size:20px;font-weight:600;letter-spacing:-.6px">Sesión del {{ menuTitle }}</div>
+<div onClick="{{ closeMenu }}" style="height:40px;padding:0 12px;margin-right:-10px;display:flex;align-items:center;font-size:15px;color:rgba(233,229,220,.55);cursor:pointer" style-hover="color:#E9E5DC">Listo</div>
+</div>
+<div style="overflow-y:auto;flex:1;margin-top:14px">
+<sc-for list="{{ menuOptions }}" as="o" hint-placeholder-count="6">
+<div onClick="{{ o.pick }}" style="height:56px;padding:0 16px;margin-bottom:6px;border-radius:14px;display:flex;align-items:center;justify-content:space-between;font-size:16px;font-weight:500;cursor:pointer;transition:background .18s;color:{{ o.fg }};background:{{ o.bg }}" style-hover="background:rgba(233,229,220,.08)"><span>{{ o.label }}</span><span style="font-size:14px">{{ o.mark }}</span></div>
+</sc-for>
+</div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isHealth }}" hint-placeholder-val="{{ true }}">
+<div style="position:absolute;left:0;right:0;bottom:0;height:88px;background:rgba(13,13,12,.86);backdrop-filter:blur(18px);border-top:1px solid rgba(233,229,220,.08);display:flex;align-items:flex-start;padding:11px 8px 0;z-index:50">
+<div onClick="{{ goToday }}" style="flex:1;height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;cursor:pointer;transition:color .25s;color:{{ tabToday }}">
+<span style="width:15px;height:15px;border-radius:50%;border:1.6px solid currentColor"></span>
+<span style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.6px">HOY</span>
+</div>
+<div onClick="{{ goFood }}" style="flex:1;height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;cursor:pointer;transition:color .25s;color:{{ tabFood }}">
+<span style="width:15px;height:15px;border-radius:4px;border:1.6px solid currentColor"></span>
+<span style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.6px">COMIDA</span>
+</div>
+<div onClick="{{ goTrain }}" style="flex:1;height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;cursor:pointer;transition:color .25s;color:{{ tabTrain }}">
+<span style="width:17px;height:15px;display:flex;flex-direction:column;justify-content:space-between"><span style="height:4px;border-radius:2px;background:currentColor"></span><span style="height:4px;border-radius:2px;background:currentColor;opacity:.45"></span></span>
+<span style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.6px">ENTRENO</span>
+</div>
+<div onClick="{{ goPlan }}" style="flex:1;height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;cursor:pointer;transition:color .25s;color:{{ tabPlan }}">
+<span style="width:15px;height:15px;border-radius:3px;border:1.6px solid currentColor;display:flex;align-items:flex-end;justify-content:center;padding-bottom:2px;box-sizing:border-box"><span style="width:7px;height:2px;background:currentColor"></span></span>
+<span style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.6px">PLAN</span>
+</div>
+<div onClick="{{ goStats }}" style="flex:1;height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;cursor:pointer;transition:color .25s;color:{{ tabStats }}">
+<span style="width:15px;height:15px;display:flex;align-items:flex-end;gap:2.5px"><span style="flex:1;height:6px;background:currentColor;border-radius:1px"></span><span style="flex:1;height:11px;background:currentColor;border-radius:1px"></span><span style="flex:1;height:15px;background:currentColor;border-radius:1px"></span></span>
+<span style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.6px">STATS</span>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isMoney }}">
+<div style="position:absolute;left:0;right:0;bottom:0;height:88px;background:rgba(13,13,12,.86);backdrop-filter:blur(18px);border-top:1px solid rgba(233,229,220,.08);display:flex;align-items:flex-start;padding:11px 8px 0;z-index:50">
+<div onClick="{{ goMToday }}" style="flex:1;height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;cursor:pointer;transition:color .25s;color:{{ mTabToday }}">
+<span style="width:15px;height:15px;border-radius:50%;border:1.6px solid currentColor"></span>
+<span style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.6px">GASTOS</span>
+</div>
+<div onClick="{{ goMBudget }}" style="flex:1;height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;cursor:pointer;transition:color .25s;color:{{ mTabBudget }}">
+<span style="width:17px;height:15px;display:flex;flex-direction:column;justify-content:space-between"><span style="height:4px;border-radius:2px;background:currentColor"></span><span style="height:4px;border-radius:2px;background:currentColor;opacity:.45"></span></span>
+<span style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.6px">PRESUP.</span>
+</div>
+<div onClick="{{ goMPlan }}" style="flex:1;height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;cursor:pointer;transition:color .25s;color:{{ mTabPlan }}">
+<span style="width:15px;height:15px;border-radius:3px;border:1.6px solid currentColor;display:flex;align-items:flex-end;justify-content:center;padding-bottom:2px;box-sizing:border-box"><span style="width:7px;height:2px;background:currentColor"></span></span>
+<span style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.6px">PLAN</span>
+</div>
+<div onClick="{{ goMStats }}" style="flex:1;height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;cursor:pointer;transition:color .25s;color:{{ mTabStats }}">
+<span style="width:15px;height:15px;display:flex;align-items:flex-end;gap:2.5px"><span style="flex:1;height:6px;background:currentColor;border-radius:1px"></span><span style="flex:1;height:11px;background:currentColor;border-radius:1px"></span><span style="flex:1;height:15px;background:currentColor;border-radius:1px"></span></span>
+<span style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.6px">STATS</span>
+</div>
+</div>
+</sc-if>
+
+</div>
+</x-import>
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.6px;color:rgba(233,229,220,.3);text-align:center">FIELDNOTE · REGISTRO OFFLINE DE SALUD Y DINERO</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:560,&quot;height&quot;:1030}}">
+const CAT = [
+  {name:'Avena, 60 g', kcal:228, p:8, c:40, f:4},
+  {name:'Yogur griego, 170 g', kcal:100, p:17, c:6, f:0},
+  {name:'Plátano mediano', kcal:105, p:1, c:27, f:0},
+  {name:'Pechuga de pollo, 200 g', kcal:330, p:62, c:0, f:7},
+  {name:'Arroz blanco, 1 taza', kcal:205, p:4, c:45, f:0},
+  {name:'Palta, media', kcal:160, p:2, c:9, f:15},
+  {name:'Batido de proteína, 1 medida', kcal:120, p:24, c:3, f:1},
+  {name:'Huevos, dos', kcal:156, p:13, c:1, f:11},
+  {name:'Salmón, 170 g', kcal:367, p:40, c:0, f:22},
+  {name:'Almendras, 30 g', kcal:173, p:6, c:6, f:15},
+  {name:'Mantequilla de maní, 2 cdas', kcal:188, p:8, c:6, f:16},
+  {name:'Pan integral, 1 rebanada', kcal:120, p:4, c:23, f:1},
+  {name:'Queso cottage, 150 g', kcal:120, p:17, c:5, f:3},
+  {name:'Aceite de oliva, 1 cda', kcal:119, p:0, c:0, f:14}
+];
+const SLOTS = ['Desayuno','Almuerzo','Cena','Snacks'];
+const SESSIONS = ['Push A','Pull A','Legs A','Push B','Pull B','Descanso'];
+const KEY = 'fieldnote.v4';
+const MNY = 'oklch(0.84 0.15 245)';
+const WARN = 'oklch(0.76 0.16 30)';
+const CATS = ['Mercado','Comer fuera','Transporte','Hogar','Ocio','Salud','Otros'];
+const LABELS = {
+  'Mercado':['Mercado','Supermercado','Tienda de barrio'],
+  'Comer fuera':['Almuerzo','Café','Salteñas','Cena fuera'],
+  'Transporte':['Trufi','Gasolina','Taxi'],
+  'Hogar':['Luz y agua','Internet','Ferretería'],
+  'Ocio':['Cine','Salida','Escalada'],
+  'Salud':['Farmacia','Suplementos'],
+  'Otros':['Regalo','Trámites']
+};
+const RANGE = {'Mercado':[25,180],'Comer fuera':[12,95],'Transporte':[5,60],'Hogar':[40,220],'Ocio':[20,140],'Salud':[18,110],'Otros':[10,90]};
+const BILLS = [{name:'Alquiler', day:1, amt:2800},{name:'Internet', day:12, amt:280},{name:'Gimnasio', day:15, amt:250},{name:'Celular', day:18, amt:120},{name:'Luz y agua', day:24, amt:310}];
+function seedTxns() {
+  let s = 23; const rnd = () => (s = (s*1664525 + 1013904223) % 4294967296) / 4294967296;
+  const out = [{id:'rent', label:'Alquiler', amt:2800, cat:'Hogar', day:1}];
+  for (let d = 1; d <= 10; d++) {
+    const n = 1 + Math.floor(rnd()*3);
+    for (let i = 0; i < n; i++) {
+      const cat = CATS[Math.floor(rnd()*CATS.length)];
+      const pool = LABELS[cat], r = RANGE[cat];
+      out.push({ id:'t'+d+'-'+i, label: pool[Math.floor(rnd()*pool.length)], amt: Math.round((r[0] + rnd()*(r[1]-r[0]))*100)/100, cat: cat, day: d });
+    }
+  }
+  return out;
+}
+function seedBudgets() {
+  return [{cat:'Mercado', limit:1800},{cat:'Comer fuera', limit:900},{cat:'Transporte', limit:500},{cat:'Hogar', limit:3600},{cat:'Ocio', limit:700},{cat:'Salud', limit:450},{cat:'Otros', limit:550}];
+}
+const money = n => 'Bs ' + (Math.round(n*100)/100).toLocaleString('es-BO', {minimumFractionDigits:2, maximumFractionDigits:2});
+const money0 = n => 'Bs ' + Math.round(n).toLocaleString('es-BO');
+const NUT = 'oklch(0.84 0.15 135)';
+const TRN = 'oklch(0.84 0.15 55)';
+const DIM = 'rgba(233,229,220,0.13)';
+const TODAY = new Date(2026, 7, 10);
+
+const TPL = [
+  {name:'Push A', ex:[['Press inclinado',4,8,80,'77.5 kg × 8'],['Press militar',3,8,50,'50 kg × 8'],['Aperturas en polea',3,12,25,'22.5 kg × 12'],['Tríceps en cuerda',3,12,32.5,'30 kg × 12']]},
+  {name:'Pull A', ex:[['Remo con barra',4,6,95,'92.5 kg × 6'],['Jalón al pecho',3,10,70,'67.5 kg × 10'],['Face pull',3,15,25,'25 kg × 15'],['Curl con barra',3,10,35,'32.5 kg × 10']]},
+  {name:'Legs A', ex:[['Sentadilla trasera',4,5,132.5,'130 kg × 5'],['Peso muerto rumano',3,8,100,'97.5 kg × 8'],['Prensa de piernas',3,12,180,'180 kg × 12'],['Elevación de gemelos',4,15,60,'60 kg × 15']]},
+  {name:'Upper A', ex:[['Press banca',4,6,95,'92.5 kg × 6'],['Dominadas lastradas',4,6,10,'7.5 kg × 6'],['Remo sentado',3,10,75,'72.5 kg × 10'],['Elevaciones laterales',3,15,12,'12 kg × 15']]},
+  {name:'Lower A', ex:[['Sentadilla frontal',4,6,95,'92.5 kg × 6'],['Empuje de cadera',3,10,120,'115 kg × 10'],['Curl femoral',3,12,55,'52.5 kg × 12'],['Gemelos de pie',4,12,70,'70 kg × 12']]}
+];
+function inflate(t) {
+  return t.ex.map(e => ({ name:e[0], last:e[4], sets: Array.from({length:e[1]}, () => ({w:e[3], r:e[2], d:false})) }));
+}
+function seedTemplates() { return TPL.map(t => ({name:t.name, exercises: inflate(t)})); }
+function seedWorkout() { return inflate(TPL[0]); }
+function freshCopy(exs) {
+  return exs.map(e => ({ name:e.name, last:e.last, sets: e.sets.map(s => ({w:s.w, r:s.r, d:false})) }));
+}
+function seedMeals() {
+  const mk = (n, s) => { const it = CAT.find(x => x.name === n); return Object.assign({}, it, {slot:s, id:n + s}); };
+  return [mk('Avena, 60 g','Breakfast'), mk('Yogur griego, 170 g','Breakfast'), mk('Plátano mediano','Breakfast'),
+          mk('Pechuga de pollo, 200 g','Lunch'), mk('Arroz blanco, 1 taza','Lunch'), mk('Palta, media','Lunch'),
+          mk('Batido de proteína, 1 medida','Snacks')];
+}
+const key = d => d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+function buildHistory() {
+  let s = 7; const rnd = () => (s = (s*1664525 + 1013904223) % 4294967296) / 4294967296;
+  const h = {};
+  for (let i = 90; i >= 1; i--) {
+    const d = new Date(TODAY); d.setDate(d.getDate() - i);
+    const dow = (d.getDay() + 6) % 7;
+    const trained = dow !== 2 && dow !== 6 && rnd() > 0.14;
+    h[key(d)] = { kcal: Math.round(1950 + rnd()*620), p: Math.round(120 + rnd()*80), trained: trained };
+  }
+  return h;
+}
+function buildGoalHist() {
+  const h = {};
+  for (let i = 120; i >= -60; i--) {
+    const d = new Date(TODAY); d.setDate(d.getDate() - i);
+    h[key(d)] = i > 70 ? {kcal:2650, p:165} : (i > 42 ? {kcal:2550, p:170} : (i > 14 ? {kcal:2400, p:175} : {kcal:2200, p:180}));
+  }
+  return h;
+}
+function buildPlan() {
+  const cycle = ['Push A','Pull A','Descanso','Legs A','Push B','Pull B','Descanso'];
+  const p = {};
+  for (let i = 0; i < 60; i++) {
+    const d = new Date(TODAY); d.setDate(d.getDate() + i);
+    p[key(d)] = cycle[((d.getDay()+6)%7)];
+  }
+  return p;
+}
+function buildWeights() {
+  let s = 19; const rnd = () => (s = (s*1664525 + 1013904223) % 4294967296) / 4294967296;
+  const out = []; let w = 84.9;
+  for (let i = 0; i < 12; i++) { out.push(Math.round(w*10)/10); w -= 0.18 + rnd()*0.46; }
+  return out;
+}
+
+class Component extends DCLogic {
+  state = {
+    calOff:0, mCalOff:0, txnFilter:'All', statMode:'spend', statSel:5, sw: {id:null, x:0, base:0, startX:0, drag:false},
+    module:'health', mScreen:'today', locked:true,
+    txns: seedTxns(), budgets: seedBudgets(), income:11500,
+    favs: [{label:'Café', amt:18, cat:'Comer fuera'},{label:'Trufi', amt:6, cat:'Transporte'},{label:'Mercado', amt:85, cat:'Mercado'}],
+    addSheet:false, aAmt:'', aLabel:'', aCat:'Mercado', aFav:false,
+    mPlanMode:'month', mSel:10,
+    screen:'today', sheet:false, query:'', slot:'Lunch',
+    foodMode:'search', qName:'', qKcal:'', qP:'', qC:'', qF:'', qSave:true, customFoods:[],
+    templates: seedTemplates(), curName:'Push A', pickSheet:false, editSheet:false,
+    meals: seedMeals(), workout: seedWorkout(), exIdx:0,
+    resting:false, restLeft:0,
+    planMode:'month', sel: key(TODAY),
+    goals: Object.assign({c:250, f:70}, buildGoalHist()[key(TODAY)]),
+    weekPlan: ['Push A','Pull A','Descanso','Legs A','Push B','Pull B','Descanso'],
+    plan: buildPlan(), goalHist: buildGoalHist(), dayMenu: null,
+    toggles: {offline:true, haptics:true, kg:true, lock:true},
+    hist: buildHistory(), weights: buildWeights()
+  };
+
+  swDown(id, e) {
+    const s = this.state.sw, base = s.id === id ? s.x : 0;
+    this.setState({sw: {id: id, x: base, base: base, startX: e.clientX, drag: true}});
+  }
+  swMove(e) {
+    const s = this.state.sw;
+    if (!s.drag) return;
+    const dx = Math.min(0, Math.max(-96, s.base + (e.clientX - s.startX)));
+    this.setState({sw: Object.assign({}, s, {x: dx})});
+  }
+  swUp() {
+    const s = this.state.sw;
+    if (!s.drag) return;
+    const open = s.x < -44;
+    this.setState({sw: {id: open ? s.id : null, x: open ? -88 : 0, base: open ? -88 : 0, startX: 0, drag: false}});
+  }
+  swClose() { this.setState({sw: {id:null, x:0, base:0, startX:0, drag:false}}); }
+
+  componentDidMount() {
+        try {
+      const raw = localStorage.getItem(KEY);
+      if (raw) {
+        const s = JSON.parse(raw);
+        const st = this.state;
+        // stored history predates the {kcal,p} goal shape — drop it and use fresh seeds
+        const gh = s.goalHist;
+        if (!gh || Object.keys(gh).some(k => !gh[k] || typeof gh[k] !== 'object')) s.goalHist = null;
+        const hs = s.hist;
+        if (!hs || Object.keys(hs).some(k => !hs[k] || typeof hs[k].p !== 'number')) s.hist = null;
+        this.setState({
+          meals: s.meals || st.meals, workout: s.workout || st.workout,
+          goals: Object.assign({}, st.goals, s.goals || {}, (s.goalHist || st.goalHist)[key(TODAY)] || {}),
+          weekPlan: s.weekPlan || st.weekPlan, toggles: Object.assign({}, st.toggles, s.toggles || {}), hist: s.hist || st.hist,
+          customFoods: s.customFoods || [], templates: s.templates || st.templates, curName: s.curName || st.curName,
+          txns: s.txns || st.txns, budgets: s.budgets || st.budgets, income: s.income || st.income, favs: s.favs || st.favs,
+          plan: Object.assign({}, st.plan, s.plan || {}), goalHist: Object.assign({}, st.goalHist, s.goalHist || {})
+        });
+      }
+    } catch (e) {}
+    this.tick = setInterval(() => {
+      if (!this.state.resting) return;
+      this.setState(st => st.restLeft <= 1 ? {resting:false, restLeft:0} : {restLeft: st.restLeft - 1});
+    }, 1000);
+  }
+  componentWillUnmount() { clearInterval(this.tick); }
+  componentDidUpdate() { this.save(); }
+  save() {
+    const s = this.state;
+    try { localStorage.setItem(KEY, JSON.stringify({meals:s.meals, workout:s.workout, goals:s.goals, weekPlan:s.weekPlan, toggles:s.toggles, hist:s.hist, customFoods:s.customFoods, templates:s.templates, curName:s.curName, txns:s.txns, budgets:s.budgets, income:s.income, favs:s.favs, plan:s.plan, goalHist:s.goalHist})); } catch (e) {}
+  }
+  setPlanDay(k, name) {
+    this.setState(st => ({ plan: Object.assign({}, st.plan, {[k]: name}), dayMenu: null }));
+  }
+  toggleDayMenu(k) { this.setState(st => ({dayMenu: st.dayMenu === k ? null : k})); }
+  goMoney() { this.setState(st => ({module:'money', locked: st.toggles.lock ? st.locked : false})); }
+  addTxn(t) {
+    this.setState(st => ({ txns: st.txns.concat([Object.assign({}, t, {id:'x'+Date.now(), day:10})]) }));
+  }
+  removeTxn(id) { this.setState(st => ({txns: st.txns.filter(t => t.id !== id)})); }
+  setGoal(field, v) {
+    const n = Math.max(0, parseInt(String(v).replace(/[^0-9]/g, ''), 10) || 0);
+    this.setState(st => {
+      const gh = Object.assign({}, st.goalHist), tk = key(TODAY);
+      Object.keys(gh).forEach(k => {
+        if (k < tk) return;
+        const cur = (gh[k] && typeof gh[k] === 'object') ? gh[k] : {kcal: st.goals.kcal, p: st.goals.p};
+        gh[k] = Object.assign({}, cur, {[field]: n});
+      });
+      return { goals: Object.assign({}, st.goals, {[field]: n}), goalHist: gh };
+    });
+  }
+  setLimit(i, v) {
+    const n = Math.max(0, parseInt(String(v).replace(/[^0-9]/g, ''), 10) || 0);
+    this.setState(st => ({budgets: st.budgets.map((b, j) => j !== i ? b : Object.assign({}, b, {limit: n}))}));
+  }
+  editEx(i, fn) { this.setState(st => ({ workout: st.workout.map((e, j) => j !== i ? e : fn(e)) })); }
+  setsDelta(i, d) {
+    this.editEx(i, e => {
+      const s = e.sets.slice();
+      if (d > 0) s.push(Object.assign({}, s[s.length-1] || {w:20,r:10}, {d:false}));
+      else if (s.length > 1) s.pop();
+      return Object.assign({}, e, {sets: s});
+    });
+  }
+  repsDelta(i, d) { this.editEx(i, e => Object.assign({}, e, {sets: e.sets.map(s => Object.assign({}, s, {r: Math.max(1, s.r + d)}))})); }
+  pickTemplate(i) {
+    this.setState(st => ({ workout: freshCopy(st.templates[i].exercises), curName: st.templates[i].name, exIdx:0, pickSheet:false, screen:'train', resting:false, restLeft:0 }));
+  }
+  saveTemplate() {
+    this.setState(st => {
+      const t = {name: st.curName, exercises: freshCopy(st.workout)};
+      const idx = st.templates.findIndex(x => x.name === st.curName);
+      const list = st.templates.slice();
+      if (idx >= 0) list[idx] = t; else list.push(t);
+      return {templates: list, editSheet:false};
+    });
+  }
+
+  go(screen) { this.setState({screen:screen}); }
+  openSheet(slot) { this.setState({sheet:true, slot:slot, query:''}); }
+  addFood(item) {
+    this.setState(st => ({ meals: st.meals.concat([Object.assign({}, item, {slot: st.slot, id: item.name + Date.now()})]) }));
+  }
+  removeFood(id) { this.setState(st => ({ meals: st.meals.filter(m => m.id !== id) })); }
+  toggleSet(ei, si) {
+    this.setState(st => {
+      const w = st.workout.map((e, i) => i !== ei ? e : Object.assign({}, e, {sets: e.sets.map((s, j) => j !== si ? s : Object.assign({}, s, {d: !s.d}))}));
+      const nowDone = !st.workout[ei].sets[si].d;
+      return { workout: w, resting: nowDone, restLeft: nowDone ? 90 : st.restLeft };
+    });
+  }
+  bump(ei, si, field, delta) {
+    this.setState(st => ({ workout: st.workout.map((e,i) => i !== ei ? e : Object.assign({}, e, {
+      sets: e.sets.map((s,j) => j !== si ? s : Object.assign({}, s, {[field]: Math.max(0, Math.round((s[field] + delta)*10)/10)}))
+    })) }));
+  }
+
+  renderVals() {
+    const st = this.state, g = st.goals;
+    const sum = (k) => st.meals.reduce((a, m) => a + m[k], 0);
+    const kcalIn = sum('kcal'), P = sum('p'), C = sum('c'), F = sum('f');
+    const pct = (a, b) => Math.min(100, Math.round(a / b * 100)) + '%';
+    const dows = ['L','M','M','J','V','S','D'];
+
+    const TK = key(TODAY);
+    const goalAt = k => { const v = st.goalHist[k]; return (v && typeof v === 'object') ? v : {kcal: g.kcal, p: g.p}; };
+    const goalFor = k => goalAt(k).kcal;
+    const sessionNames = st.templates.map(t => t.name).concat(['Descanso']);
+    const dayOptions = (k, cur) => sessionNames.map(n => ({
+      label: n, mark: n === cur ? '✓' : '',
+      bg: n === cur ? 'rgba(233,229,220,.1)' : 'transparent',
+      fg: n === cur ? '#E9E5DC' : 'rgba(233,229,220,.7)',
+      pick: () => this.setPlanDay(k, n)
+    }));
+    const weekDots = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(TODAY); d.setDate(d.getDate() - i);
+      const h = i === 0 ? {kcal: kcalIn, trained: st.workout.some(e => e.sets.some(s => s.d))} : (st.hist[key(d)] || {});
+      weekDots.push({
+        dow: dows[(d.getDay()+6)%7],
+        ate: (h.kcal && h.kcal <= goalFor(key(d)) + 60) ? NUT : DIM,
+        trn: h.trained ? TRN : DIM,
+        bg: i === 0 ? 'rgba(233,229,220,.06)' : 'transparent'
+      });
+    }
+    let streak = 0;
+    for (let i = 1; i < 60; i++) { const d = new Date(TODAY); d.setDate(d.getDate()-i); const h = st.hist[key(d)]; if (h && (h.trained || h.kcal <= goalFor(key(d)) + 60)) streak++; else break; }
+
+    const swipe = (id, onDelete) => ({
+      dx: (st.sw.id === id ? st.sw.x : 0) + 'px',
+      tr: (st.sw.drag && st.sw.id === id) ? 'none' : 'transform .26s cubic-bezier(.2,.8,.2,1)',
+      down: e => this.swDown(id, e), move: e => this.swMove(e), up: () => this.swUp(),
+      del: () => { this.swClose(); onDelete(); }
+    });
+
+    const mealGroups = SLOTS.map(slot => {
+      const items = st.meals.filter(m => m.slot === slot);
+      return {
+        slot: slot,
+        total: items.reduce((a,m)=>a+m.kcal,0) + ' kcal',
+        add: () => this.openSheet(slot),
+        items: items.map(m => Object.assign({ name:m.name, kcal:m.kcal, macro: m.p+'P · '+m.c+'C · '+m.f+'F' }, swipe(m.id, () => this.removeFood(m.id))))
+      };
+    });
+
+    const q = st.query.trim().toLowerCase();
+    const ALL = st.customFoods.concat(CAT);
+    const pool = q ? ALL.filter(f => f.name.toLowerCase().includes(q)) : ALL.slice(0, 8);
+    const results = pool.map(f => ({ name:f.name, kcal:f.kcal, macro: f.custom ? 'Guardado por ti · ' + f.p+'P · '+f.c+'C · '+f.f+'F' : f.p+'P · '+f.c+'C · '+f.f+'F', add: () => this.addFood(f) }));
+    const qk = parseInt(st.qKcal, 10) || 0;
+    const num = v => parseInt(v, 10) || 0;
+
+    const exIdx = Math.min(st.exIdx, st.workout.length - 1);
+    const exRaw = st.workout[exIdx] || {name:'', last:'—', sets:[]};
+    const ex = { name: exRaw.name, last: exRaw.last || '—', target: exRaw.sets.length + ' × ' + (exRaw.sets[0] ? exRaw.sets[0].r : 0) };
+    const sets = exRaw.sets.map((s, j) => ({
+      n: j + 1, w: s.w, r: s.r,
+      op: s.d ? 0.55 : 1, mark: s.d ? '✓' : '',
+      bg: s.d ? TRN : 'transparent', fg: s.d ? '#14100A' : '#E9E5DC',
+      bd: s.d ? TRN : 'rgba(233,229,220,.14)',
+      toggle: () => this.toggleSet(exIdx, j),
+      wUp: () => this.bump(exIdx, j, 'w', 2.5), wDown: () => this.bump(exIdx, j, 'w', -2.5),
+      rUp: () => this.bump(exIdx, j, 'r', 1), rDown: () => this.bump(exIdx, j, 'r', -1)
+    }));
+    const allSets = st.workout.reduce((a,e)=>a+e.sets.length,0);
+    const doneSets = st.workout.reduce((a,e)=>a+e.sets.filter(s=>s.d).length,0);
+    const vol = st.workout.reduce((a,e)=>a+e.sets.filter(s=>s.d).reduce((x,s)=>x+s.w*s.r,0),0);
+
+    const first = new Date(2026, 7 + st.calOff, 1);
+    const lead = (first.getDay()+6)%7;
+    const cells = [];
+    for (let i = 0; i < 42; i++) {
+      const d = new Date(first.getFullYear(), first.getMonth(), 1 + i - lead);
+      const k = key(d), dim = d.getMonth() !== first.getMonth();
+      const isToday = k === key(TODAY);
+      const h = isToday ? {kcal: kcalIn, trained: doneSets > 0} : (st.hist[k] || {});
+      const future = d > TODAY;
+      cells.push({
+        label: d.getDate(), op: dim ? 0.28 : 1,
+        bg: st.sel === k ? 'rgba(233,229,220,.13)' : 'transparent',
+        fg: isToday ? NUT : 'rgba(233,229,220,.85)',
+        ate: (!future && h.kcal && h.kcal <= goalFor(k) + 60) ? NUT : DIM,
+        trn: h.trained ? TRN : ((future && st.plan[k] && st.plan[k] !== 'Descanso') ? 'oklch(0.84 0.15 55 / 0.35)' : DIM),
+        pick: () => this.setState({sel: k, dayMenu: null})
+      });
+    }
+    const selD = new Date(st.sel + 'T00:00:00');
+    const selH = st.sel === key(TODAY) ? {kcal: kcalIn, trained: doneSets > 0} : (st.hist[st.sel] || {});
+    const MON = ['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
+    const DOWL = ['LUN','MAR','MIÉ','JUE','VIE','SÁB','DOM'];
+
+    const weekRows = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(TODAY); d.setDate(d.getDate() + i);
+      const k = key(d), name = st.plan[k] || 'Descanso', rest = name === 'Descanso';
+      weekRows.push({
+        dow: DOWL[(d.getDay()+6)%7], day: d.getDate(), name: name,
+        sub: rest ? 'Descanso · caminar 30 min' : 'Fuerza · 55 min',
+        kcal: goalFor(k) + '',
+        bar: rest ? DIM : TRN,
+        fg: rest ? 'rgba(233,229,220,.5)' : '#E9E5DC',
+        bg: i === 0 ? 'rgba(233,229,220,.05)' : 'transparent',
+        open: st.dayMenu === k, z: st.dayMenu === k ? 30 : 1,
+        chev: st.dayMenu === k ? 'rotate(180deg)' : 'none',
+        toggle: () => this.toggleDayMenu(k),
+        options: dayOptions(k, name)
+      });
+    }
+
+    const W = st.weights;
+    const min = Math.min.apply(null, W), max = Math.max.apply(null, W);
+    const pts = W.map((v, i) => (i / (W.length - 1) * 300).toFixed(1) + ',' + (76 - (v - min) / (max - min || 1) * 68).toFixed(1)).join(' ');
+    let s2 = 3; const rnd2 = () => (s2 = (s2*1664525 + 1013904223) % 4294967296) / 4294967296;
+    const volBars = []; for (let i = 0; i < 12; i++) { const v = 42 + i*3.4 + rnd2()*22; volBars.push({ h: Math.min(100, v) + '%', bg: i === 11 ? TRN : 'rgba(233,229,220,.22)' }); }
+    const last30 = Object.keys(st.hist).slice(-30).map(k => st.hist[k]);
+    const goalRows = [
+      {label:'Calorías', sub:'kcal por día', unit:'kcal', val: g.kcal, set: e => this.setGoal('kcal', e.target.value)},
+      {label:'Proteína', sub:'gramos por día', unit:'g', val: g.p, set: e => this.setGoal('p', e.target.value)}
+    ];
+    const goalBlocks = (() => {
+      const out = [], keys = Object.keys(st.goalHist).sort().filter(k => k <= TK);
+      let cur = null;
+      keys.forEach(k => {
+        const v = goalAt(k);
+        if (!cur || cur.kcal !== v.kcal || cur.p !== v.p) { cur = {kcal:v.kcal, p:v.p, from:k, to:k}; out.push(cur); }
+        else cur.to = k;
+      });
+      const fmt = k => { const d = new Date(k + 'T00:00:00'); return d.getDate() + ' ' + MON[d.getMonth()].toLowerCase(); };
+      return out.slice(-4).reverse().map(b => ({
+        range: fmt(b.from) + ' — ' + (b.to >= TK ? 'hoy' : fmt(b.to)),
+        vals: b.kcal + ' kcal · ' + b.p + ' g',
+        live: b.to >= TK,
+        col: b.to >= TK ? NUT : 'rgba(233,229,220,.45)'
+      }));
+    })();
+    const tg = st.toggles;
+    const tRow = (k, label, sub) => ({ label:label, sub:sub, trackBg: tg[k] ? NUT : 'rgba(233,229,220,.16)', knob: tg[k] ? 'translateX(20px)' : 'none', flip: () => this.setState(s3 => ({toggles: Object.assign({}, s3.toggles, {[k]: !s3.toggles[k]})})) });
+
+    const isH = st.module === 'health', isM = st.module === 'money';
+    const spentAll = st.txns.reduce((a,t)=>a+t.amt, 0);
+    const spentToday = st.txns.filter(t => t.day === 10).reduce((a,t)=>a+t.amt, 0);
+    const totalBudget = st.budgets.reduce((a,b)=>a+b.limit, 0);
+    const daysLeft = 21;
+    const perCat = st.budgets.map((b, i) => {
+      const sp = st.txns.filter(t => t.cat === b.cat).reduce((a,t)=>a+t.amt, 0);
+      const over = sp > b.limit;
+      return {
+        cat: b.cat, spent: money0(sp), limit: money0(b.limit), left: over ? money0(sp - b.limit) + ' de más' : money0(b.limit - sp) + ' libre',
+        pct: Math.min(100, Math.round(sp / (b.limit || 1) * 100)) + '%',
+        bar: over ? WARN : MNY, fg: over ? WARN : 'rgba(233,229,220,.75)', raw: sp,
+        limitVal: b.limit, setLimit: e => this.setLimit(i, e.target.value)
+      };
+    });
+    const topCats = perCat.slice().sort((a,b) => b.raw - a.raw);
+    const maxCat = topCats.length ? topCats[0].raw : 1;
+    const dayLabel = d => d === 10 ? 'HOY' : (d === 9 ? 'AYER' : String(d).padStart(2,'0') + ' AGO');
+    const filt = st.txnFilter || 'All';
+    const shown = filt === 'All' ? st.txns : st.txns.filter(t => t.cat === filt);
+    const byDay = [];
+    for (let d = 10; d >= 1; d--) {
+      const items = shown.filter(t => t.day === d);
+      if (!items.length) continue;
+      byDay.push({
+        label: dayLabel(d), total: money0(items.reduce((a,t)=>a+t.amt,0)),
+        items: items.slice().reverse().map(t => Object.assign({ label:t.label, cat:t.cat, amt: money(t.amt) }, swipe(t.id, () => this.removeTxn(t.id))))
+      });
+    }
+    const filterChips = ['All'].concat(CATS).map(c => ({
+      label: c === 'All' ? 'Todo' : c, pick: () => this.setState({txnFilter: c}),
+      bg: filt === c ? '#E9E5DC' : 'transparent', fg: filt === c ? '#0D0D0C' : 'rgba(233,229,220,.65)',
+      bd: filt === c ? '#E9E5DC' : 'rgba(233,229,220,.14)'
+    }));
+    const recentTx = st.txns.slice(-4).reverse().map(t => ({label:t.label, cat: t.cat + ' · ' + dayLabel(t.day).toLowerCase(), amt: money(t.amt)}));
+    const daySpend = []; let maxDay = 1;
+    for (let d = 1; d <= 31; d++) { const v = st.txns.filter(t => t.day === d).reduce((a,t)=>a+t.amt,0); daySpend.push(v); if (v > maxDay) maxDay = v; }
+    const mFirst = new Date(2026, 7 + st.mCalOff, 1), mLead = (mFirst.getDay()+6)%7;
+    const mCells = [];
+    for (let i = 0; i < 42; i++) {
+      const d = new Date(mFirst.getFullYear(), mFirst.getMonth(), 1 + i - mLead), inM = d.getMonth() === mFirst.getMonth(), dn = d.getDate();
+      const v = (inM && st.mCalOff === 0) ? daySpend[dn-1] : 0;
+      mCells.push({
+        label: dn, op: inM ? 1 : 0.25,
+        bg: (inM && st.mSel === dn) ? 'rgba(233,229,220,.13)' : 'transparent',
+        fg: (inM && dn === 10) ? MNY : 'rgba(233,229,220,.85)',
+        h: (v > 0 ? Math.max(14, Math.round(v / maxDay * 100)) : 0) + '%',
+        bar: v > totalBudget/31*1.6 ? WARN : MNY,
+        pick: () => { if (inM) this.setState({mSel: dn}); }
+      });
+    }
+    const selTx = st.txns.filter(t => t.day === st.mSel);
+    const bills = BILLS.filter(b => b.day > 10).map(b => ({name:b.name, when: String(b.day).padStart(2,'0') + ' AGO', amt: money0(b.amt)}));
+    const MONTHS6 = ['MAR','ABR','MAY','JUN','JUL','AGO'];
+    let s6 = 11; const rnd6 = () => (s6 = (s6*1664525 + 1013904223) % 4294967296) / 4294967296;
+    const monthTotals = MONTHS6.map((m, i) => i === 5 ? spentAll : Math.round(7400 + rnd6()*2600));
+    const maxMonth = Math.max.apply(null, monthTotals);
+    const savedMode = st.statMode === 'saved';
+    const series = savedMode ? monthTotals.map(v => Math.max(0, st.income - v)) : monthTotals;
+    const maxSer = Math.max.apply(null, series) || 1;
+    const avgSer = series.reduce((a2,v)=>a2+v, 0) / series.length;
+    const si = Math.min(st.statSel, series.length - 1);
+    const monthBars = series.map((v, i) => ({
+      label: MONTHS6[i], h: Math.max(4, Math.round(v / maxSer * 100)) + '%',
+      bg: i === si ? MNY : 'rgba(233,229,220,.18)',
+      lblCol: i === si ? '#E9E5DC' : 'rgba(233,229,220,.32)',
+      pick: () => this.setState({statSel: i})
+    }));
+    const prev = si > 0 ? series[si-1] : null;
+    const dPct = prev ? Math.round((series[si] - prev) / (prev || 1) * 100) : 0;
+    const good = savedMode ? dPct >= 0 : dPct <= 0;
+    const vsAvg = Math.round((series[si] - avgSer) / (avgSer || 1) * 100);
+    const statCats = topCats.map(c => ({
+      cat: c.cat, spent: c.spent, share: Math.round(c.raw / (spentAll || 1) * 100) + '%',
+      w: Math.round(c.raw / (maxCat || 1) * 100) + '%',
+      bg: st.txnFilter === c.cat ? '#E9E5DC' : MNY,
+      fg: st.txnFilter === c.cat ? '#E9E5DC' : 'rgba(233,229,220,.9)',
+      drill: () => this.setState({txnFilter: c.cat, mScreen: 'today'})
+    }));
+    const mTab = n => st.mScreen === n ? '#E9E5DC' : 'rgba(233,229,220,.34)';
+    const tab = n => st.screen === n ? '#E9E5DC' : 'rgba(233,229,220,.34)';
+    const restM = Math.floor(st.restLeft / 60), restS = st.restLeft % 60;
+
+    return {
+      isToday: isH && st.screen === 'today', isFood: isH && st.screen === 'food', isTrain: isH && st.screen === 'train',
+      isPlan: isH && st.screen === 'plan', isStats: isH && st.screen === 'stats', isYou: isH && st.screen === 'you',
+      isHealth: isH, isMoney: isM,
+      hBg: isH ? '#E9E5DC' : 'transparent', hFg: isH ? '#0D0D0C' : 'rgba(233,229,220,.55)',
+      mBg: isM ? '#E9E5DC' : 'transparent', mFg: isM ? '#0D0D0C' : 'rgba(233,229,220,.55)',
+      switchHealth: () => this.setState(s3 => ({module:'health', locked: s3.toggles.lock})),
+      switchMoney: () => this.goMoney(),
+      locked: isM && st.locked, unlock: () => this.setState({locked:false}),
+      isMToday: isM && !st.locked && st.mScreen === 'today', isMLog: isM && !st.locked && st.mScreen === 'log',
+      isMBudget: isM && !st.locked && st.mScreen === 'budget', isMPlan: isM && !st.locked && st.mScreen === 'plan',
+      isMStats: isM && !st.locked && st.mScreen === 'stats',
+      goMToday: () => this.setState({mScreen:'today'}), goMLog: () => this.setState({mScreen:'log'}),
+      goMBudget: () => this.setState({mScreen:'budget'}), goMPlan: () => this.setState({mScreen:'plan'}),
+      goMStats: () => this.setState({mScreen:'stats'}),
+      mTabToday: mTab('today'), mTabLog: mTab('log'), mTabBudget: mTab('budget'), mTabPlan: mTab('plan'), mTabStats: mTab('stats'),
+      monthLeft: money0(Math.max(0, totalBudget - spentAll)), monthBudget: money0(totalBudget),
+      monthSpent: money0(spentAll), monthPct: Math.min(100, Math.round(spentAll / (totalBudget||1) * 100)) + '%',
+      todaySpend: money0(spentToday), dailyAllow: money0(Math.max(0, (totalBudget - spentAll) / daysLeft)), daysLeftTxt: daysLeft + ' días',
+      overBar: spentAll > totalBudget ? WARN : MNY,
+      favs: st.favs.map(f => ({ label: f.label, amt: money(f.amt), cat: f.cat, add: () => this.addTxn({label:f.label, amt:f.amt, cat:f.cat}) })),
+      perCat: perCat, topCats: topCats.slice(0, 5).map(c => ({ cat:c.cat, spent:c.spent, w: Math.round(c.raw / (maxCat||1) * 100) + '%' })),
+      byDay: byDay, recentTx: recentTx, mCells: mCells, dows: dows,
+      filterChips: filterChips, noTxns: byDay.length === 0,
+      filterTotal: money0(shown.reduce((a2,t)=>a2+t.amt, 0)) + (filt === 'All' ? ' este mes' : ' en ' + filt),
+      mMonthLabel: ['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'][mFirst.getMonth()] + ' ' + mFirst.getFullYear(),
+      mPrevMonth: () => this.setState(s3 => ({mCalOff: s3.mCalOff - 1})),
+      mNextMonth: () => this.setState(s3 => ({mCalOff: Math.min(0, s3.mCalOff + 1)})),
+      mNextMonthOp: st.mCalOff >= 0 ? 0.25 : 1,
+      mSelLabel: String(st.mSel).padStart(2,'0') + ' AGOSTO 2026',
+      mSelTotal: money0(selTx.reduce((a,t)=>a+t.amt,0)),
+      mSelCount: selTx.length === 1 ? '1 movimiento' : selTx.length + ' movimientos',
+      mSelHas: selTx.length > 0, mSelEmpty: selTx.length === 0,
+      mSelEmptyTxt: st.mSel > 10 ? 'Día futuro · aún sin gastos' : 'Sin gastos ese día',
+      mSelItems: selTx.slice().reverse().map(t => ({label:t.label, cat:t.cat, amt: money(t.amt)})),
+      mSelPace: (() => { const d = totalBudget/31, v = selTx.reduce((a,t)=>a+t.amt,0); return v === 0 ? 'sin gasto' : (v <= d ? 'bajo el ritmo diario' : Math.round(v/d*100) + '% del ritmo diario'); })(),
+      mSelPacePct: Math.min(100, Math.round(selTx.reduce((a,t)=>a+t.amt,0) / (totalBudget/31 || 1) * 100)) + '%',
+      mSelPaceCol: selTx.reduce((a,t)=>a+t.amt,0) > totalBudget/31 ? WARN : MNY,
+      statSpend: () => this.setState({statMode:'spend'}), statSaved: () => this.setState({statMode:'saved'}),
+      statSpendBg: !savedMode ? '#E9E5DC' : 'transparent', statSpendFg: !savedMode ? '#0D0D0C' : 'rgba(233,229,220,.6)',
+      statSavedBg: savedMode ? '#E9E5DC' : 'transparent', statSavedFg: savedMode ? '#0D0D0C' : 'rgba(233,229,220,.6)',
+      statSelLabel: MONTHS6[si] + ' 2026 · ' + (savedMode ? 'AHORRO' : 'GASTO'),
+      statSelVal: money0(series[si]),
+      statDelta: prev === null ? 'primer mes' : (dPct >= 0 ? '+' : '') + dPct + '% vs ' + MONTHS6[si-1],
+      statDeltaCol: prev === null ? 'rgba(233,229,220,.4)' : (good ? MNY : WARN),
+      statAvg: money0(avgSer), statMax: money0(maxSer),
+      statVsAvg: (vsAvg >= 0 ? '+' : '') + vsAvg + '%',
+      statCats: statCats,
+      bills: bills, billsTotal: money0(BILLS.filter(b=>b.day>10).reduce((a,b)=>a+b.amt,0)),
+      isMMonth: st.mPlanMode === 'month', isMBills: st.mPlanMode === 'bills',
+      setMMonth: () => this.setState({mPlanMode:'month'}), setMBills: () => this.setState({mPlanMode:'bills'}),
+      mMonthBg: st.mPlanMode === 'month' ? '#E9E5DC' : 'transparent', mMonthFg: st.mPlanMode === 'month' ? '#0D0D0C' : 'rgba(233,229,220,.6)',
+      mBillsBg: st.mPlanMode === 'bills' ? '#E9E5DC' : 'transparent', mBillsFg: st.mPlanMode === 'bills' ? '#0D0D0C' : 'rgba(233,229,220,.6)',
+      monthBars: monthBars, incomeTxt: money0(st.income), budgetedTxt: money0(totalBudget),
+      savedTxt: money0(Math.max(0, st.income - spentAll)), saveRate: Math.round(Math.max(0, st.income - spentAll) / st.income * 100) + '%',
+      unbudgeted: money0(Math.max(0, st.income - totalBudget)),
+      addSheet: st.addSheet, aAmt: st.aAmt, aLabel: st.aLabel, aCat: st.aCat,
+      openAdd: () => this.setState({addSheet:true, aAmt:'', aLabel:'', aFav:false}),
+      closeAdd: () => this.setState({addSheet:false}),
+      setAAmt: e => this.setState({aAmt: e.target.value}),
+      setALabel: e => this.setState({aLabel: e.target.value}),
+      aAmtUp: () => this.setState(s3 => ({aAmt: String(Math.round(((parseFloat(s3.aAmt)||0) + 10)*100)/100)})),
+      aAmtDown: () => this.setState(s3 => ({aAmt: String(Math.max(0, Math.round(((parseFloat(s3.aAmt)||0) - 10)*100)/100))})),
+      catChips: CATS.map(c => ({ label: c, pick: () => this.setState({aCat: c}),
+        bg: st.aCat === c ? '#E9E5DC' : 'transparent', fg: st.aCat === c ? '#0D0D0C' : 'rgba(233,229,220,.65)',
+        bd: st.aCat === c ? '#E9E5DC' : 'rgba(233,229,220,.14)' })),
+      aFavMark: st.aFav ? '✓' : '', aFavBg: st.aFav ? MNY : 'transparent', aFavBd: st.aFav ? MNY : 'rgba(233,229,220,.2)',
+      toggleAFav: () => this.setState(s3 => ({aFav: !s3.aFav})),
+      aAmtLabel: (parseFloat(st.aAmt) || 0) > 0 ? money(parseFloat(st.aAmt)) : '',
+      addOp: (parseFloat(st.aAmt) || 0) > 0 ? 1 : 0.35,
+      confirmAdd: () => {
+        const a = parseFloat(this.state.aAmt) || 0;
+        if (!a) return;
+        const t = {label: (this.state.aLabel || '').trim() || this.state.aCat, amt: a, cat: this.state.aCat};
+        this.setState(s3 => ({
+          txns: s3.txns.concat([Object.assign({}, t, {id:'x'+Date.now(), day:10})]),
+          favs: (s3.aFav && s3.aLabel.trim()) ? [t].concat(s3.favs.filter(f => f.label !== t.label)).slice(0, 6) : s3.favs,
+          addSheet:false, aAmt:'', aLabel:''
+        }));
+      },
+      goToday: () => this.go('today'), goFood: () => this.go('food'), goTrain: () => this.go('train'),
+      goPlan: () => this.go('plan'), goStats: () => this.go('stats'),
+      goYou: () => this.setState({module:'health', screen:'you'}),
+      tabToday: tab('today'), tabFood: tab('food'), tabTrain: tab('train'), tabPlan: tab('plan'), tabStats: tab('stats'),
+      todayLabel: 'LUN 10 AGO 2026',
+      kcalIn: kcalIn, kcalGoal: g.kcal, kcalLeft: Math.max(0, g.kcal - kcalIn), kcalPct: pct(kcalIn, g.kcal),
+      macroLine: P + 'P · ' + C + 'C · ' + F + 'F',
+      macros: [
+        {label:'PROTEÍNA', txt: P + '/' + g.p, pct: pct(P, g.p), bar: true},
+        {label:'CARBOS', txt: C + ' g', pct: '0%', bar: false},
+        {label:'GRASA', txt: F + ' g', pct: '0%', bar: false}
+      ],
+      mealGroups: mealGroups,
+      sheet: st.sheet, slot: st.slot, query: st.query, results: results,
+      resultsLabel: q ? 'RESULTADOS' : 'RECIENTES Y FRECUENTES',
+      setQuery: e => this.setState({query: e.target.value}),
+      closeSheet: () => this.setState({sheet:false, foodMode:'search'}),
+      isSearchMode: st.foodMode === 'search', isQuickMode: st.foodMode === 'quick',
+      modeSearch: () => this.setState({foodMode:'search'}), modeQuick: () => this.setState({foodMode:'quick'}),
+      searchBg: st.foodMode === 'search' ? '#E9E5DC' : 'transparent', searchFg: st.foodMode === 'search' ? '#0D0D0C' : 'rgba(233,229,220,.6)',
+      quickBg: st.foodMode === 'quick' ? '#E9E5DC' : 'transparent', quickFg: st.foodMode === 'quick' ? '#0D0D0C' : 'rgba(233,229,220,.6)',
+      qName: st.qName, qKcal: st.qKcal, qP: st.qP, qC: st.qC, qF: st.qF,
+      setQName: e => this.setState({qName: e.target.value}),
+      setQKcal: e => this.setState({qKcal: e.target.value}),
+      setQP: e => this.setState({qP: e.target.value}),
+      setQC: e => this.setState({qC: e.target.value}),
+      setQF: e => this.setState({qF: e.target.value}),
+      qKcalUp: () => this.setState(s3 => ({qKcal: String((parseInt(s3.qKcal,10)||0) + 50)})),
+      qKcalDown: () => this.setState(s3 => ({qKcal: String(Math.max(0, (parseInt(s3.qKcal,10)||0) - 50))})),
+      qSaveMark: st.qSave ? '✓' : '',
+      qSaveBg: st.qSave ? NUT : 'transparent',
+      qSaveBd: st.qSave ? NUT : 'rgba(233,229,220,.2)',
+      toggleQSave: () => this.setState(s3 => ({qSave: !s3.qSave})),
+      qKcalLabel: qk > 0 ? qk + ' kcal' : '',
+      quickOp: qk > 0 ? 1 : 0.35,
+      quickAdd: () => {
+        const k = parseInt(this.state.qKcal, 10) || 0;
+        if (!k) return;
+        const item = { name: (this.state.qName || '').trim() || 'Quick entry', kcal: k, p: num(this.state.qP), c: num(this.state.qC), f: num(this.state.qF), custom: true };
+        this.setState(s3 => ({
+          meals: s3.meals.concat([Object.assign({}, item, {slot: s3.slot, id: item.name + Date.now()})]),
+          customFoods: (s3.qSave && s3.qName.trim()) ? [item].concat(s3.customFoods.filter(f => f.name !== item.name)) : s3.customFoods,
+          qName:'', qKcal:'', qP:'', qC:'', qF:''
+        }));
+      },
+      wName: st.curName,
+      wNameUp: (st.curName || '').toUpperCase(),
+      setWName: e => this.setState({curName: e.target.value}),
+      wSummary: st.workout.length + ' ejercicios · ' + st.workout.map(e => e.name).slice(0, 2).join(', ') + '…',
+      openPick: () => this.setState({pickSheet:true}), closePick: () => this.setState({pickSheet:false}),
+      openEdit: () => this.setState({editSheet:true}), closeEdit: () => this.setState({editSheet:false}),
+      pickSheet: st.pickSheet, editSheet: st.editSheet,
+      templates: st.templates.map((t, i) => ({
+        name: t.name, sub: t.exercises.length + ' ejercicios · ' + t.exercises.reduce((a,e)=>a+e.sets.length,0) + ' series',
+        bd: t.name === st.curName ? TRN : 'rgba(233,229,220,.1)',
+        bg: t.name === st.curName ? 'rgba(233,229,220,.05)' : 'transparent',
+        bar: t.name === st.curName ? TRN : 'rgba(233,229,220,.18)',
+        pick: () => this.pickTemplate(i),
+        remove: (ev) => { if (ev && ev.stopPropagation) ev.stopPropagation(); this.setState(s3 => ({templates: s3.templates.filter((x, j) => j !== i)})); }
+      })),
+      newTemplate: () => this.setState({ workout: [{name:'Nuevo ejercicio', last:'—', sets:[{w:20,r:10,d:false}]}], curName:'Nueva sesión', exIdx:0, pickSheet:false, editSheet:true, screen:'train' }),
+      editRows: st.workout.map((e, i) => ({
+        name: e.name, setCount: e.sets.length, reps: e.sets[0] ? e.sets[0].r : 0,
+        rename: (ev) => this.editEx(i, x => Object.assign({}, x, {name: ev.target.value})),
+        remove: () => this.setState(s3 => ({workout: s3.workout.length > 1 ? s3.workout.filter((x, j) => j !== i) : s3.workout, exIdx: 0})),
+        setsUp: () => this.setsDelta(i, 1), setsDown: () => this.setsDelta(i, -1),
+        repsUp: () => this.repsDelta(i, 1), repsDown: () => this.repsDelta(i, -1)
+      })),
+      addExercise: () => this.setState(s3 => ({workout: s3.workout.concat([{name:'Nuevo ejercicio', last:'—', sets:[{w:20,r:10,d:false}]}])})),
+      saveTemplate: () => this.saveTemplate(),
+      saveLabel: st.templates.some(t => t.name === st.curName) ? 'Guardar en ' + st.curName : 'Guardar como nueva sesión',
+      trainCta: doneSets === 0 ? 'Empezar sesión' : (doneSets === allSets ? 'Sesión completa' : 'Continuar sesión'),
+      setsDoneTxt: doneSets + '/' + allSets + ' SERIES',
+      streakTxt: streak + ' DÍAS SEGUIDOS',
+      recent: [
+        {name:'Batido de proteína', sub:'Snacks · 14:20', val:'120', col: NUT},
+        {name:'Pechuga de pollo, 200 g', sub:'Almuerzo · 12:45', val:'330', col: NUT},
+        {name:'Pull A · Espalda y bíceps', sub:'Ayer · 51 min', val:'8420 kg', col: TRN}
+      ],
+      ex: ex, sets: sets, exCount: (exIdx + 1) + ' / ' + st.workout.length,
+      exDots: st.workout.map((e, i) => ({ bg: i === exIdx ? '#E9E5DC' : (e.sets.every(s=>s.d) ? TRN : 'rgba(233,229,220,.15)'), go: () => this.setState({exIdx: i}) })),
+      nextEx: () => this.setState(s3 => ({exIdx: Math.min(s3.workout.length - 1, s3.exIdx + 1)})),
+      prevEx: () => this.setState(s3 => ({exIdx: Math.max(0, s3.exIdx - 1)})),
+      nextLabel: exIdx >= st.workout.length - 1 ? 'Terminar sesión' : 'Sigue: ' + st.workout[exIdx + 1].name,
+      volTxt: Math.round(vol) + ' kg',
+      resting: st.resting, restTxt: restM + ':' + String(restS).padStart(2,'0'),
+      restPct: Math.round(st.restLeft / 90 * 100) + '%',
+      skipRest: () => this.setState({resting:false, restLeft:0}),
+      planMode: st.planMode, isMonth: st.planMode === 'month', isWeek: st.planMode === 'week',
+      setMonth: () => this.setState({planMode:'month'}), setWeek: () => this.setState({planMode:'week'}),
+      monthBg: st.planMode === 'month' ? '#E9E5DC' : 'transparent', monthFg: st.planMode === 'month' ? '#0D0D0C' : 'rgba(233,229,220,.6)',
+      weekBg: st.planMode === 'week' ? '#E9E5DC' : 'transparent', weekFg: st.planMode === 'week' ? '#0D0D0C' : 'rgba(233,229,220,.6)',
+      monthLabel: ['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'][first.getMonth()] + ' ' + first.getFullYear(),
+      prevMonth: () => this.setState(s3 => ({calOff: s3.calOff - 1})),
+      nextMonth: () => this.setState(s3 => ({calOff: Math.min(0, s3.calOff + 1)})),
+      nextMonthOp: st.calOff >= 0 ? 0.25 : 1,
+      dows: dows, cells: cells,
+      selLabel: DOWL[(selD.getDay()+6)%7] + ' ' + selD.getDate() + ' ' + MON[selD.getMonth()],
+      selKcal: selH.kcal ? selH.kcal : '—',
+      selTrain: selH.trained ? 'Hecho' : '—',
+      selGoal: goalAt(st.sel).kcal + '',
+      selProt: (st.sel === TK ? P : (selH.p || 0)) || '—',
+      selProtGoal: goalAt(st.sel).p + '',
+      goalBlocks: goalBlocks,
+      selPast: st.sel < TK, selFuture: st.sel >= TK,
+      selPlanName: st.plan[st.sel] || 'Descanso',
+      menuOpen: !!st.dayMenu,
+      menuTitle: st.dayMenu ? (DOWL[(new Date(st.dayMenu + 'T00:00:00').getDay()+6)%7] + ' ' + new Date(st.dayMenu + 'T00:00:00').getDate() + ' ' + MON[new Date(st.dayMenu + 'T00:00:00').getMonth()]) : '',
+      menuOptions: st.dayMenu ? dayOptions(st.dayMenu, st.plan[st.dayMenu] || 'Descanso') : [],
+      closeMenu: () => this.setState({dayMenu: null}),
+      selMenuOpen: st.dayMenu === st.sel,
+      selChev: st.dayMenu === st.sel ? 'rotate(180deg)' : 'none',
+      selToggle: () => this.toggleDayMenu(st.sel),
+      selOptions: dayOptions(st.sel, st.plan[st.sel] || 'Descanso'),
+      selPastNote: selH.trained ? 'Sesión registrada · los días pasados no se editan' : 'Sin sesión registrada · los días pasados no se editan',
+      weekRows: weekRows,
+      wNow: W[W.length-1], wDelta: (W[W.length-1] - W[0]).toFixed(1) + ' kg', wPoints: pts, wFirstLabel: 'HACE 12 SEM',
+      volBars: volBars,
+      adhKcal: last30.filter(h => h.kcal <= g.kcal + 60).length + '/30',
+      adhTrain: last30.filter(h => h.trained).length + '/30',
+      prs: [
+        {name:'Press inclinado', when:'hace 2 días', val:'80 kg × 8'},
+        {name:'Remo con barra', when:'la semana pasada', val:'95 kg × 6'},
+        {name:'Sentadilla', when:'hace 11 días', val:'132.5 kg × 5'}
+      ],
+      goalRows: goalRows,
+      toggles: [
+        tRow('offline','Sin conexión','Todo se guarda en este dispositivo'),
+        tRow('haptics','Vibración','Aviso al completar una serie'),
+        tRow('kg','Kilogramos','Desactiva para libras'),
+        tRow('lock','Bloquear finanzas','Pedir Face ID antes de mostrar el dinero')
+      ],
+      resetAll: () => { try { localStorage.removeItem(KEY); } catch(e) {} this.setState({meals: seedMeals(), workout: seedWorkout(), exIdx:0, templates: seedTemplates(), curName:'Push A', customFoods:[], txns: seedTxns(), budgets: seedBudgets(), favs:[{label:'Café', amt:18, cat:'Comer fuera'},{label:'Trufi', amt:6, cat:'Transporte'},{label:'Mercado', amt:85, cat:'Mercado'}], goals:{kcal:2400,p:180,c:250,f:70}, weekPlan:['Push A','Pull A','Descanso','Legs A','Push B','Pull B','Descanso'], hist: buildHistory()}); }
+    };
+  }
+}
+</script>
+</body>
+</html>
