@@ -18,9 +18,7 @@ export default function SwipeRow({ id, onDelete, children, deleteLabel = 'Delete
   const dx = open ? swipe.x : 0;
 
   const reveal = () => {
-    dispatch({ type: 'swipeStart', id, x: 0 });
-    dispatch({ type: 'swipeMove', x: -96 });
-    dispatch({ type: 'swipeEnd' });
+    dispatch({ type: 'swipeReveal', id });
   };
 
   const close = () => {

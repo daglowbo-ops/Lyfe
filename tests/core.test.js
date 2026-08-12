@@ -104,6 +104,19 @@ test('deleting an expense is reversible and restores the exact transaction', () 
   assert.equal(restored.undo, null);
 });
 
+test('the visible row action reveals a stable delete rail without entering drag mode', () => {
+  const state = initialState(seedState(new Date()));
+  const item = state.txns[0];
+  const revealed = reducer(state, { type: 'swipeReveal', id: item.id });
+  assert.deepEqual(revealed.swipe, {
+    id: item.id,
+    x: -88,
+    base: -88,
+    startX: 0,
+    dragging: false,
+  });
+});
+
 test('food, workout, and bill deletions are reversible in their original position', () => {
   const state = initialState(seedState(new Date()));
 

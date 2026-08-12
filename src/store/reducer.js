@@ -114,6 +114,8 @@ export function reducer(state, action) {
       const base = state.swipe.id === a.id ? state.swipe.x : 0;
       return { ...state, swipe: { id: a.id, x: base, base, startX: a.x, dragging: true } };
     }
+    case 'swipeReveal':
+      return { ...state, swipe: { id: a.id, x: -88, base: -88, startX: 0, dragging: false } };
     case 'swipeMove': {
       const s = state.swipe;
       if (!s.dragging) return state;
