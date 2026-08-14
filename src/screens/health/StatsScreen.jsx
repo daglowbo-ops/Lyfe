@@ -1,273 +1,413 @@
 import Screen from '../../components/Screen.jsx';
-import { EmptyNote, GhostButton, Label, Meter, Mono, Panel } from '../../components/Primitives.jsx';
+import { GhostButton, Label, Meter, Mono, Panel } from '../../components/Primitives.jsx';
 import { useApp } from '../../store/AppProvider.jsx';
-import { goalOn, onTarget } from '../../store/selectors.js';
-import { addDays, key, startOfToday } from '../../lib/date.js';
-import { MONO, NUT, TRN, dim } from '../../lib/theme.js';
+import { parseKey, shortLabel, startOfToday } from '../../lib/date.js';
+import { INK, MONO, NUT, TRN, dim } from '../../lib/theme.js';
 import { displayWeight, weightUnit } from '../../lib/format.js';
+import {
+  bestCompletedSets,
+  nutritionSummary,
+  recentWeightEntries,
+  summarizeWeight,
+  workoutWeeks,
+} from './statsMetrics.js';
 
 const CHART_W = 300;
-const CHART_H = 108;
-const PLOT_TOP = 10;
-const PLOT_BOTTOM = 86;
+const CHART_H = 116;
+const PLOT_TOP = 12;
+const PLOT_BOTTOM = 92;
 
 export default function StatsScreen() {
   const { state, dispatch } = useApp();
   const today = startOfToday();
-
   const useKg = state.toggles.kg;
   const unit = weightUnit(useKg);
-  const weightEntries = state.weights
-    .filter((entry) => entry.date >= key(addDays(today, -83)))
-    .sort((a, b) => a.date.localeCompare(b.date));
-  const weights = weightEntries.map((entry) => displayWeight(entry.value, useKg));
-  const min = weights.length ? Math.min(...weights) : 0;
-  const max = weights.length ? Math.max(...weights) : 0;
-  const weightPoints = weights
-    .map((v, i) => {
-      const x = weights.length === 1 ? CHART_W / 2 : (i / (weights.length - 1)) * CHART_W;
-      const y = PLOT_BOTTOM - ((v - min) / (max - min || 1)) * (PLOT_BOTTOM - PLOT_TOP);
-      return { x, y, value: v };
-    });
-  const points = weightPoints.map((point) => `${point.x.toFixed(1)},${point.y.toFixed(1)}`).join(' ');
-  const areaPoints = weights.length > 1 ? `0,${PLOT_BOTTOM} ${points} ${CHART_W},${PLOT_BOTTOM}` : '';
-  const delta = weights.length > 1 ? weights.at(-1) - weights[0] : 0;
 
-  // Weekly session count from detailed archives, with legacy day summaries as fallback.
-  const volume = [];
-  for (let w = 11; w >= 0; w--) {
-    let sessions = 0;
-    for (let d = 0; d < 7; d++) {
-      const k = key(addDays(today, -(w * 7 + d)));
-      if (state.workoutHistory.some((item) => item.date === k) || state.hist[k]?.trained) sessions++;
-    }
-    volume.push(sessions);
-  }
-  const maxVol = Math.max(...volume, 1);
-  const hasWorkouts = volume.some((sessions) => sessions > 0);
-  const averageVolume = volume.reduce((sum, sessions) => sum + sessions, 0) / volume.length;
-
-  // Adherence over the last 30 closed days.
-  const last30 = Array.from({ length: 30 }, (_, i) => key(addDays(today, -(i + 1))))
-    .map((k) => ({ k, rec: state.hist[k] }))
-    .filter((x) => x.rec);
-  const kcalHit = last30.filter((x) => onTarget(x.rec.kcal, goalOn(state, x.k).kcal)).length;
-  const trainHit = last30.filter((x) => x.rec.trained).length;
-  const personalBests = bestSets(state);
+  const weightEntries = recentWeightEntries(state.weights, today);
+  const weightTrend = summarizeWeight(weightEntries);
+  const weeks = workoutWeeks(state, today);
+  const currentWeek = weeks.at(-1).sessions;
+  const previousWeek = weeks.at(-2).sessions;
+  const totalSessions = weeks.reduce((sum, week) => sum + week.sessions, 0);
+  const nutrition = nutritionSummary(state, today);
+  const bestSets = bestCompletedSets(state.workoutHistory).slice(0, 4);
 
   return (
     <Screen>
-      <Label>LAST 12 WEEKS</Label>
-      <h1 style={{ fontSize: 30, fontWeight: 600, letterSpacing: -1, margin: '5px 0 0' }}>Progress</h1>
+      <header>
+        <h1 style={{ fontSize: 30, fontWeight: 600, letterSpacing: -1, lineHeight: 1.1, margin: 0 }}>
+          Progress
+        </h1>
+        <p style={{ maxWidth: 310, margin: '8px 0 0', color: dim(0.62), fontSize: 14.5, lineHeight: 1.45 }}>
+          Trends from the health records you actually logged.
+        </p>
+      </header>
 
-      <Panel style={{ marginTop: 22 }}>
-        <Label>BODY WEIGHT</Label>
-        {weights.length ? (
-          <>
-            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginTop: 6 }}>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-                <span style={{ fontSize: 38, fontWeight: 600, letterSpacing: -2, lineHeight: 1 }}>
-                  {weights.at(-1)}
-                </span>
-                <span style={{ fontSize: 13, color: dim(0.6) }}>{unit}</span>
-              </div>
-              <Mono size={12} color={NUT}>
-                {weights.length === 1 ? 'baseline' : `${delta > 0 ? '+' : ''}${delta.toFixed(1)} ${unit}`}
-              </Mono>
-            </div>
-            <svg
-              viewBox={`0 0 ${CHART_W} ${CHART_H}`}
-              preserveAspectRatio="none"
-              role="img"
-              aria-label={weights.length === 1
-                ? `Body weight baseline: ${weights[0]} ${unit}`
-                : `Body weight, from ${weights[0]} to ${weights.at(-1)} ${unit} over 12 weeks`}
-              style={{ width: '100%', height: CHART_H, marginTop: 14, overflow: 'visible' }}
-            >
-              {[PLOT_TOP, (PLOT_TOP + PLOT_BOTTOM) / 2, PLOT_BOTTOM].map((y) => (
-                <line
-                  key={y}
-                  x1="0"
-                  x2={CHART_W}
-                  y1={y}
-                  y2={y}
-                  stroke="rgba(233,229,220,0.09)"
-                  strokeWidth="1"
-                  strokeDasharray="3 5"
-                  vectorEffect="non-scaling-stroke"
-                />
-              ))}
-              {weights.length > 1 ? (
-                <>
-                  <polygon points={areaPoints} fill={NUT} opacity="0.06" />
-                  <polyline
-                    points={points}
-                    fill="none"
-                    stroke={NUT}
-                    strokeWidth="1.8"
-                    strokeLinejoin="round"
-                    strokeLinecap="round"
-                    vectorEffect="non-scaling-stroke"
-                  />
-                  <circle cx={weightPoints.at(-1).x} cy={weightPoints.at(-1).y} r="3.5" fill={NUT} />
-                  <circle cx={weightPoints.at(-1).x} cy={weightPoints.at(-1).y} r="7" fill="none" stroke={NUT} opacity="0.25" />
-                </>
-              ) : (
-                <circle cx={weightPoints[0].x} cy={weightPoints[0].y} r="3" fill={NUT} />
-              )}
-            </svg>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: MONO, fontSize: 12, color: dim(0.58), marginTop: 6 }}>
-              <span>{weightEntries[0].date}</span>
-              <span>{weightEntries.at(-1).date}</span>
-            </div>
-          </>
-        ) : (
-          <EmptyNote
-            title="No weight history yet"
-            style={{ marginTop: 14, padding: '22px 18px' }}
-            action={(
-              <GhostButton className="outline-nut" style={{ width: '100%', borderColor: NUT, color: NUT }} onClick={() => dispatch({ type: 'openProfile' })}>
-                Log weight in Profile
-              </GhostButton>
-            )}
-          >
-            Add your first entry to create a real trend line.
-          </EmptyNote>
-        )}
-      </Panel>
+      <section aria-labelledby="weight-trend-title" style={{ marginTop: 24 }}>
+        <Panel style={{ padding: '20px 18px 18px' }}>
+          <SectionHeading
+            id="weight-trend-title"
+            title="Weight trend"
+            detail="12 weeks"
+          />
+          {weightTrend ? (
+            <WeightTrend trend={weightTrend} entries={weightEntries} useKg={useKg} unit={unit} />
+          ) : (
+            <EmptySection
+              title="No weight trend yet"
+              copy="Log a first weigh-in, then add another on a later day to reveal change and pace."
+              action="Log weight in Profile"
+              accent={NUT}
+              onClick={() => dispatch({ type: 'openProfile' })}
+            />
+          )}
+        </Panel>
+      </section>
 
-      <Panel style={{ marginTop: 14 }}>
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
-          <div>
-            <Label>WORKOUTS PER WEEK</Label>
-            {hasWorkouts && <div style={{ marginTop: 7, fontSize: 23, fontWeight: 600, letterSpacing: -0.8 }}>{volume.at(-1)} this week</div>}
-          </div>
-          {hasWorkouts && <Mono color={dim(0.6)}>{averageVolume.toFixed(1)} avg</Mono>}
-        </div>
-        {hasWorkouts ? (
-          <>
-            <div style={{ position: 'relative', display: 'flex', alignItems: 'flex-end', gap: 6, height: 92, marginTop: 18, borderBottom: `1px solid ${dim(0.12)}` }}>
-              {volume.map((v, i) => (
-                <div
-                  key={i}
-                  title={`${v} workouts`}
-                  style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', height: '100%' }}
-                >
-                  <div
-                    className="grow-in"
-                    style={{
-                      borderRadius: '4px 4px 2px 2px',
-                      height: v ? `${Math.max(4, Math.round((v / maxVol) * 100))}%` : 2,
-                      background: i === volume.length - 1 ? TRN : dim(0.2),
-                    }}
-                  />
-                </div>
-              ))}
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: MONO, fontSize: 12, color: dim(0.58), marginTop: 8 }}>
-              <span>W1</span>
-              <span>W12</span>
-            </div>
-          </>
-        ) : (
-          <EmptyNote
-            title="No completed workouts yet"
-            style={{ marginTop: 14, padding: '22px 18px' }}
-            action={(
-              <GhostButton className="outline-trn" style={{ width: '100%', borderColor: TRN, color: TRN }} onClick={() => dispatch({ type: 'screen', screen: 'train' })}>
-                Start a workout
-              </GhostButton>
-            )}
-          >
-            Finish a workout to begin your weekly history.
-          </EmptyNote>
-        )}
-      </Panel>
-
-      <Panel style={{ marginTop: 14 }}>
-        <Label>30 DAY CONSISTENCY</Label>
-        <ConsistencyRow
-          label="Calories on target"
-          value={last30.length ? `${kcalHit}/${last30.length}` : '—'}
-          percent={last30.length ? (kcalHit / last30.length) * 100 : 0}
-          color={NUT}
+      <section aria-labelledby="training-rhythm-title" style={{ marginTop: 22 }}>
+        <SectionHeading
+          id="training-rhythm-title"
+          title="Training rhythm"
+          detail="Four rolling weeks"
         />
-        <ConsistencyRow
-          label="Workout days"
-          value={last30.length ? `${trainHit}/${last30.length}` : '—'}
-          percent={last30.length ? (trainHit / last30.length) * 100 : 0}
-          color={TRN}
-          last
-        />
-      </Panel>
-
-      <Label style={{ marginTop: 26 }}>BEST SET BY EXERCISE</Label>
-      {personalBests.map((p) => (
-        <div
-          key={p.name}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '15px 0',
-            borderBottom: `1px solid ${dim(0.07)}`,
-          }}
-        >
-          <div>
-            <div style={{ fontSize: 15, fontWeight: 500, letterSpacing: -0.2 }}>{p.name}</div>
-            <div style={{ fontSize: 12, color: dim(0.6), marginTop: 2 }}>{p.note}</div>
+        {totalSessions > 0 ? (
+          <div style={{ marginTop: 14 }}>
+            <TrainingSummary
+              weeks={weeks}
+              current={currentWeek}
+              previous={previousWeek}
+              total={totalSessions}
+            />
           </div>
-          <Mono size={14} color={TRN}>
-            {p.value}
-          </Mono>
-        </div>
-      ))}
-      {personalBests.length === 0 && (
-        <EmptyNote style={{ marginTop: 12, padding: '22px 18px' }}>
-          Personal bests appear after you complete and save a workout.
-        </EmptyNote>
-      )}
+        ) : (
+          <EmptySection
+            title="No training days recorded yet"
+            copy="Finish a workout to start a weekly rhythm. Planned sessions are not counted as training days."
+            action="Start a workout"
+            accent={TRN}
+            onClick={() => dispatch({ type: 'screen', screen: 'train' })}
+          />
+        )}
+      </section>
+
+      <section aria-labelledby="nutrition-title" style={{ marginTop: 26 }}>
+        <SectionHeading
+          id="nutrition-title"
+          title="Nutrition follow-through"
+          detail="14 closed days"
+        />
+        {nutrition.loggedDays > 0 ? (
+          <NutritionSummary summary={nutrition} />
+        ) : (
+          <EmptySection
+            title="No nutrition history yet"
+            copy="Log food on a day to measure calorie and protein follow-through against that day’s goals."
+            action="Log food"
+            accent={NUT}
+            onClick={() => dispatch({ type: 'screen', screen: 'food' })}
+          />
+        )}
+      </section>
+
+      <section aria-labelledby="best-sets-title" style={{ marginTop: 28 }}>
+        <SectionHeading
+          id="best-sets-title"
+          title="Recorded best sets"
+          detail="Completed workouts"
+        />
+        {bestSets.length > 0 ? (
+          <div style={{ marginTop: 8, borderTop: `1px solid ${dim(0.09)}` }}>
+            {bestSets.map((set) => (
+              <BestSetRow key={set.name} set={set} useKg={useKg} unit={unit} />
+            ))}
+          </div>
+        ) : (
+          <EmptySection
+            title="No completed set history"
+            copy="Best sets appear after a workout is fully completed and saved."
+            action="Go to training"
+            accent={TRN}
+            onClick={() => dispatch({ type: 'screen', screen: 'train' })}
+          />
+        )}
+      </section>
     </Screen>
   );
 }
 
-function ConsistencyRow({ label, value, percent, color, last }) {
+function SectionHeading({ id, title, detail }) {
   return (
-    <div style={{ padding: '15px 0', borderBottom: last ? 'none' : `1px solid ${dim(0.08)}` }}>
-      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12, marginBottom: 9 }}>
-        <span style={{ fontSize: 14.5, fontWeight: 500 }}>{label}</span>
-        <Mono size={13} color={color}>{value}</Mono>
-      </div>
-      <Meter value={`${percent}%`} color={color} height={4} track={dim(0.09)} label={`${label}: ${Math.round(percent)}%`} />
+    <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 14 }}>
+      <h2 id={id} style={{ margin: 0, fontSize: 19, lineHeight: 1.2, fontWeight: 600, letterSpacing: -0.45 }}>
+        {title}
+      </h2>
+      <Label style={{ maxWidth: '50%', letterSpacing: 0.8, textAlign: 'right', overflowWrap: 'anywhere' }}>{detail}</Label>
     </div>
   );
 }
 
-/**
- * The heaviest set from completed workout archives. Planned template weights
- * are intentionally excluded because they are not personal records.
- */
-function bestSets(state) {
-  const best = new Map();
-  const consider = (exercises, note) => {
-    for (const e of exercises) {
-      for (const s of e.sets) {
-        const cur = best.get(e.name);
-        if (!cur || s.w > cur.w) best.set(e.name, { w: s.w, r: s.r, note });
-      }
-    }
-  };
-  for (const session of state.workoutHistory) consider(session.exercises, session.date);
+function WeightTrend({ trend, entries, useKg, unit }) {
+  const displayEntries = entries.map((entry) => ({
+    ...entry,
+    displayValue: displayWeight(entry.value, useKg),
+  }));
+  const latest = displayWeight(trend.latest.value, useKg);
+  const change = displayWeight(Math.abs(trend.change), useKg);
+  const signedChange = trend.change === 0 ? `0.0 ${unit}` : `${trend.change > 0 ? '+' : '−'}${change.toFixed(1)} ${unit}`;
+  const paceValue = trend.weeklyPace === null
+    ? null
+    : displayWeight(Math.abs(trend.weeklyPace), useKg);
+  const signedPace = trend.weeklyPace === null
+    ? 'Need 2 dates'
+    : `${trend.weeklyPace > 0 ? '+' : trend.weeklyPace < 0 ? '−' : ''}${paceValue.toFixed(1)} ${unit}/wk`;
 
-  const useKg = state.toggles.kg;
-  const unit = weightUnit(useKg);
+  return (
+    <>
+      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 16, marginTop: 18 }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+          <span style={{ fontSize: 42, fontWeight: 600, letterSpacing: -1.65, lineHeight: 0.95 }}>
+            {latest.toFixed(1)}
+          </span>
+          <Mono size={13}>{unit}</Mono>
+        </div>
+        <Mono size={13} color={INK}>{signedPace}</Mono>
+      </div>
+      <WeightChart entries={displayEntries} unit={unit} />
+      <MetricStrip
+        items={[
+          { value: signedChange, label: 'Change' },
+          { value: `${trend.spanDays} days`, label: 'Measured span' },
+          { value: String(entries.length), label: entries.length === 1 ? 'Weigh-in' : 'Weigh-ins' },
+        ]}
+      />
+    </>
+  );
+}
 
-  return [...best.entries()]
-    .sort((a, b) => b[1].w - a[1].w)
-    .slice(0, 3)
-    .map(([name, v]) => ({
-      name,
-      note: v.note,
-      value: `${displayWeight(v.w, useKg, useKg ? 1 : 0)} ${unit} × ${v.r}`,
-    }));
+function WeightChart({ entries, unit }) {
+  const values = entries.map((entry) => entry.displayValue);
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const firstDate = entries[0].date;
+  const lastDate = entries.at(-1).date;
+  const firstTime = parseKey(firstDate).getTime();
+  const dateSpan = Math.max(1, parseKey(lastDate).getTime() - firstTime);
+  const points = entries.map((entry) => {
+    const x = entries.length === 1
+      ? CHART_W / 2
+      : ((parseKey(entry.date).getTime() - firstTime) / dateSpan) * CHART_W;
+    const y = min === max
+      ? (PLOT_TOP + PLOT_BOTTOM) / 2
+      : PLOT_BOTTOM - ((entry.displayValue - min) / (max - min)) * (PLOT_BOTTOM - PLOT_TOP);
+    return { ...entry, x, y };
+  });
+  const polyline = points.map((point) => `${point.x.toFixed(1)},${point.y.toFixed(1)}`).join(' ');
+  const area = points.length > 1 ? `0,${PLOT_BOTTOM} ${polyline} ${CHART_W},${PLOT_BOTTOM}` : '';
+  const accessibleLabel = points.length === 1
+    ? `One weigh-in of ${values[0].toFixed(1)} ${unit} on ${firstDate}`
+    : `Weight changed from ${values[0].toFixed(1)} to ${values.at(-1).toFixed(1)} ${unit} between ${firstDate} and ${lastDate}`;
+
+  return (
+    <>
+      <svg
+        viewBox={`0 0 ${CHART_W} ${CHART_H}`}
+        preserveAspectRatio="none"
+        role="img"
+        aria-label={accessibleLabel}
+        style={{ display: 'block', width: '100%', height: CHART_H, marginTop: 16, overflow: 'visible' }}
+      >
+        {[PLOT_TOP, (PLOT_TOP + PLOT_BOTTOM) / 2, PLOT_BOTTOM].map((y) => (
+          <line
+            key={y}
+            x1="0"
+            x2={CHART_W}
+            y1={y}
+            y2={y}
+            stroke={dim(0.09)}
+            strokeWidth="1"
+            strokeDasharray="3 6"
+            vectorEffect="non-scaling-stroke"
+          />
+        ))}
+        {points.length > 1 ? (
+          <>
+            <polygon points={area} fill={NUT} opacity="0.055" />
+            <polyline
+              points={polyline}
+              fill="none"
+              stroke={NUT}
+              strokeWidth="2"
+              strokeLinejoin="round"
+              strokeLinecap="round"
+              vectorEffect="non-scaling-stroke"
+            />
+          </>
+        ) : null}
+        {points.map((point, index) => (
+          <circle
+            key={`${point.date}-${point.displayValue}`}
+            cx={point.x}
+            cy={point.y}
+            r={index === points.length - 1 ? 3.8 : 2.2}
+            fill={index === points.length - 1 ? NUT : '#111110'}
+            stroke={NUT}
+            strokeWidth="1.5"
+            vectorEffect="non-scaling-stroke"
+          />
+        ))}
+      </svg>
+      <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: MONO, fontSize: 12, color: dim(0.58), marginTop: 2 }}>
+        <span>{shortLabel(parseKey(firstDate))}</span>
+        <span>{shortLabel(parseKey(lastDate))}</span>
+      </div>
+    </>
+  );
+}
+
+function TrainingSummary({ weeks, current, previous, total }) {
+  const highest = Math.max(...weeks.map((week) => week.sessions), 1);
+  const comparison = current === previous
+    ? 'Same as the previous 7 days'
+    : `${Math.abs(current - previous)} ${current > previous ? 'more' : 'fewer'} than the previous 7 days`;
+
+  return (
+    <Panel style={{ padding: '18px 18px 16px' }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 16 }}>
+        <div>
+          <span style={{ fontSize: 31, fontWeight: 600, lineHeight: 1, letterSpacing: -1.1 }}>{current}</span>
+          <span style={{ marginLeft: 8, color: dim(0.66), fontSize: 14.5 }}>
+            {current === 1 ? 'training day' : 'training days'} in 7 days
+          </span>
+        </div>
+        <Mono color={TRN}>{(total / weeks.length).toFixed(1)} / week</Mono>
+      </div>
+      <div
+        role="img"
+        aria-label={`Recorded training days by rolling week, oldest to newest: ${weeks.map((week) => week.sessions).join(', ')}`}
+        style={{ display: 'grid', gridTemplateColumns: `repeat(${weeks.length}, minmax(0, 1fr))`, gap: 10, height: 88, marginTop: 22, alignItems: 'end' }}
+      >
+        {weeks.map((week, index) => (
+          <div key={week.start} style={{ display: 'grid', gridTemplateRows: '1fr auto', gap: 8, height: '100%', alignItems: 'end' }}>
+            <div style={{ height: '100%', display: 'flex', alignItems: 'flex-end', borderBottom: `1px solid ${dim(0.12)}` }}>
+              <div
+                className="grow-in"
+                style={{
+                  width: '100%',
+                  minHeight: week.sessions ? 8 : 2,
+                  height: `${week.sessions ? Math.max(10, (week.sessions / highest) * 100) : 2}%`,
+                  borderRadius: 12,
+                  background: index === weeks.length - 1 ? TRN : dim(0.22),
+                }}
+              />
+            </div>
+            <Mono size={12} color={index === weeks.length - 1 ? TRN : dim(0.58)} style={{ textAlign: 'center' }}>
+              {week.sessions}
+            </Mono>
+          </div>
+        ))}
+      </div>
+      <div style={{ marginTop: 15, paddingTop: 13, borderTop: `1px solid ${dim(0.08)}`, color: dim(0.66), fontSize: 13.5 }}>
+        {comparison}. Each training date is counted once, even when both archive formats contain it.
+      </div>
+    </Panel>
+  );
+}
+
+function NutritionSummary({ summary }) {
+  const calorieRate = (summary.calorieHits / summary.loggedDays) * 100;
+  const proteinRate = (summary.proteinHits / summary.loggedDays) * 100;
+  return (
+    <div style={{ marginTop: 14, borderTop: `1px solid ${dim(0.1)}` }}>
+      <AdherenceRow
+        label="Within calorie target"
+        count={`${summary.calorieHits} of ${summary.loggedDays}`}
+        percent={calorieRate}
+      />
+      <AdherenceRow
+        label="Protein goal reached"
+        count={`${summary.proteinHits} of ${summary.loggedDays}`}
+        percent={proteinRate}
+      />
+      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 16, paddingTop: 14 }}>
+        <div style={{ fontSize: 13.5, color: dim(0.62), lineHeight: 1.45 }}>
+          {summary.loggedDays === summary.days
+            ? 'Every closed day has nutrition data.'
+            : 'Unlogged days are missing coverage, not failed targets.'}
+        </div>
+        <Mono color={NUT} style={{ flexShrink: 0 }}>
+          {summary.loggedDays}/{summary.days} logged
+        </Mono>
+      </div>
+    </div>
+  );
+}
+
+function AdherenceRow({ label, count, percent }) {
+  return (
+    <div style={{ padding: '16px 0', borderBottom: `1px solid ${dim(0.08)}` }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 16, marginBottom: 10 }}>
+        <span style={{ fontSize: 14.5, fontWeight: 500 }}>{label}</span>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 9 }}>
+          <Mono color={NUT}>{count}</Mono>
+          <Mono size={12}>{Math.round(percent)}%</Mono>
+        </div>
+      </div>
+      <Meter value={`${percent}%`} color={NUT} height={4} track={dim(0.09)} label={`${label}: ${Math.round(percent)} percent of logged days`} />
+    </div>
+  );
+}
+
+function MetricStrip({ items }) {
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: `repeat(${items.length}, minmax(0, 1fr))`, marginTop: 16, borderTop: `1px solid ${dim(0.09)}` }}>
+      {items.map((item, index) => (
+        <div
+          key={item.label}
+          style={{
+            minWidth: 0,
+            padding: '14px 10px 0',
+            paddingLeft: index === 0 ? 0 : 10,
+            borderLeft: index === 0 ? 'none' : `1px solid ${dim(0.08)}`,
+          }}
+        >
+          <Mono size={13} color={INK} style={{ display: 'block' }}>{item.value}</Mono>
+          <Label style={{ marginTop: 5, letterSpacing: 0.7, lineHeight: 1.25 }}>{item.label}</Label>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function BestSetRow({ set, useKg, unit }) {
+  const weight = displayWeight(set.weight, useKg, useKg ? 1 : 0);
+  const context = [set.workoutName, set.date].filter(Boolean).join(' · ');
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: 14, alignItems: 'center', padding: '15px 0', borderBottom: `1px solid ${dim(0.08)}` }}>
+      <div style={{ minWidth: 0 }}>
+        <div style={{ fontSize: 15, fontWeight: 500, letterSpacing: -0.2, overflowWrap: 'anywhere' }}>{set.name}</div>
+        <div style={{ marginTop: 3, color: dim(0.6), fontSize: 12.5, lineHeight: 1.35, overflowWrap: 'anywhere' }}>
+          {context}
+        </div>
+      </div>
+      <Mono size={14} color={TRN} style={{ whiteSpace: 'nowrap' }}>
+        {weight} {unit} × {set.reps}
+      </Mono>
+    </div>
+  );
+}
+
+function EmptySection({ title, copy, action, accent, onClick }) {
+  return (
+    <div style={{ marginTop: 15, paddingTop: 15, borderTop: `1px solid ${dim(0.09)}` }}>
+      <div style={{ fontSize: 15, fontWeight: 600, letterSpacing: -0.2 }}>{title}</div>
+      <p style={{ margin: '5px 0 14px', color: dim(0.62), fontSize: 13.5, lineHeight: 1.45 }}>{copy}</p>
+      <GhostButton
+        className={accent === TRN ? 'outline-trn' : 'outline-nut'}
+        style={{ width: '100%', borderColor: accent, color: accent }}
+        onClick={onClick}
+      >
+        {action}
+      </GhostButton>
+    </div>
+  );
 }

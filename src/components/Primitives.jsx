@@ -54,10 +54,10 @@ export function ScreenTitle({ eyebrow, title, right }) {
   return (
     <header style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
       <div>
-        <Label>{eyebrow}</Label>
-        <h1 style={{ margin: '5px 0 0', fontSize: 30, fontWeight: 600, letterSpacing: -1, lineHeight: 1.1 }}>
+        <h1 style={{ margin: 0, fontSize: 30, fontWeight: 600, letterSpacing: -1, lineHeight: 1.1 }}>
           {title}
         </h1>
+        {eyebrow && <Label style={{ marginTop: 6 }}>{eyebrow}</Label>}
       </div>
       {right}
     </header>
@@ -137,12 +137,26 @@ export function Meter({ value, color, height = 5, track = dim(0.1), label = 'Pro
 
 /** Two-state pill group — Month/Week, Search/Quick, Spending/Saved. */
 export function SegmentedControl({ options, value, onChange, style, ariaLabel = 'View options' }) {
+  const selectedIndex = Math.max(0, options.findIndex((option) => option.value === value));
   return (
     <div
       role="group"
       aria-label={ariaLabel}
-      style={{ display: 'flex', gap: 4, padding: 4, borderRadius: 14, background: dim(0.07), ...style }}
+      style={{ position: 'relative', display: 'flex', gap: 0, padding: 4, borderRadius: 14, background: dim(0.07), ...style }}
     >
+      <span
+        aria-hidden="true"
+        style={{
+          position: 'absolute',
+          insetBlock: 4,
+          insetInlineStart: 4,
+          width: `calc(${100 / options.length}% - ${8 / options.length}px)`,
+          borderRadius: 12,
+          background: INK,
+          transform: `translateX(${selectedIndex * 100}%)`,
+          transition: 'transform .36s cubic-bezier(.16,1,.3,1)',
+        }}
+      />
       {options.map((o) => {
         const on = o.value === value;
         return (
@@ -152,6 +166,8 @@ export function SegmentedControl({ options, value, onChange, style, ariaLabel = 
             aria-pressed={on}
             onClick={() => onChange(o.value)}
             style={{
+              position: 'relative',
+              zIndex: 1,
               flex: 1,
               height: 44,
               borderRadius: 12,
@@ -160,8 +176,8 @@ export function SegmentedControl({ options, value, onChange, style, ariaLabel = 
               justifyContent: 'center',
               fontSize: 15,
               fontWeight: 500,
-              transition: 'background .25s, color .25s',
-              background: on ? INK : 'transparent',
+              transition: 'color .28s cubic-bezier(.16,1,.3,1)',
+              background: 'transparent',
               color: on ? '#0D0D0C' : dim(0.6),
             }}
           >

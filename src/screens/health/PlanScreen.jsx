@@ -13,8 +13,8 @@ export default function PlanScreen() {
   const { state, patch } = useApp();
   return (
     <Screen>
-      <Label>{monthLabel(startOfToday())}</Label>
-      <h1 style={{ fontSize: 30, fontWeight: 600, letterSpacing: -1, margin: '5px 0 0' }}>Plan</h1>
+      <h1 style={{ fontSize: 30, fontWeight: 600, letterSpacing: -1, margin: 0 }}>Plan</h1>
+      <Label style={{ marginTop: 6 }}>{monthLabel(startOfToday())}</Label>
       <SegmentedControl
         style={{ marginTop: 18 }}
         value={state.planMode}
@@ -35,13 +35,18 @@ function MonthView() {
   const todayKey = key(today);
   const monthStart = addMonths(today, state.calOff);
   const totals = dayTotals(state.meals);
-  const trainedToday = workoutTotals(state.workout).done > 0;
+  const workoutByDate = new Map((state.workoutHistory || []).map((session) => [session.date, session]));
+  const trainedToday = workoutTotals(state.workout).done > 0 || workoutByDate.has(todayKey);
 
-  const recordFor = (k) =>
-    k === todayKey ? { kcal: totals.kcal, p: totals.p, trained: trainedToday } : state.hist[k] || {};
+  const recordFor = (k) => {
+    if (k === todayKey) return { kcal: totals.kcal, p: totals.p, trained: trainedToday };
+    const record = state.hist[k] || {};
+    return { ...record, trained: workoutByDate.has(k) || Boolean(record.trained) };
+  };
 
   const selDate = parseKey(state.sel);
   const selRec = recordFor(state.sel);
+  const selWorkout = workoutByDate.get(state.sel);
   const selGoal = goalOn(state, state.sel);
   const isPast = state.sel < todayKey;
 
@@ -142,23 +147,7 @@ function MonthView() {
         </div>
 
         {isPast ? (
-          <div
-            style={{
-              marginTop: 16,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 10,
-              height: 50,
-              borderRadius: 14,
-              border: `1px solid ${dim(0.07)}`,
-              padding: '0 16px',
-            }}
-          >
-            <span style={{ width: 14, height: 11, borderRadius: 3, border: `1.4px solid ${dim(0.35)}` }} />
-            <span style={{ fontSize: 13.5, color: dim(0.62) }}>
-              {selRec.trained ? 'Workout recorded' : 'No workout recorded'} · past days are read-only
-            </span>
-          </div>
+          <PastWorkout session={selWorkout} hasLegacyRecord={selRec.trained} />
         ) : (
           <div style={{ marginTop: 16 }}>
             <Label color={TRN} size={10} style={{ letterSpacing: 1.2, marginBottom: 8 }}>
@@ -327,6 +316,88 @@ function MiniStat({ label, value, unit, note }) {
       <div style={{ fontSize: 12, color: dim(0.58), marginTop: 3 }}>{note}</div>
     </div>
   );
+}
+
+function PastWorkout({ session, hasLegacyRecord }) {
+  if (!session) {
+    return (
+      <section
+        aria-label="Past workout"
+        style={{ marginTop: 18, paddingTop: 16, borderTop: `1px solid ${dim(0.08)}` }}
+      >
+        <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12 }}>
+          <div style={{ fontSize: 15, fontWeight: 500 }}>
+            {hasLegacyRecord ? 'Workout details unavailable' : 'No completed workout'}
+          </div>
+          <Label style={{ flexShrink: 0, letterSpacing: 1 }}>READ ONLY</Label>
+        </div>
+        <div style={{ marginTop: 5, color: dim(0.58), fontSize: 12.5, lineHeight: 1.4 }}>
+          {hasLegacyRecord
+            ? 'This earlier day was marked as trained before detailed workout archives were available.'
+            : 'There is no saved workout completion for this day.'}
+        </div>
+      </section>
+    );
+  }
+
+  const exercises = Array.isArray(session.exercises) ? session.exercises : [];
+  const totalSets = exercises.reduce((sum, exercise) => sum + (exercise.sets?.length || 0), 0);
+
+  return (
+    <section
+      aria-label={`Completed workout: ${session.name || 'Workout'}`}
+      style={{ marginTop: 18, paddingTop: 16, borderTop: `1px solid ${dim(0.08)}` }}
+    >
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
+        <div style={{ minWidth: 0 }}>
+          <h2 style={{ margin: 0, fontSize: 19, fontWeight: 600, letterSpacing: -0.45, lineHeight: 1.2 }}>
+            {session.name || 'Completed workout'}
+          </h2>
+          <div style={{ marginTop: 4, fontSize: 12.5, color: dim(0.6) }}>
+            {exercises.length} {exercises.length === 1 ? 'exercise' : 'exercises'} · {totalSets} {totalSets === 1 ? 'set' : 'sets'}
+          </div>
+        </div>
+        <Label color={TRN} style={{ flexShrink: 0, letterSpacing: 1 }}>COMPLETED</Label>
+      </div>
+
+      <div style={{ marginTop: 13 }}>
+        {exercises.map((exercise, index) => (
+          <div
+            key={`${exercise.name || 'exercise'}-${index}`}
+            style={{
+              minHeight: 44,
+              padding: '10px 0',
+              borderTop: `1px solid ${dim(0.07)}`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 12,
+            }}
+          >
+            <span style={{ minWidth: 0, overflowWrap: 'anywhere', fontSize: 14.5, fontWeight: 500, lineHeight: 1.3 }}>
+              {exercise.name || `Exercise ${index + 1}`}
+            </span>
+            <Mono size={12} color={dim(0.62)} style={{ flexShrink: 0, textAlign: 'right' }}>
+              {setSummary(exercise.sets)}
+            </Mono>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ paddingTop: 10, borderTop: `1px solid ${dim(0.07)}`, fontSize: 12, color: dim(0.56), lineHeight: 1.4 }}>
+        Read-only completion record · later plan changes do not alter it
+      </div>
+    </section>
+  );
+}
+
+function setSummary(rawSets) {
+  const sets = Array.isArray(rawSets) ? rawSets : [];
+  if (!sets.length) return 'No sets';
+  const reps = sets.map((set) => Number(set.r) || 0);
+  const sameReps = reps.every((rep) => rep === reps[0]);
+  if (sameReps) return `${sets.length} × ${reps[0]} reps`;
+  return `${sets.length} sets · ${Math.min(...reps)}–${Math.max(...reps)} reps`;
 }
 
 const Dot = ({ color }) => (

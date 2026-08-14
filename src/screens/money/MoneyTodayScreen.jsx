@@ -2,7 +2,9 @@ import Screen from '../../components/Screen.jsx';
 import SwipeRow from '../../components/SwipeRow.jsx';
 import { Avatar, Card, Chip, Label, Meter, Mono, PrimaryButton, ScreenTitle, EmptyNote } from '../../components/Primitives.jsx';
 import { useApp } from '../../store/AppProvider.jsx';
-import { daysLeftInMonth, totalBudget, totalSpent, transactionsForMonth } from '../../store/selectors.js';
+import {
+  daysLeftInMonth, incomeSummary, totalBudget, totalSpent, transactionsForMonth,
+} from '../../store/selectors.js';
 import { categoryLabel } from '../../data/money.js';
 import { MON_SHORT, key, monthLabel, startOfToday } from '../../lib/date.js';
 import { money, money0 } from '../../lib/format.js';
@@ -16,6 +18,7 @@ export default function MoneyTodayScreen() {
   const today = startOfToday();
 
   const budget = totalBudget(state.budgets);
+  const income = incomeSummary(state, today);
   const spent = totalSpent(state.txns);
   const monthTxns = transactionsForMonth(state.txns, today);
   const spentToday = monthTxns.filter((t) => t.date === key(today)).reduce((a, t) => a + t.amt, 0);
@@ -55,7 +58,7 @@ export default function MoneyTodayScreen() {
 
       <Card style={{ marginTop: 22 }}>
         <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
-          <Label color={MNY}>AVAILABLE THIS MONTH</Label>
+          <Label color={MNY}>BUDGET LEFT THIS MONTH</Label>
           <Mono color={dim(0.6)}>
             {money0(spent)} / {money0(budget)}
           </Mono>
@@ -72,6 +75,32 @@ export default function MoneyTodayScreen() {
           <Cell label="PER DAY" value={hasBudget ? money0(Math.max(0, (budget - spent) / daysLeft)) : 'Set budget'} />
           <Cell label="LEFT" value={`${daysLeft} days`} />
         </div>
+        <button
+          type="button"
+          onClick={() => dispatch({ type: 'moneyScreen', screen: 'budget' })}
+          style={{
+            width: '100%',
+            minHeight: 48,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 12,
+            marginTop: 14,
+            paddingTop: 13,
+            borderTop: `1px solid ${dim(0.09)}`,
+            textAlign: 'left',
+          }}
+        >
+          <div>
+            <Label style={{ letterSpacing: 1.05 }}>CONFIRMED INCOME</Label>
+            {income.expectedVariable > 0 && (
+              <div style={{ color: dim(0.58), fontSize: 12, lineHeight: 1.35, marginTop: 3 }}>
+                {money0(income.expectedVariable)} expected excluded
+              </div>
+            )}
+          </div>
+          <Mono size={14} color={MNY}>{money0(income.confirmed)}</Mono>
+        </button>
         {!hasBudget && (
           <button
             className="muted-link"

@@ -38,11 +38,21 @@ export function rolloverData(state, nextDate) {
 
   const saved = dailyLogs[nextDate];
   const fresh = workoutForPlan(state, nextDate);
+  const closingMonth = state.activeDate.slice(0, 7);
+  const incomeHistory = {
+    ...(state.incomeHistory || {}),
+    [closingMonth]: Number.isFinite(state.fixedIncome)
+      ? state.fixedIncome
+      : Number.isFinite(state.income)
+        ? state.income
+        : 0,
+  };
   return {
     ...state,
     activeDate: nextDate,
     dailyLogs,
     hist,
+    incomeHistory,
     meals: saved?.meals || [],
     workout: saved?.workout?.length ? saved.workout : fresh.exercises,
     curName: saved?.curName || fresh.name,

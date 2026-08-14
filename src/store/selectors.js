@@ -55,6 +55,36 @@ export const totalSpent = (txns, date = startOfToday()) =>
 
 export const totalBudget = (budgets) => budgets.reduce((a, b) => a + b.limit, 0);
 
+export function incomeSummary(state, date = startOfToday()) {
+  const month = monthKey(date);
+  const history = state.incomeHistory || {};
+  const hasHistoricBase = Object.hasOwn(history, month) && Number.isFinite(history[month]);
+  const currentMonth = month === monthKey(startOfToday());
+  const currentBase = Number.isFinite(state.fixedIncome)
+    ? state.fixedIncome
+    : Number.isFinite(state.income)
+      ? state.income
+      : 0;
+  const fixed = hasHistoricBase ? Math.max(0, history[month]) : currentMonth ? Math.max(0, currentBase) : 0;
+  const entries = (state.variableIncomes || []).filter((entry) => entry.date?.startsWith(month));
+  const receivedVariable = entries
+    .filter((entry) => entry.status !== 'expected')
+    .reduce((sum, entry) => sum + entry.amt, 0);
+  const expectedVariable = entries
+    .filter((entry) => entry.status === 'expected')
+    .reduce((sum, entry) => sum + entry.amt, 0);
+
+  return {
+    fixed,
+    receivedVariable,
+    expectedVariable,
+    confirmed: fixed + receivedVariable,
+    projected: fixed + receivedVariable + expectedVariable,
+    hasKnownBase: hasHistoricBase || currentMonth,
+    entries,
+  };
+}
+
 export function spentByCategory(state, date = startOfToday()) {
   const txns = transactionsForMonth(state.txns, date);
   return state.budgets.map((b, i) => {

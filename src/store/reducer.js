@@ -236,6 +236,21 @@ export function reducer(state, action) {
         }),
       };
 
+    case 'setSetCount':
+      return {
+        ...state,
+        ...mapEx(state, a.i, (e) => {
+          const target = Math.max(1, Math.min(12, toInt(a.value)));
+          if (target === e.sets.length) return e;
+          if (target < e.sets.length) return { ...e, sets: e.sets.slice(0, target) };
+
+          const sets = e.sets.slice();
+          const source = sets[sets.length - 1] || { w: 20, r: 10 };
+          while (sets.length < target) sets.push({ ...source, d: false });
+          return { ...e, sets };
+        }),
+      };
+
     case 'repsDelta':
       return {
         ...state,
@@ -243,6 +258,15 @@ export function reducer(state, action) {
           ...e,
           sets: e.sets.map((s) => ({ ...s, r: Math.max(1, s.r + a.delta) })),
         })),
+      };
+
+    case 'setRepCount':
+      return {
+        ...state,
+        ...mapEx(state, a.i, (e) => {
+          const reps = Math.max(1, Math.min(50, toInt(a.value)));
+          return { ...e, sets: e.sets.map((s) => ({ ...s, r: reps })) };
+        }),
       };
 
     case 'addExercise':
@@ -505,6 +529,19 @@ export function reducer(state, action) {
           undo: null,
         };
       }
+      if (undo.kind === 'income') {
+        return {
+          ...state,
+          variableIncomes: restoreAt(
+            state.variableIncomes || [],
+            undo.item,
+            undo.index,
+            (item) => item.id === undo.item.id,
+          ),
+          notice: { id: uid('notice'), message: `${undo.item.label} restored` },
+          undo: null,
+        };
+      }
       return { ...state, undo: null };
     }
 
@@ -521,7 +558,63 @@ export function reducer(state, action) {
       };
 
     case 'setIncome':
-      return { ...state, income: Math.max(0, toFloat(a.value)) };
+    case 'setFixedIncome': {
+      const fixedIncome = Math.max(0, toFloat(a.value));
+      const month = key(startOfToday()).slice(0, 7);
+      return {
+        ...state,
+        // Keep the legacy alias in sync so an older client can still read the
+        // stable monthly base without seeing variable income as guaranteed.
+        income: fixedIncome,
+        fixedIncome,
+        incomeHistory: { ...(state.incomeHistory || {}), [month]: fixedIncome },
+      };
+    }
+
+    case 'addVariableIncome': {
+      const amt = Math.min(99999999, toFloat(a.amt));
+      if (!amt) return state;
+      const label = ((a.label || '').trim() || 'Variable income').slice(0, 80);
+      const entry = {
+        id: uid('income'),
+        label,
+        amt,
+        date: key(startOfToday()),
+        status: a.status === 'expected' ? 'expected' : 'received',
+      };
+      return {
+        ...state,
+        variableIncomes: (state.variableIncomes || []).concat(entry),
+        notice: {
+          id: uid('notice'),
+          message: entry.status === 'expected' ? `${label} added as expected` : `${label} marked received`,
+        },
+        undo: null,
+      };
+    }
+
+    case 'updateVariableIncome':
+      return {
+        ...state,
+        variableIncomes: (state.variableIncomes || []).map((entry) => entry.id === a.id
+          ? a.field === 'status'
+            ? { ...entry, status: a.value === 'expected' ? 'expected' : 'received' }
+            : entry
+          : entry),
+      };
+
+    case 'removeVariableIncome': {
+      const variableIncomes = state.variableIncomes || [];
+      const index = variableIncomes.findIndex((entry) => entry.id === a.id);
+      const item = variableIncomes[index];
+      if (!item) return state;
+      return {
+        ...state,
+        variableIncomes: variableIncomes.filter((entry) => entry.id !== a.id),
+        notice: null,
+        undo: { id: uid('undo'), kind: 'income', item, index, message: `${item.label} deleted` },
+      };
+    }
 
     case 'addBill':
       return {

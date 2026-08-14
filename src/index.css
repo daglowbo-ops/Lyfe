@@ -257,6 +257,13 @@ input::placeholder {
   transition: background 0.18s;
 }
 
+.tab-action {
+  transition-property: color, transform !important;
+}
+.tab-action:active {
+  transform: scale(0.96);
+}
+
 .muted-link {
   transition: color 0.2s;
 }
@@ -296,12 +303,14 @@ input::placeholder {
 
 @keyframes scrIn {
   from {
-    opacity: 0;
-    transform: translateY(12px);
+    opacity: 0.35;
+    transform: translateY(10px);
+    filter: blur(2px);
   }
   to {
     opacity: 1;
     transform: none;
+    filter: none;
   }
 }
 @keyframes sheetUp {
@@ -337,7 +346,7 @@ input::placeholder {
 }
 
 .screen-in {
-  animation: scrIn 0.34s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation: scrIn 0.42s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 .fade-in {
   animation: fadeIn 0.3s both;
@@ -362,5 +371,6 @@ input::placeholder {
   }
   * {
     transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
