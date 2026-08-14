@@ -3,8 +3,8 @@ import assert from 'node:assert/strict';
 import { newAccountState, seedState } from '../src/data/seed.js';
 import { rolloverData } from '../src/store/model.js';
 import { reconcile } from '../src/store/persistence.js';
-import { spendByDay, totalSpent, transactionsForMonth } from '../src/store/selectors.js';
-import { key } from '../src/lib/date.js';
+import { incomeSummary, spendByDay, totalSpent, transactionsForMonth } from '../src/store/selectors.js';
+import { key, monthKey } from '../src/lib/date.js';
 import { initialState, reducer } from '../src/store/reducer.js';
 import { CATALOG, foodMatchesQuery } from '../src/data/foods.js';
 
@@ -77,6 +77,40 @@ test('v5 transactions and numeric weights migrate without data loss', () => {
   assert.ok(migrated.txns.some((txn) => txn.date.startsWith('2026-07')));
 });
 
+test('legacy monthly income migrates to a fixed base for the current month only', () => {
+  const today = localDate(2026, 8, 11);
+  const migrated = reconcile({ income: 8200 }, newAccountState(today), today);
+  assert.equal(migrated.fixedIncome, 8200);
+  assert.equal(migrated.income, 8200);
+  assert.equal(migrated.incomeHistory['2026-08'], 8200);
+  assert.deepEqual(migrated.variableIncomes, []);
+
+  const prior = incomeSummary(migrated, localDate(2026, 7, 1));
+  assert.equal(prior.hasKnownBase, false);
+  assert.equal(prior.confirmed, 0);
+});
+
+test('received and expected variable income remain separate in confirmed totals', () => {
+  const today = new Date();
+  let state = initialState(newAccountState(today));
+  state = reducer(state, { type: 'setFixedIncome', value: '6000' });
+  state = reducer(state, { type: 'addVariableIncome', label: 'Consulting', amt: '500', status: 'received' });
+  state = reducer(state, { type: 'addVariableIncome', label: 'Commission', amt: '700', status: 'expected' });
+
+  const summary = incomeSummary(state, today);
+  assert.equal(summary.fixed, 6000);
+  assert.equal(summary.receivedVariable, 500);
+  assert.equal(summary.expectedVariable, 700);
+  assert.equal(summary.confirmed, 6500);
+  assert.equal(summary.projected, 7200);
+  assert.ok(summary.entries.every((entry) => entry.date.startsWith(monthKey(today))));
+
+  const received = state.variableIncomes.find((entry) => entry.label === 'Consulting');
+  const removed = reducer(state, { type: 'removeVariableIncome', id: received.id });
+  const restored = reducer(removed, { type: 'undoLast' });
+  assert.equal(restored.variableIncomes.some((entry) => entry.id === received.id), true);
+});
+
 test('a completed workout is archived with detailed sets exactly once per day', () => {
   const today = new Date();
   const state = initialState(seedState(today));
@@ -90,6 +124,20 @@ test('a completed workout is archived with detailed sets exactly once per day', 
   assert.ok(finished.workoutHistory[0].exercises[0].sets[0].w > 0);
   const repeated = reducer(finished, { type: 'finishWorkout' });
   assert.equal(repeated.workoutHistory.length, 1);
+});
+
+test('workout set and rep pickers apply a bounded value in one reducer action', () => {
+  const state = initialState(seedState(new Date()));
+  const resized = reducer(state, { type: 'setSetCount', i: 0, value: 7 });
+  assert.equal(resized.workout[0].sets.length, 7);
+  assert.equal(resized.workout[0].sets[6].d, false);
+
+  const repicked = reducer(resized, { type: 'setRepCount', i: 0, value: 22 });
+  assert.ok(repicked.workout[0].sets.every((set) => set.r === 22));
+
+  const bounded = reducer(repicked, { type: 'setRepCount', i: 0, value: 999 });
+  assert.ok(bounded.workout[0].sets.every((set) => set.r === 50));
+  assert.equal(reducer(bounded, { type: 'setSetCount', i: 0, value: 0 }).workout[0].sets.length, 1);
 });
 
 test('deleting an expense is reversible and restores the exact transaction', () => {

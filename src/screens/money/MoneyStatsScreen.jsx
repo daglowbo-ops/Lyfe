@@ -1,7 +1,7 @@
 import Screen from '../../components/Screen.jsx';
 import { Card, EmptyNote, GhostButton, Label, MetricBand, Mono, SegmentedControl } from '../../components/Primitives.jsx';
 import { useApp } from '../../store/AppProvider.jsx';
-import { spentByCategory, totalSpent } from '../../store/selectors.js';
+import { incomeSummary, spentByCategory, totalSpent } from '../../store/selectors.js';
 import { MON_SHORT, startOfToday } from '../../lib/date.js';
 import { money0 } from '../../lib/format.js';
 import { INK, MNY, MONO, WARN, dim } from '../../lib/theme.js';
@@ -24,30 +24,48 @@ export default function MoneyStatsScreen() {
       label: MON_SHORT[d.getMonth()],
       year: d.getFullYear(),
       spent: totalSpent(state.txns, d) || state.monthHist[ym] || 0,
+      income: incomeSummary(state, d),
     });
   }
 
-  const series = months.map((m) => (saved ? Math.max(0, state.income - m.spent) : m.spent));
-  const maxSer = Math.max(...series, 1);
-  const avg = series.reduce((a, v) => a + v, 0) / series.length;
+  // Never backfill the current income into earlier months. Cash left is only
+  // knowable when that month's fixed base was actually recorded.
+  const series = months.map((month) => (
+    saved
+      ? month.income.hasKnownBase ? month.income.confirmed - month.spent : null
+      : month.spent
+  ));
+  const knownSeries = series.filter((value) => Number.isFinite(value));
+  const maxSer = Math.max(...knownSeries.map((value) => Math.max(0, value)), 1);
+  const avg = knownSeries.length ? knownSeries.reduce((sum, value) => sum + value, 0) / knownSeries.length : 0;
 
   const sel = Math.min(state.statSel, series.length - 1);
-  const prev = sel > 0 ? series[sel - 1] : null;
-  const deltaPct = prev ? Math.round(((series[sel] - prev) / (prev || 1)) * 100) : 0;
+  const selectedValue = series[sel];
+  const prev = sel > 0 && Number.isFinite(series[sel - 1]) ? series[sel - 1] : null;
+  const deltaPct = prev !== null && Number.isFinite(selectedValue)
+    ? Math.round(((selectedValue - prev) / (Math.abs(prev) || 1)) * 100)
+    : 0;
   // For spending, down is good; for saving, up is.
   const good = saved ? deltaPct >= 0 : deltaPct <= 0;
-  const vsAvg = Math.round(((series[sel] - avg) / (avg || 1)) * 100);
+  const vsAvg = Number.isFinite(selectedValue)
+    ? Math.round(((selectedValue - avg) / (Math.abs(avg) || 1)) * 100)
+    : 0;
   const deltaColor = prev === null ? dim(0.6) : good ? MNY : WARN;
 
   const spent = totalSpent(state.txns);
-  const hasFinancialData = spent > 0 || Object.values(state.monthHist).some((value) => Number(value) > 0);
+  const currentIncome = incomeSummary(state, today);
+  const cashLeft = currentIncome.confirmed - spent;
+  const hasFinancialData = spent > 0
+    || currentIncome.confirmed > 0
+    || currentIncome.expectedVariable > 0
+    || Object.values(state.monthHist).some((value) => Number(value) > 0);
   const byCat = spentByCategory(state).sort((a, b) => b.spent - a.spent);
   const maxCat = byCat[0]?.spent || 1;
 
   return (
     <Screen>
-      <Label>LAST {WINDOW} MONTHS</Label>
-      <h1 style={{ fontSize: 30, fontWeight: 600, letterSpacing: -1, margin: '5px 0 0' }}>Statistics</h1>
+      <h1 style={{ fontSize: 30, fontWeight: 600, letterSpacing: -1, margin: 0 }}>Statistics</h1>
+      <Label style={{ marginTop: 6 }}>LAST {WINDOW} MONTHS</Label>
 
       <SegmentedControl
         style={{ marginTop: 18, borderRadius: 15 }}
@@ -55,7 +73,7 @@ export default function MoneyStatsScreen() {
         onChange={(v) => patch({ statMode: v })}
         options={[
           { value: 'spend', label: 'Spending' },
-          { value: 'saved', label: 'Saved' },
+          { value: 'saved', label: 'Cash left' },
         ]}
       />
 
@@ -75,15 +93,17 @@ export default function MoneyStatsScreen() {
         <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>
           <div>
             <Label color={MNY}>
-              {months[sel].label} {months[sel].year} · {saved ? 'SAVED' : 'SPENT'}
+              {months[sel].label} {months[sel].year} · {saved ? (Number.isFinite(selectedValue) ? 'CASH LEFT' : 'INCOME NOT RECORDED') : 'SPENT'}
             </Label>
             <div style={{ fontSize: 40, fontWeight: 600, letterSpacing: -2, lineHeight: 1, marginTop: 8 }}>
-              {money0(series[sel])}
+              {Number.isFinite(selectedValue) ? money0(selectedValue) : '—'}
             </div>
           </div>
           <Mono size={12} color={deltaColor}>
-            {prev === null
-              ? 'first month'
+            {!Number.isFinite(selectedValue)
+              ? 'cash left unavailable'
+              : prev === null
+                ? 'no prior comparison'
               : `${deltaPct >= 0 ? '+' : ''}${deltaPct}% vs ${months[sel - 1].label}`}
           </Mono>
         </div>
@@ -102,11 +122,11 @@ export default function MoneyStatsScreen() {
           >
             <span style={{ position: 'absolute', right: 0, top: -16, fontFamily: MONO, fontSize: 10.5, color: dim(0.5) }}>AVG</span>
           </div>
-          {series.map((v, i) => (
+          {series.map((value, i) => (
             <button
               key={i}
               onClick={() => patch({ statSel: i })}
-              aria-label={`${months[i].label} ${months[i].year}: ${money0(v)}`}
+              aria-label={`${months[i].label} ${months[i].year}: ${Number.isFinite(value) ? money0(value) : 'income not recorded'}`}
               style={{
                 flex: 1,
                 position: 'relative',
@@ -120,10 +140,12 @@ export default function MoneyStatsScreen() {
             >
               <div
                 style={{
-                  borderRadius: '5px 5px 2px 2px',
-                  height: `${Math.max(4, Math.round((v / maxSer) * 100))}%`,
-                  transition: 'background .25s',
-                  background: i === sel ? MNY : dim(0.18),
+                  borderRadius: '12px 12px 0 0',
+                  height: '100%',
+                  transform: `scaleY(${Number.isFinite(value) ? Math.max(0.04, Math.max(0, value) / maxSer) : 0.025})`,
+                  transformOrigin: 'bottom center',
+                  transition: 'background .25s, transform .25s cubic-bezier(.2,.8,.2,1)',
+                  background: Number.isFinite(value) ? (i === sel ? MNY : dim(0.18)) : dim(0.08),
                 }}
               />
             </button>
@@ -157,10 +179,19 @@ export default function MoneyStatsScreen() {
             borderTop: `1px solid ${dim(0.08)}`,
           }}
         >
-          <Foot label={`${WINDOW}M AVERAGE`} value={money0(avg)} />
-          <Foot label="HIGHEST" value={money0(maxSer)} />
-          <Foot label="VS AVERAGE" value={`${vsAvg >= 0 ? '+' : ''}${vsAvg}%`} color={deltaColor} />
+          <Foot label={`${WINDOW}M AVERAGE`} value={knownSeries.length ? money0(avg) : '—'} />
+          <Foot label="HIGHEST" value={knownSeries.length ? money0(Math.max(...knownSeries)) : '—'} />
+          <Foot
+            label="VS AVERAGE"
+            value={Number.isFinite(selectedValue) ? `${vsAvg >= 0 ? '+' : ''}${vsAvg}%` : '—'}
+            color={deltaColor}
+          />
         </div>
+        {saved && months.some((month) => !month.income.hasKnownBase) && (
+          <div style={{ color: dim(0.58), fontSize: 12.5, lineHeight: 1.4, marginTop: 12 }}>
+            Cash left appears only for months with a recorded income base.
+          </div>
+        )}
       </Card>}
 
       {hasFinancialData && (
@@ -168,17 +199,23 @@ export default function MoneyStatsScreen() {
           style={{ marginTop: 16 }}
           items={[
             {
-              label: 'SAVED THIS MONTH',
-              value: money0(Math.max(0, state.income - spent)),
-              color: MNY,
+              label: 'CASH LEFT THIS MONTH',
+              value: money0(cashLeft),
+              color: cashLeft < 0 ? WARN : MNY,
             },
             {
-              label: 'OF INCOME',
-              value: `${Math.round((Math.max(0, state.income - spent) / (state.income || 1)) * 100)}%`,
+              label: 'OF CONFIRMED INCOME',
+              value: `${Math.round((Math.max(0, cashLeft) / (currentIncome.confirmed || 1)) * 100)}%`,
               color: dim(0.62),
             },
           ]}
         />
+      )}
+
+      {hasFinancialData && currentIncome.expectedVariable > 0 && (
+        <div style={{ color: dim(0.6), fontSize: 12.5, lineHeight: 1.4, marginTop: 10 }}>
+          {money0(currentIncome.expectedVariable)} expected variable income is excluded until received.
+        </div>
       )}
 
       {hasFinancialData && <><div style={{ marginTop: 26, display: 'flex', alignItems: 'baseline', justifyContent: 'space-between' }}>

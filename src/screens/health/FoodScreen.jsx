@@ -14,8 +14,8 @@ export default function FoodScreen() {
 
   return (
     <Screen>
-      <Label>{fullLabel(startOfToday())}</Label>
-      <h1 style={{ fontSize: 30, fontWeight: 600, letterSpacing: -1, margin: '5px 0 0' }}>Food log</h1>
+      <h1 style={{ fontSize: 30, fontWeight: 600, letterSpacing: -1, margin: 0 }}>Food log</h1>
+      <Label style={{ marginTop: 6 }}>{fullLabel(startOfToday())}</Label>
 
       <div
         style={{

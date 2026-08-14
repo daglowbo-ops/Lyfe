@@ -15,8 +15,9 @@ npm run dev
 - **Health:** daily meals and macros, workout templates, set tracking, rest
   timing, completed-workout archives, planning, targets, weight entries, and
   progress.
-- **Money:** dated expenses, one-tap favorites, editable income and category
-  budgets, recurring bills, historical calendars, and six-month statistics.
+- **Money:** dated expenses, one-tap favorites, fixed monthly income, dated
+  variable income (received or expected), category budgets, recurring bills,
+  historical calendars, and six-month statistics.
 
 The interface keeps the original Fieldnote visual system: a dark mobile shell,
 green nutrition, amber training, blue money, and red budget warnings.
@@ -33,6 +34,9 @@ optimistic and remains in memory only until Supabase confirms the write.
   and totals read their own data.
 - Saving a completed workout archives its exercises, sets, reps, weights, date,
   and completion time.
+- Money budgets use confirmed income only. Expected variable income stays
+  visible but unavailable until it is marked received, and historical cash-left
+  statistics never reuse the current income for an older unknown month.
 - Navigation, open sheets, lock errors, and half-typed drafts remain transient.
 - Every durable change exposes a saving, saved, or retry state. A failed write
   is never presented as safely stored.

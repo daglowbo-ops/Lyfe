@@ -4,7 +4,7 @@ import {
   DEFAULT_BILLS, DEFAULT_INCOME,
 } from './money.js';
 import { DEFAULT_CYCLE, seedTemplates, seedWorkout } from './templates.js';
-import { addDays, dowIndex, key, startOfToday } from '../lib/date.js';
+import { addDays, dowIndex, key, monthKey, startOfToday } from '../lib/date.js';
 
 /**
  * Deterministic LCG. A first run should always produce the same demo history,
@@ -131,6 +131,14 @@ export function seedMonthHistory(today = startOfToday()) {
   return out;
 }
 
+function seedIncomeHistory(today = startOfToday(), income = DEFAULT_INCOME) {
+  const out = {};
+  for (let i = 5; i >= 0; i--) {
+    out[monthKey(new Date(today.getFullYear(), today.getMonth() - i, 1))] = income;
+  }
+  return out;
+}
+
 /** Everything a brand-new install starts with. */
 export function seedState(today = startOfToday()) {
   const todayKey = key(today);
@@ -154,6 +162,9 @@ export function seedState(today = startOfToday()) {
     budgets: DEFAULT_BUDGETS.map((b) => ({ ...b })),
     favs: DEFAULT_FAVOURITES.map((f) => ({ ...f })),
     income: DEFAULT_INCOME,
+    fixedIncome: DEFAULT_INCOME,
+    incomeHistory: seedIncomeHistory(today),
+    variableIncomes: [],
     bills: DEFAULT_BILLS.map((b) => ({ ...b })),
     profileName: 'Robin Kade',
     toggles: { haptics: true, kg: true, lock: false },
@@ -183,6 +194,9 @@ export function newAccountState(today = startOfToday(), profileName = 'Your name
     budgets: DEFAULT_BUDGETS.map((budget) => ({ ...budget, limit: 0 })),
     favs: [],
     income: 0,
+    fixedIncome: 0,
+    incomeHistory: { [monthKey(today)]: 0 },
+    variableIncomes: [],
     bills: [],
     profileName,
     toggles: { haptics: true, kg: true, lock: false },

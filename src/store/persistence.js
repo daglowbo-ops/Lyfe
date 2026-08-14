@@ -4,11 +4,12 @@ import { addDays, key, monthKey, startOfToday } from '../lib/date.js';
 export const PERSISTED = [
   'activeDate', 'meals', 'workout', 'sessionFinished', 'dailyLogs', 'workoutHistory',
   'templates', 'curName', 'customFoods', 'hist', 'goalHist', 'plan', 'weights', 'goals',
-  'txns', 'monthHist', 'budgets', 'favs', 'income', 'bills', 'profileName', 'toggles',
+  'txns', 'monthHist', 'budgets', 'favs', 'income', 'fixedIncome', 'incomeHistory',
+  'variableIncomes', 'bills', 'profileName', 'toggles',
 ];
 
 export function snapshot(state) {
-  const out = { schemaVersion: 6, updatedAt: new Date().toISOString() };
+  const out = { schemaVersion: 7, updatedAt: new Date().toISOString() };
   for (const field of PERSISTED) out[field] = state[field];
   return out;
 }
@@ -58,6 +59,27 @@ function normalizeTransactions(saved, seed, today) {
   return historic.concat(migrated.length ? migrated : seed.txns.filter((txn) => txn.date.startsWith(currentMonth)));
 }
 
+function normalizeVariableIncomes(value) {
+  if (!Array.isArray(value)) return [];
+  return value
+    .filter((entry) => (
+      entry
+      && typeof entry.date === 'string'
+      && typeof entry.amt === 'number'
+      && Number.isFinite(entry.amt)
+      && entry.amt > 0
+    ))
+    .map((entry, index) => ({
+      id: typeof entry.id === 'string' ? entry.id : `income-${entry.date}-${index}`,
+      label: typeof entry.label === 'string' && entry.label.trim()
+        ? entry.label.trim().slice(0, 80)
+        : 'Variable income',
+      amt: entry.amt,
+      date: entry.date,
+      status: entry.status === 'expected' ? 'expected' : 'received',
+    }));
+}
+
 /** Reconcile older local snapshots with the current production shape. */
 export function reconcile(saved, seed, today = startOfToday()) {
   if (!saved || typeof saved !== 'object') return seed;
@@ -70,6 +92,21 @@ export function reconcile(saved, seed, today = startOfToday()) {
     : seed.goalHist;
   const templates = arr(saved.templates, seed.templates);
   const workout = arr(saved.workout, seed.workout);
+  const fixedIncome = typeof saved.fixedIncome === 'number'
+    ? saved.fixedIncome
+    : typeof saved.income === 'number'
+      ? saved.income
+      : seed.fixedIncome;
+  const currentMonth = monthKey(today);
+  const savedIncomeHistory = saved.incomeHistory && typeof saved.incomeHistory === 'object' && !Array.isArray(saved.incomeHistory)
+    ? saved.incomeHistory
+    : {};
+  const incomeHistory = Object.fromEntries(
+    Object.entries(savedIncomeHistory)
+      .filter(([month, amount]) => /^\d{4}-\d{2}$/.test(month) && typeof amount === 'number' && Number.isFinite(amount))
+      .map(([month, amount]) => [month, Math.max(0, amount)]),
+  );
+  if (!Object.hasOwn(incomeHistory, currentMonth)) incomeHistory[currentMonth] = Math.max(0, fixedIncome || 0);
 
   return {
     ...seed,
@@ -91,7 +128,12 @@ export function reconcile(saved, seed, today = startOfToday()) {
     monthHist: { ...seed.monthHist, ...(saved.monthHist || {}) },
     budgets: arr(saved.budgets, seed.budgets),
     favs: arr(saved.favs, seed.favs),
-    income: typeof saved.income === 'number' ? saved.income : seed.income,
+    // `income` remains as a compatibility alias for older clients. New code
+    // reads `fixedIncome` and dated variable income entries instead.
+    income: Math.max(0, fixedIncome || 0),
+    fixedIncome: Math.max(0, fixedIncome || 0),
+    incomeHistory,
+    variableIncomes: normalizeVariableIncomes(saved.variableIncomes),
     bills: arr(saved.bills, seed.bills),
     profileName: typeof saved.profileName === 'string' ? saved.profileName : seed.profileName,
     toggles: { ...seed.toggles, ...(saved.toggles || {}), offline: undefined },

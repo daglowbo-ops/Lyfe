@@ -42,6 +42,7 @@ export default function TabBar({ tabs, active, onSelect }) {
           <button
             key={t.id}
             type="button"
+            className="tab-action"
             onClick={() => onSelect(t.id)}
             aria-current={on ? 'page' : undefined}
             style={{
@@ -52,7 +53,7 @@ export default function TabBar({ tabs, active, onSelect }) {
               alignItems: 'center',
               justifyContent: 'center',
               gap: 7,
-              transition: 'color .25s',
+              transition: 'color .28s cubic-bezier(.16,1,.3,1)',
               color: on ? INK : dim(0.58),
               position: 'relative',
             }}
@@ -62,15 +63,25 @@ export default function TabBar({ tabs, active, onSelect }) {
               style={{
                 position: 'absolute',
                 top: -11,
-                width: 18,
+                width: 22,
                 height: 2,
+                borderRadius: 2,
                 background: t.accent,
                 opacity: on ? 1 : 0,
                 transform: `scaleX(${on ? 1 : 0.35})`,
                 transition: 'opacity .2s, transform .25s cubic-bezier(.2,.8,.2,1)',
               }}
             />
-            <NavIcon name={t.icon} />
+            <span
+              aria-hidden="true"
+              style={{
+                display: 'flex',
+                transform: on ? 'translateY(-1px) scale(1.06)' : 'none',
+                transition: 'transform .34s cubic-bezier(.16,1,.3,1)',
+              }}
+            >
+              <NavIcon name={t.icon} />
+            </span>
             <span style={{ fontFamily: MONO, fontSize: 12, letterSpacing: 0.6 }}>{t.label}</span>
           </button>
         );

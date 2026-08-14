@@ -15,8 +15,8 @@ export default function MoneyPlanScreen() {
 
   return (
     <Screen>
-      <Label>{monthLabel(state.mPlanMode === 'month' ? addMonths(today, state.mCalOff) : today)}</Label>
-      <h1 style={{ fontSize: 30, fontWeight: 600, letterSpacing: -1, margin: '5px 0 0' }}>Calendar</h1>
+      <h1 style={{ fontSize: 30, fontWeight: 600, letterSpacing: -1, margin: 0 }}>Calendar</h1>
+      <Label style={{ marginTop: 6 }}>{monthLabel(state.mPlanMode === 'month' ? addMonths(today, state.mCalOff) : today)}</Label>
       <SegmentedControl
         style={{ marginTop: 18, borderRadius: 15 }}
         value={state.mPlanMode}
